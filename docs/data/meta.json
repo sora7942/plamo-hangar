@@ -1,8 +1,8 @@
 {
-"updatedAt":"2026-10-06T23:01:34+09:00",
+"updatedAt":"2026-10-06T23:45:21+09:00",
 "since":"2026-10-06",
-"sources":{"hobby_schedule":{"ok":true,"at":"2026-10-06T23:01:34+09:00","items":3522,"error":null},"hobby_brand":{"ok":true,"at":"2026-10-06T23:06:14+09:00","items":408,"error":null},"hobby_item":{"ok":true,"at":"2026-10-06T23:07:43+09:00","items":190,"error":null},"translate":{"ok":true,"at":"2026-10-06T23:17:33+09:00","items":600,"error":null,"pending":1497,"skipped":null,"model":"claude-sonnet-5-5","kanaRetried":4,"kanaRejected":0}},
-"crawl":{"scheduleFrom":"2015-01","girlBrandsDone":["30ms","30mp","figurerise-standard","figurerise-standard-amp","figurerise-bust"],"backlog":2677,"counts":{"gunpla":1681,"girl":416,"pending":1379,"excluded":59}},
-"stats":{"requests":379,"byKind":{"robots":1,"schedule":145,"brand":43,"detail":190},"failures":0,"elapsedSec":958.9,"minGapSec":1.2},
+"sources":{"hobby_schedule":{"ok":true,"at":"2026-10-06T23:45:21+09:00","items":91,"error":null},"hobby_brand":{"ok":true,"at":"2026-10-06T23:45:27+09:00","items":40,"error":null},"hobby_item":{"ok":true,"at":"2026-10-06T23:45:32+09:00","items":360,"error":null},"translate":{"ok":true,"at":"2026-10-07T00:04:22+09:00","items":600,"error":null,"pending":871,"skipped":null,"model":"claude-sonnet-5-5","kanaRetried":0,"kanaRejected":0}},
+"crawl":{"scheduleFrom":"2015-01","girlBrandsDone":["30ms","30mp","figurerise-standard","figurerise-standard-amp"],"backlog":2294,"counts":{"gunpla":1681,"girl":390,"pending":1379,"excluded":85},"lastFixups":{"toExcluded":26,"lineChanged":0,"nameKoReplaced":6,"feedTitleKoReplaced":0}},
+"stats":{"requests":369,"byKind":{"robots":1,"schedule":4,"brand":4,"detail":360},"failures":0,"elapsedSec":1141.6,"minGapSec":1.2},
 "unknownBrandKeys":[]
 }
