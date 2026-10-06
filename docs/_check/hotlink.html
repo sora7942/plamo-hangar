@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>hotlink check</title>
+<style>
+:root{color-scheme:light dark}
+body{font:14px/1.5 system-ui,sans-serif;margin:16px;max-width:960px}
+h1{font-size:18px;margin:0 0 4px}h2{font-size:14px;margin:22px 0 6px}
+p{margin:4px 0}.muted{opacity:.7;font-size:12px}
+figure{display:inline-block;margin:4px;vertical-align:top;width:150px}
+img{height:120px;max-width:150px;object-fit:contain;background:#8884;border:1px solid #8886;display:block}
+figcaption{font-size:11px;word-break:break-all;margin-top:2px}
+.ok .st{color:#1a7f37}.fail .st{color:#cf222e;font-weight:700}.fail img{outline:2px solid #cf222e}
+#sum{font-weight:700;margin:10px 0}
+</style>
+</head>
+<body>
+<h1>핫링크 확인 (임시 페이지)</h1>
+<p>공식 이미지를 <b>저장하지 않고 원본 URL로 링크만</b> 거는 방식이 <b>github.io 오리진에서</b> 뜨는지 확인합니다. 안정 URL(akamai, 호비 정적)만 넣었고 서명 URL은 넣지 않았어요.</p>
+<p class="muted">열린 주소: <span id="origin"></span> — <b>https://sora7942.github.io/…</b> 로 열었을 때만 의미가 있어요. 이미지는 1.2초 간격으로 하나씩 불러와요.</p>
+<p id="sum">불러오는 중…</p>
+
+<h2>A. referrerpolicy="no-referrer" (사이트가 실제로 쓰는 방식)</h2>
+<div id="rowA">
+<figure><img data-src="https://bandai-a.akamaihd.net/bc/img/model/xl/1000179163_1.jpg" referrerpolicy="no-referrer" alt=""><figcaption>akamai 1000179163_1</figcaption></figure>
+<figure><img data-src="https://bandai-a.akamaihd.net/bc/img/model/xl/1000179163_2.jpg" referrerpolicy="no-referrer" alt=""><figcaption>akamai 1000179163_2</figcaption></figure>
+<figure><img data-src="https://bandai-a.akamaihd.net/bc/img/model/xl/1000179163_3.jpg" referrerpolicy="no-referrer" alt=""><figcaption>akamai 1000179163_3</figcaption></figure>
+<figure><img data-src="https://bandai-a.akamaihd.net/bc/img/model/xl/1000218731_1.jpg" referrerpolicy="no-referrer" alt=""><figcaption>akamai 1000218731_1</figcaption></figure>
+<figure><img data-src="https://bandai-a.akamaihd.net/bc/img/model/xl/1000218731_12.jpg" referrerpolicy="no-referrer" alt=""><figcaption>akamai 1000218731_12</figcaption></figure>
+<figure><img data-src="https://bandai-hobby.net/images/153_5176_s_q75wv84aj9ba2gxn7j98f1fsujj9.jpg" referrerpolicy="no-referrer" alt=""><figcaption>호비 정적 153_5176</figcaption></figure>
+<figure><img data-src="https://bandai-hobby.net/images/155_5176_s_me1c6039l4lrce2ishn5nr3hy9an.jpg" referrerpolicy="no-referrer" alt=""><figcaption>호비 정적 155_5176</figcaption></figure>
+<figure><img data-src="https://bandai-hobby.net/images/153_3997_s_b01u1yw4v00eon7yc0brocjnd5h1.jpg" referrerpolicy="no-referrer" alt=""><figcaption>호비 정적 153_3997</figcaption></figure>
+</div>
+
+<h2>B. 정책 없음 (브라우저 기본 = github.io 주소가 Referer로 전송) — A와 겹치지 않는 이미지로 확인</h2>
+<div id="rowB">
+<figure><img data-src="https://bandai-a.akamaihd.net/bc/img/model/xl/1000179163_4.jpg" alt=""><figcaption>akamai 1000179163_4</figcaption></figure>
+<figure><img data-src="https://bandai-a.akamaihd.net/bc/img/model/xl/1000179163_5.jpg" alt=""><figcaption>akamai 1000179163_5</figcaption></figure>
+<figure><img data-src="https://bandai-hobby.net/images/153_2462_s_438c84ne2m12v48yinfm0ryegcid.jpg" alt=""><figcaption>호비 정적 153_2462</figcaption></figure>
+</div>
+
+<p class="muted" style="margin-top:24px">확인이 끝나면 <code>docs/_check/</code> 폴더를 통째로 지우고 커밋하세요.</p>
+
+<script>
+document.getElementById('origin').textContent = location.origin + location.pathname;
+var imgs = Array.prototype.slice.call(document.querySelectorAll('img[data-src]')), okN = 0, total = imgs.length;
+function mark(im, ok) {
+  var fig = im.closest('figure'), s = document.createElement('div');
+  s.className = 'st'; s.textContent = ok ? '✅ ' + im.naturalWidth + '×' + im.naturalHeight : '❌ 안 뜸';
+  fig.appendChild(s); fig.className = ok ? 'ok' : 'fail'; if (ok) okN++;
+}
+function next(i) {
+  if (i >= imgs.length) {
+    document.getElementById('sum').textContent = okN + ' / ' + total + ' 성공' + (okN === total ? ' — 핫링크 OK' : ' — 실패한 이미지가 있어요');
+    return;
+  }
+  var im = imgs[i], done = function () { mark(im, im.complete && im.naturalWidth > 0); setTimeout(function () { next(i + 1); }, 1200); };
+  im.addEventListener('load', done, { once: true }); im.addEventListener('error', done, { once: true });
+  im.src = im.dataset.src;
+}
+next(0);
+</script>
+</body>
+</html>
