@@ -1,0 +1,17 @@
+User-agent: *
+
+# パラメータによる重複クロールの抑制
+Disallow: /*?*offset=
+Disallow: /*?*limit=
+Disallow: /*?*sortType=
+Disallow: /*?*_f_productStatuses=
+
+# サイトマップ インデックスの指定
+Sitemap: https://p-bandai.com/sitemap.xml
+Sitemap: https://p-bandai.com/au/sitemap.xml
+Sitemap: https://p-bandai.com/hk/sitemap.xml
+Sitemap: https://p-bandai.com/nz/sitemap.xml
+Sitemap: https://p-bandai.com/sg/sitemap.xml
+Sitemap: https://p-bandai.com/tw/sitemap.xml
+Sitemap: https://p-bandai.com/us/sitemap.xml
+Sitemap: https://p-bandai.com/fr/sitemap.xml

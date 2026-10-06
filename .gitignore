@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# spike 작업 산출물 (fixture만 tests/fixtures/ 에 커밋)
+spike/out/
+spike/out-actions/
+# 공식 이미지가 찍힌 스크린샷은 저장소에 넣지 않는다 (CLAUDE.md Critical)
+spike/screenshots/

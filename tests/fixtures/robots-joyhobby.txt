@@ -1,0 +1,17 @@
+User-agent: *
+Disallow: /admin/
+
+User-agent: YandexBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot/1.2~bl
+Disallow: /
+
+User-agent: SemrushBot-SA
+Disallow: /

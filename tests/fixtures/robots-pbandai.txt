@@ -1,0 +1,1 @@
+# (spike) robots.txt 없음 또는 비정상: status=200 content-type=text/html final=https://p-bandai.jp/global_newpc.html

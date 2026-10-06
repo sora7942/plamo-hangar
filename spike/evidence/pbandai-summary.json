@@ -1,0 +1,336 @@
+{
+ "site": "pbandai",
+ "errors": [],
+ "jp_robots": {
+  "readable": false,
+  "raw_first_line": "# (spike) robots.txt 없음 또는 비정상: status=200 content-type=text/html final=https://p-bandai.jp/global_newpc.html"
+ },
+ "jp_probes": [
+  {
+   "name": "top",
+   "url": "https://p-bandai.jp/",
+   "status": 200,
+   "final": "https://p-bandai.jp/global_newpc.html",
+   "redirects": 1,
+   "title": "【プレミアムバンダイ】INTERNATIONAL SHIPPING AVAILABLE｜PREMIUM BANDAI",
+   "region_redirect": true
+  },
+  {
+   "name": "category(hobby)",
+   "url": "https://p-bandai.jp/hobby/",
+   "status": 200,
+   "final": "https://p-bandai.jp/global_newpc.html",
+   "redirects": 1,
+   "title": "【プレミアムバンダイ】INTERNATIONAL SHIPPING AVAILABLE｜PREMIUM BANDAI",
+   "region_redirect": true
+  },
+  {
+   "name": "item",
+   "url": "https://p-bandai.jp/item/item-1000188677",
+   "status": 200,
+   "final": "https://p-bandai.jp/global_newpc.html",
+   "redirects": 1,
+   "title": "【プレミアムバンダイ】INTERNATIONAL SHIPPING AVAILABLE｜PREMIUM BANDAI",
+   "region_redirect": true
+  }
+ ],
+ "jp_blocked_region": true,
+ "alt_global_us": {
+  "robots_rules": [
+   [
+    "disallow",
+    "/*?*offset="
+   ],
+   [
+    "disallow",
+    "/*?*limit="
+   ],
+   [
+    "disallow",
+    "/*?*sortType="
+   ],
+   [
+    "disallow",
+    "/*?*_f_productStatuses="
+   ]
+  ],
+  "search_url_allowed": false,
+  "item_url_allowed": true,
+  "home": {
+   "status": 200,
+   "final": "https://p-bandai.com/us/",
+   "redirects": 0,
+   "sections": {
+    "(top)": [
+     {
+      "id": "F2907291001",
+      "text": "PRE-ORDER ONE PIECE GIGA WORLD COLLECTABLE FIGURE LOKI \"With his overwhelming size, ‘Loki,"
+     },
+     {
+      "id": "F2866276001",
+      "text": "PRE-ORDER EXCLUSIVE THE METAL ROBOT SPIRITS <SIDE MS> HWS ＆ DISPLAY PARTS SET For ν GUNDAM"
+     },
+     {
+      "id": "F2866271001",
+      "text": "PRE-ORDER EXCLUSIVE METAL BUILD STRIKE NOIR GUNDAM (20th MEMORIAL COLOR) Strike Noir Gunda"
+     },
+     {
+      "id": "F2423965005",
+      "text": "PRE-ORDER EXCLUSIVE HG 1/144 GUNDAM GROUND TYPE (PARACHUTE PACK) ● The distinctive parachu"
+     },
+     {
+      "id": "F2487791002",
+      "text": "PRE-ORDER EXCLUSIVE MG 1/100 JEGAN TYPE-D (FIRST DEPLOYMENT TYPE) The early deployment Jeg"
+     },
+     {
+      "id": "F2866459001",
+      "text": "PRE-ORDER EXCLUSIVE THE ROBOT SPIRITS ＜SIDE MS＞ QUIN-MANTHA ～MARKING PLUS～ To commemorate "
+     },
+     {
+      "id": "F2866277001",
+      "text": "PRE-ORDER EXCLUSIVE THE METAL ROBOT SPIRITS (Ka signature) <SIDE MS> ENHANCED ZZ GUNDAM Th"
+     },
+     {
+      "id": "F2865372001",
+      "text": "PRE-ORDER EXCLUSIVE S.H.Figuarts JIRAHS ●Shaping The overall shape was produced by Yuji Sa"
+     },
+     {
+      "id": "F2878310001",
+      "text": "PRE-ORDER EXCLUSIVE SAINT CLOTH MYTH EX ZETA MIZARSYD 40th Anniversary Ver. The body is no"
+     }
+    ],
+    "NEW ARRIVALS": [
+     {
+      "id": "F2912910001",
+      "text": "THE METAL ROBOT SPIRITS <SIDE MS> GUNDAM VIDAR [Re:Coordinate] US$ ‌180.00"
+     },
+     {
+      "id": "F2894766001",
+      "text": "S.H.Figuarts ANTLAR 60th Anniversary Edition US$ ‌100.00"
+     },
+     {
+      "id": "F2866245001",
+      "text": "SAINT CLOTH MYTH EX CYGNUS HYOGA [FINAL BRONZE CLOTH] -ORIGINAL COLOR EDITION- US$ ‌160.00"
+     },
+     {
+      "id": "F2212888008",
+      "text": "MG 1/100 MS-06R-1A ZAKUII UMA LIGHTNING CUSTOM US$ ‌66.00"
+     },
+     {
+      "id": "F2835905002",
+      "text": "HG 1/35 LANCELOT US$ ‌50.00"
+     },
+     {
+      "id": "F2693619006",
+      "text": "RG 1/144 BLAST IMPULSE GUNDAM SpecⅡ US$ ‌53.00"
+     },
+     {
+      "id": "F2487791002",
+      "text": "MG 1/100 JEGAN TYPE-D (FIRST DEPLOYMENT TYPE) US$ ‌59.00"
+     },
+     {
+      "id": "F2423965005",
+      "text": "HG 1/144 GUNDAM GROUND TYPE (PARACHUTE PACK) US$ ‌28.00"
+     },
+     {
+      "id": "F2866271001",
+      "text": "METAL BUILD STRIKE NOIR GUNDAM (20th MEMORIAL COLOR) US$ ‌360.00"
+     },
+     {
+      "id": "F2866276001",
+      "text": "THE METAL ROBOT SPIRITS <SIDE MS> HWS ＆ DISPLAY PARTS SET For ν GUNDAM US$ ‌110.00"
+     },
+     {
+      "id": "FZ003127001",
+      "text": "EMOTION BIG JACKET COLLECTION MOBILE SUIT GUNDAM I US$ ‌90.00"
+     },
+     {
+      "id": "FZ003128001",
+      "text": "EMOTION BIG JACKET COLLECTION MOBILE SUIT GUNDAM II Soldiers of Sorrow US$ ‌90.00"
+     },
+     {
+      "id": "FZ003129001",
+      "text": "EMOTION BIG JACKET COLLECTION MOBILE SUIT GUNDAM III Encounters in Space US$ ‌90.00"
+     },
+     {
+      "id": "FZ003130001",
+      "text": "EMOTION BIG JACKET COLLECTION MOBILE SUIT GUNDAM Char's Counterattack US$ ‌90.00"
+     },
+     {
+      "id": "N9065181001",
+      "text": "ONE PIECE CARD GAME -THE WORLD’S STRONGEST WARRIORS- [OP-17] Booster Box US$ ‌120.00"
+     },
+     {
+      "id": "N9065180001",
+      "text": "ONE PIECE CARD GAME -THE TIME OF BATTLE- [OP-16] Booster Box US$ ‌120.00"
+     },
+     {
+      "id": "F2904133001",
+      "text": "THE METAL ROBOT SPIRITS (Ka signature) ＜SIDE MS＞ FULL ARMOR PARTS SET For ENHANCED ZZ GUND"
+     },
+     {
+      "id": "F2866459001",
+      "text": "THE ROBOT SPIRITS ＜SIDE MS＞ QUIN-MANTHA ～MARKING PLUS～ US$ ‌320.00"
+     },
+     {
+      "id": "F2878273001",
+      "text": "S.H.Figuarts (SHINKOCCHOU SEIHOU) MASKED RIDER KICKHOPPER & MASKED RIDER PUNCHHOPPER 20th "
+     },
+     {
+      "id": "FZ000442011",
+      "text": "RG 1/144 UNICORN GUNDAM 03 PHENEX (NARRATIVE Ver.) US$ ‌153.00"
+     }
+    ],
+    "CLOSING SOON": [
+     {
+      "id": "F2907291001",
+      "text": "ONE PIECE GIGA WORLD COLLECTABLE FIGURE LOKI US$ ‌195.00"
+     },
+     {
+      "id": "N9065181001",
+      "text": "ONE PIECE CARD GAME -THE WORLD’S STRONGEST WARRIORS- [OP-17] Booster Box US$ ‌120.00"
+     },
+     {
+      "id": "N9065180001",
+      "text": "ONE PIECE CARD GAME -THE TIME OF BATTLE- [OP-16] Booster Box US$ ‌120.00"
+     },
+     {
+      "id": "F2723577003",
+      "text": "HG 1/144 BEGUIR-BEU TORCHE (KENANJI TEAM/RIDRICK TEAM) US$ ‌29.00"
+     },
+     {
+      "id": "F2655096005",
+      "text": "HG 1/144 GUNDAM MAXTER US$ ‌35.00"
+     },
+     {
+      "id": "F2656317004",
+      "text": "HG 1/35 GUREN Type-08 Elements \"SEITEN\" US$ ‌70.00"
+     },
+     {
+      "id": "F2563438005",
+      "text": "HG 1/144 MESSER TYPE-F02 (COMMANDER TYPE) US$ ‌40.00"
+     },
+     {
+      "id": "F2388667003",
+      "text": "MG 1/100 MS-06R-1 BRENISS OX'S ZAKU II US$ ‌70.00"
+     },
+     {
+      "id": "F2540816003",
+      "text": "MG 1/100 Ex-S GUNDAM/S GUNDAM (TASK FORCE α Ver.) US$ ‌197.00"
+     },
+     {
+      "id": "F2687871002",
+      "text": "HG 1/35 GAWAIN US$ ‌66.00"
+     }
+    ],
+    "IN STOCK": [
+     {
+      "id": "F2229012008",
+      "text": "HGUC 1/144 EWAC ZACK/GAZA C/GEARA DOGA (GUNDAM UNICORN Ver.) SET US$ ‌78.00"
+     },
+     {
+      "id": "F2494249004",
+      "text": "MG 1/100 GUNDAM DYNAMES(TRANS-AM MODE)[METALLIC GLOSS INJECTION] US$ ‌66.00"
+     },
+     {
+      "id": "F2211442009",
+      "text": "HGUC 1/144 GATO’S GELGOOG US$ ‌29.00"
+     },
+     {
+      "id": "F2825380002",
+      "text": "HG 1/35 Zi-Artemis US$ ‌132.00"
+     },
+     {
+      "id": "F2661386004",
+      "text": "HG EXPANSION PARTS SET 1 for SCOPEDOG US$ ‌21.00"
+     },
+     {
+      "id": "F2675535005",
+      "text": "HG 1/144 GUNDAM LFRITH ANAVATA US$ ‌25.00"
+     },
+     {
+      "id": "F2172898011",
+      "text": "HGUC 1/144 GMIII (UNICORN DESERT COLOR VER.) US$ ‌24.00"
+     },
+     {
+      "id": "F2188280010",
+      "text": "HGUC 1/144 ReZEL TYPE-C (GR) US$ ‌25.00"
+     },
+     {
+      "id": "F2238166009",
+      "text": "MG 1/100 ZAKU CANNON (GUNDAM UNICORN Ver.) US$ ‌67.00"
+     },
+     {
+      "id": "F2213700007",
+      "text": "MG 1/100 MARASAI (GUNDAM UNICORN Ver.) US$ ‌63.00"
+     }
+    ]
+   },
+   "counts": {
+    "(top)": 9,
+    "NEW ARRIVALS": 20,
+    "CLOSING SOON": 10,
+    "IN STOCK": 10
+   }
+  },
+  "items": [
+   {
+    "available": false,
+    "title": "PAGE NOT AVAILABLE｜PREMIUM BANDAI",
+    "id": "F2423965005",
+    "status": 200
+   },
+   {
+    "available": true,
+    "title": "HG 1/35 LANCELOT",
+    "price_usd": "50.00",
+    "flags": [
+     "EXCLUSIVE",
+     "PRE-ORDER"
+    ],
+    "ships": "Feb. 2027",
+    "preorder_open": "Sep. 28 2026 3:40 PM (EDT)",
+    "preorder_close": "Jan. 16 2027 2:59 AM (EST)",
+    "scheduled_shipping": "Feb. 2027",
+    "reissue_text_hits": [],
+    "id": "F2835905002",
+    "status": 200
+   }
+  ]
+ },
+ "alt_hobby_site": {
+  "online_cards_per_month": {
+   "202610": 4,
+   "202611": 3,
+   "202609": 4,
+   "202607": 5,
+   "202510": 3,
+   "202410": 6,
+   "202210": 3,
+   "202010": 4,
+   "201810": 6,
+   "201510": 1,
+   "201010": 1,
+   "200510": 0,
+   "199510": 0,
+   "199307": 0,
+   "199007": 0,
+   "198507": 0,
+   "198007": 0
+  },
+  "pb_brand_keys": [
+   "pb_bb",
+   "pb_charapla",
+   "pb_gunpla",
+   "pb_hg",
+   "pb_others",
+   "pb_pg",
+   "pb_rg",
+   "pb_mg"
+  ],
+  "news_online_shop_p1_items": 1,
+  "news_online_shop_samples": [
+   "オンラインショップ 2026年06月09日 (火) RG 1/144 RX-178 ガンダムMk-Ⅱ(ケロロ仕様)商品化決定！"
+  ]
+ }
+}
