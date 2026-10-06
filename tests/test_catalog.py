@@ -33,12 +33,11 @@ def test_brand_table_classifies_all_77_filter_keys_and_nothing_extra():
     assert set(keys) == set(config.BRAND_LINE), "분류표와 호비사이트 필터 키가 어긋남"
 
 
-def test_brand_groups_do_not_overlap_and_girl_is_the_five_user_keys():
+def test_brand_groups_do_not_overlap_and_girl_is_the_four_user_keys():
     groups = [config.GUNPLA_CONFIRMED, config.GUNPLA_TENTATIVE, config.GIRL, config.EXCLUDED_CANDIDATES,
               config.EXCLUDED_ACCESSORY, config.EXCLUDED_OTHER]
     assert sum(len(g) for g in groups) == len(config.BRAND_LINE) == 77
-    assert set(config.GIRL) == {"30ms", "30mp", "figurerise-standard", "figurerise-standard-amp",
-                                "figurerise-bust"} == set(config.GIRL_BRANDS)
+    assert set(config.GIRL) == {"30ms", "30mp", "figurerise-standard", "figurerise-standard-amp"} == set(config.GIRL_BRANDS)
 
 
 @pytest.mark.parametrize("keys,expect", [
@@ -47,7 +46,7 @@ def test_brand_groups_do_not_overlap_and_girl_is_the_five_user_keys():
     (["pb_gunpla"], ("gunpla", None, [])),                    # 등급은 상품명 앞 토큰에서
     (["SDEX"], ("gunpla", "SDEX", [])),                       # 대소문자 무시
     (["30ms"], ("girl", "30MS", [])),
-    (["figurerise-bust"], ("girl", "Figure-rise Bust", [])),
+    (["figurerise-bust"], (None, None, [])),                  # 제외 (걸프라로 옮겼다가 다시 제외로 돌림)
     (["hg", "30ms"], ("girl", "30MS", [])),                   # girl 우선
     (["claymonsters"], (None, None, [])),
     (["gundam_decal", "hg"], ("gunpla", "HG", [])),           # 대상 키가 하나라도 있으면 대상
@@ -69,7 +68,8 @@ def test_classify_brand_keys(keys, expect):
     ("30MS SIS-E00 ミャスティ[カラーC]", ("girl", "30MS")),
     ("30 MINUTES SISTERS フレキシブルシール", ("girl", "30MS")),
     ("Figure-rise Standard Amplified マグナガルルモン", ("girl", "Figure-rise Standard Amplified")),
-    ("Figure-rise Bust テストキャラ", ("girl", "Figure-rise Bust")),
+    ("Figure-riseBust テストキャラ", (None, None)),             # bust는 제목으로도 걸프라로 판정하지 않는다
+    ("Figure-rise Bust テストキャラ", (None, None)),
     ("Figure-rise Standard 孫悟空 (NEW SPEC Ver.)", ("girl", "Figure-rise Standard")),
     ("ドラゴンクエストねんどモンスターズ スライム", (None, None)),
     ("1/1000宇宙戦艦ヤマト3199 デラックスセット", (None, None)),

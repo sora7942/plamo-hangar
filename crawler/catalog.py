@@ -65,6 +65,13 @@ def extract_scale(title: str | None) -> str | None:
     return m.group(0) if m else None
 
 
+def apply_replacements(text: str, replacements: dict[str, str]) -> str:
+    """부분 문자열 치환만 한다 (나머지 글자는 그대로)."""
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    return text
+
+
 # ---------------------------------------------------------------- 발매일
 def release_key(rel: dict | None) -> str:
     """정렬용 문자열: 날짜가 있으면 날짜, 월만 있으면 'YYYY-MM-00'."""
@@ -140,16 +147,19 @@ class Catalog:
 
     # ------------------------------------------------------------ 카드 → 항목
     def _build(self, card: dict, now: str, brand_key: str | None) -> dict | None:
-        line = grade = None
         brand_keys: list[str] = []
         if brand_key:
+            # 브랜드 키가 있으면 항상 키가 결정한다. 제외 브랜드면 제목이 대상처럼 보여도 만들지 않는다(제목 폴백 금지).
             brand_keys = [brand_key]
             line, grade, _ = classify_brand_keys(brand_keys)
-        if line is None:
-            line, grade = classify_title(card["nameJa"])
-        if line is None and card["id"].startswith("pb-"):
-            self.excluded[card["id"]] = "title-no-match"    # 호비 상세가 없어 제목으로만 판정 가능
-            return None
+            if line is None:
+                self.excluded[card["id"]] = "brand:" + brand_key
+                return None
+        else:
+            line, grade = classify_title(card["nameJa"])    # 브랜드 키를 모를 때만 제목으로 임시 판정
+            if line is None and card["id"].startswith("pb-"):
+                self.excluded[card["id"]] = "title-no-match"    # 호비 상세가 없어 제목으로만 판정 가능
+                return None
         return {
             "id": card["id"], "url": card["url"], "line": line, "brandKeys": brand_keys, "grade": grade,
             "scale": extract_scale(card["nameJa"]), "seriesKey": None, "series": None,
@@ -181,8 +191,10 @@ class Catalog:
             if brand_key and brand_key not in item["brandKeys"]:
                 item["brandKeys"].append(brand_key)
                 line, grade, _ = classify_brand_keys(item["brandKeys"])
-                if line:
-                    item["line"], item["grade"] = line, grade or item.get("grade")
+                if line is None:                              # 제목으로 임시 판정됐더라도 브랜드 키가 제외면 제외
+                    self._exclude(cid, "brand:" + ",".join(item["brandKeys"]))
+                    return None, False
+                item["line"], item["grade"] = line, grade or item.get("grade")
                 changed = True
             if not item.get("channel") and card.get("channel"):
                 item["channel"], changed = card["channel"], True
@@ -196,6 +208,46 @@ class Catalog:
     def _exclude(self, cid: str, reason: str) -> None:
         self.items.pop(cid, None)
         self.excluded[cid] = reason
+
+    # ------------------------------------------------------------ 기존 항목 재분류·후처리 (매 실행 시작)
+    def reclassify(self, now: str | None = None) -> dict[str, int]:
+        """분류표(config.BRAND_LINE)를 유일한 기준으로 기존 항목을 다시 분류한다.
+
+        브랜드 키가 있는 항목만 대상이다(키가 없으면 제목 임시 판정을 그대로 둔다). 키가 제외 브랜드면 제외 목록으로 옮기고,
+        line·등급이 달라졌으면 고친다. 분류표를 고친 다음 실행에서 이전에 쌓인 항목에도 반영되게 하는 장치이고, 여러 번 돌려도 같다.
+        제외 → 포함 방향은 항목 데이터가 없어 되살리지 못한다(제외 목록에는 id와 사유뿐). 그쪽은 일정·브랜드 목록을 다시 훑어야 한다.
+        """
+        to_excluded = line_changed = 0
+        for cid, it in list(self.items.items()):
+            keys = it.get("brandKeys") or []
+            if not keys:
+                continue
+            line, grade, _ = classify_brand_keys(keys)
+            if line is None:
+                self._exclude(cid, "brand:" + ",".join(keys))
+                to_excluded += 1
+                continue
+            new_grade = grade or it.get("grade")             # pb_gunpla처럼 키에 등급이 없으면 기존(제목) 등급을 유지
+            if line != it.get("line") or new_grade != it.get("grade"):
+                it["line"], it["grade"] = line, new_grade
+                if now:
+                    it["updated"] = now
+                line_changed += 1
+        if to_excluded or line_changed:
+            log.info("재분류: 제외로 이동 %d개, line·등급 변경 %d개", to_excluded, line_changed)
+        return {"toExcluded": to_excluded, "lineChanged": line_changed}
+
+    def apply_name_ko_replacements(self, replacements: dict[str, str]) -> int:
+        """저장된 nameKo에서 해당 부분 문자열만 바꾼다. 바뀐 항목 수를 돌려준다. (`updated` 등 다른 필드는 건드리지 않는다)"""
+        changed = 0
+        for it in self.items.values():
+            ko = it.get("nameKo")
+            if ko:
+                new = apply_replacements(ko, replacements)
+                if new != ko:
+                    it["nameKo"] = new
+                    changed += 1
+        return changed
 
     def apply_detail(self, cid: str, detail: dict, now: str) -> tuple[str, list[str]]:
         """상세로 확정한다. → ("ok" | "excluded", 사전에 없는 브랜드 키)."""

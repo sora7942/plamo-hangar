@@ -187,9 +187,15 @@ def run(opts: Options, http: HttpClient, *, now: datetime | None = None, anthrop
     prev_feed: list[dict] = prev_feed_doc.get("items", [])
     catalog = Catalog.load(data_dir)
     crawl = {"scheduleFrom": None, "girlBrandsDone": [], **(prev_meta.get("crawl") or {})}
+    # 분류표에서 걸프라가 아니게 된 브랜드는 커서에서도 뺀다 (--only와 무관하게 실행 시작에 정리)
+    crawl["girlBrandsDone"] = [k for k in crawl["girlBrandsDone"] if k in config.GIRL_BRANDS]
     ctx = _Ctx(opts, http, catalog, crawl, now)
     ctx.unknown_keys.update(prev_meta.get("unknownBrandKeys", []))
     sources: dict[str, dict] = {}
+
+    # 분류표·용어집을 고친 뒤 이전 실행에서 쌓인 항목에도 반영한다 (수집 단계 전에, --only와 무관하게)
+    fixups = catalog.reclassify(now_iso)
+    fixups["nameKoReplaced"] = catalog.apply_name_ko_replacements(config.NAME_KO_REPLACEMENTS)
 
     for name in HOBBY_STAGES:
         if name in stages:
@@ -200,6 +206,7 @@ def run(opts: Options, http: HttpClient, *, now: datetime | None = None, anthrop
         sources["translate"] = {"ok": res["ok"], "at": iso(now_kst()), "items": res["done"], "error": res["error"],
                                 "pending": res["pending"], "skipped": res["skipped"], "model": res["model"],
                                 "kanaRetried": res["kanaRetried"], "kanaRejected": res["kanaRejected"]}
+        fixups["nameKoReplaced"] += catalog.apply_name_ko_replacements(config.NAME_KO_REPLACEMENTS)
     elif opts.dry_run and opts.only is None:
         sources["translate"] = {"ok": True, "at": iso(now_kst()), "items": 0, "error": None, "skipped": "dry-run"}
 
@@ -207,6 +214,7 @@ def run(opts: Options, http: HttpClient, *, now: datetime | None = None, anthrop
     prev_snapshot = copy.deepcopy(prev_feed)               # merge_feed가 빈 칸(titleKo·image)을 제자리에서 보충하므로 비교용 복사
     new_items = feed.new_feed_items(catalog, ctx.new_ids, now, now_iso)
     merged, added = feed.merge_feed(prev_feed, new_items, catalog)
+    fixups["feedTitleKoReplaced"] = feed.apply_title_ko_replacements(merged, config.NAME_KO_REPLACEMENTS)
 
     # 파일 쓰기 (dry-run도 파일은 쓴다. 디스코드만 보내지 않는다)
     counts = catalog.save(data_dir, now_iso)
@@ -214,6 +222,7 @@ def run(opts: Options, http: HttpClient, *, now: datetime | None = None, anthrop
     write_json(data_dir / config.FEED_FILE, {"updatedAt": feed_updated, "items": merged})
     crawl["backlog"] = catalog.backlog_count()
     crawl["counts"] = catalog.counts()
+    crawl["lastFixups"] = fixups                      # 이번 실행의 재분류·후처리 결과 (매 실행 덮어쓴다)
     stats = http.stats.as_dict()
     stats["minGapSec"] = round(http.stats.min_gap, 2) if http.stats.min_gap is not None else None
     meta = {

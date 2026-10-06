@@ -54,7 +54,7 @@ plamo-hangar/
 │  ├─ sources/
 │  │  ├─ hobby_schedule.py      # 월별 일정 (일반·ホビーオンライン·ガンダムベース 카드)
 │  │  ├─ hobby_item.py          # 상품 상세
-│  │  ├─ hobby_brand.py         # 브랜드 목록 페이지 (걸프라 5개 브랜드 열거)
+│  │  ├─ hobby_brand.py         # 브랜드 목록 페이지 (걸프라 4개 브랜드 열거)
 │  │  └─ joyhobby.py            # 공지 게시판 반다이 제품리스트 (3단계)
 │  ├─ catalog.py                # 병합·분류·밀린 상품 선택·저장
 │  ├─ match.py                  # 3단계
@@ -112,8 +112,10 @@ plamo-hangar/
 - `grade`: 브랜드 키 → 등급 매핑(`hg`/`hg-c`/`pb_hg`→HG, `rg`/`rg-c`→RG …)은 `config.py`. 없으면 상품명 앞 토큰
 - `scale`: 상품명의 `1/N` 정규식. 없으면 `null`
 - `line`: `config.py`의 브랜드 키 사전(`BRAND_LINE`, 호비 필터 키 77개 전부 분류)으로 **확정**한다. 키 중 하나라도 girl이면 girl, 아니면 gunpla 키가 있으면 gunpla, 둘 다 없으면 제외. 사전에 없는 새 키도 제외하고 `meta.unknownBrandKeys`에 남긴다
-  - girl: `30ms`, `30mp`, `figurerise-standard`, `figurerise-standard-amp`, `figurerise-bust` (브랜드 목록으로 전체 수집)
+  - girl: `30ms`, `30mp`, `figurerise-standard`, `figurerise-standard-amp` (브랜드 목록으로 전체 수집). `figurerise-bust`는 제외 — 한 번 걸프라로 옮겼다가 첫 crawl 결과를 보고 다시 제외로 돌렸다
   - gunpla: 건프라 등급·라인 키 (분류표는 사용자가 확인)
+  - **브랜드 키가 항상 우선**: 브랜드 키가 하나라도 있으면 그 키로만 판정한다. 키가 제외 브랜드(또는 사전에 없는 키)면 제목이 대상처럼 보여도 항목을 만들지 않고 제외한다 — 제목 판정은 브랜드 키를 **모를 때**(일정 카드)만 쓴다
+  - **기존 항목 재분류**: 매 실행 시작(수집 전, `--only`와 무관)에 이전 실행이 저장한 항목을 분류표로 다시 분류한다. 브랜드 키가 있는 항목이 제외 브랜드면 제외 목록으로 옮기고(`brand:<키들>`), line·등급이 달라졌으면 고친다. 그래서 분류표만 고치면 다음 실행에 기존 데이터까지 반영된다. 결과는 `meta.crawl.lastFixups`. **한계**: 제외 → 포함 방향은 되살리지 못한다(제외 목록에는 id와 사유뿐이라 항목 데이터가 없다). 그 경우는 일정·브랜드 목록을 다시 훑어야 한다
   - **상세 전 임시 판정**: 일정 카드에는 브랜드 키가 없어 제목 앞 토큰(`HG`·`RG`·`MG`·`30MS`… 전각은 NFKC로 정규화)으로 line을 임시로 정한다. 임시 판정이 안 되는 카드는 `line=null`로 `catalog-pending.json`에 보류하고, P-반다이 카드(상세 없음)는 제목으로도 판정이 안 되면 제외한다
 - `catalog-pending.json`: `{"updatedAt","items":[line=null 항목],"excluded":{"<id>":"<사유>"}}`. 사유는 `brand:<키들>`·`no-brand-key`·`title-no-match`·`detail-404`. 제외된 id는 일정에 다시 나와도 항목을 만들지 않고 상세도 다시 받지 않는다
 - `nameKo`: 번역 실패·키 없음이면 `null`. 사이트 검색은 nameKo·nameJa 모두 대상
@@ -135,11 +137,13 @@ plamo-hangar/
 {"updatedAt":"ISO","since":"수집 시작 YYYY-MM-DD",
  "sources":{"hobby_schedule":{"ok":true,"at":"ISO","items":21,"error":null},"hobby_brand":{...},"hobby_item":{...},
             "translate":{"ok":true,"at":"ISO","items":50,"error":null,"pending":0,"skipped":null,"model":"...","kanaRetried":0,"kanaRejected":0},"joyhobby":{...}},
- "crawl":{"scheduleFrom":"2015-01","girlBrandsDone":["30ms"],"backlog":120,"counts":{"gunpla":0,"girl":0,"pending":0,"excluded":0}},
+ "crawl":{"scheduleFrom":"2015-01","girlBrandsDone":["30ms"],"backlog":120,"counts":{"gunpla":0,"girl":0,"pending":0,"excluded":0},
+           "lastFixups":{"toExcluded":0,"lineChanged":0,"nameKoReplaced":0,"feedTitleKoReplaced":0}},
  "stats":{"requests":0,"byKind":{},"failures":0,"elapsedSec":0,"minGapSec":1.2},
  "unknownBrandKeys":[]}
 ```
 - `sources`는 단계별로 나눈다(`hobby`를 `hobby_schedule`·`hobby_brand`·`hobby_item`으로). 일부 항목만 실패하면 `ok:false`와 실패 목록이 `error`에 들어간다. `--only`로 돌리지 않은 소스는 이전 값을 유지한다
+- `crawl.lastFixups`: 이번 실행 시작에 적용한 기존 데이터 보정 결과(재분류로 제외된 수·line 변경 수·nameKo/피드 titleKo 치환 수). 매 실행 덮어쓴다
 - `crawl`: 최초 채우기 커서(5장) — `scheduleFrom`은 "이 달부터 현재까지 일정을 다 훑었다", `girlBrandsDone`은 전체 쪽수를 끝낸 걸프라 브랜드, `backlog`는 상세를 기다리는 항목 수(0이 되면 채우기 완료)
 - 사이트 하단에 "마지막 수집"과 실패한 소스, 재판 공백 문구에 `since`를 쓴다
 
@@ -148,7 +152,7 @@ plamo-hangar/
 |---|---|---|---|
 | 호비 월별 일정 | `https://bandai-hobby.net/schedule/index.php?saledate=YYYYMM` | 카드 `a.p-card` (`.p-card__tit`, `.p-card__price`, `.p-card_date`). 묶음 ①일반 `/item/01_N/` ②ホビーオンライン `.p-card__tag.-online` → `p-bandai.jp/item/item-N`, 월 단위 ③ガンダムベース | 매일: 이번 달 ~ +3개월. 과거 월은 최초 채우기(`--bootstrap`) 때 `2015-01`까지 한 번만 |
 | 호비 상품 상세 | `https://bandai-hobby.net/item/01_N/` | `h1.p-heading__h1-product`, `dl.pg-products__detail dt/dd`, `a.pg-products__pblink`, `li.p-card__link a.p-card__flat`(브랜드·작품 키), 갤러리 이미지 | 상세가 없는 `bh-` 항목만. 실행당 **새 상품 최대 40 + 밀린 상품 최대 150** |
-| 호비 브랜드 목록 | `https://bandai-hobby.net/brand/<key>/?p=N` (`a.c-archives__pagination-list-item-link`) | 카드 `a.p-card`(일정 카드와 같은 구조, 슬라이드 `a.p-slide__link`는 제외) | 걸프라 5개 브랜드: 매일 1쪽, 최초 채우기 때 전체 쪽수 |
+| 호비 브랜드 목록 | `https://bandai-hobby.net/brand/<key>/?p=N` (`a.c-archives__pagination-list-item-link`) | 카드 `a.p-card`(일정 카드와 같은 구조, 슬라이드 `a.p-slide__link`는 제외) | 걸프라 4개 브랜드: 매일 1쪽, 최초 채우기 때 전체 쪽수 |
 | 조이하비 공지 | `https://www.joyhobby.co.kr/mall/board_list.asp?siteid=joyhobby&BoardCode=notice&nowPage=N` → 글 `board_view.asp?SiteID=joyhobby&BoardCode=notice&B_iID=<번호>` | 제목에 `반다이 제품리스트`가 있는 글. 본문 `상품코드 / 상품명 / 가격` 3줄 반복. 반다이 코드 `BD#######`만 | 매일 목록 1~2쪽, 처음 보는 글만 |
 
 - 호출: `requests` + `beautifulsoup4`. Actions에서 결과가 로컬과 다르면(차단·리다이렉트) 그 소스만 Playwright로 바꾼다
@@ -157,7 +161,7 @@ plamo-hangar/
 - **최초 채우기**(`--bootstrap`) *(2단계에서 방식 변경: 카드 먼저, 상세는 나눠서)*
   1. **일정 카드만으로 먼저 카탈로그 항목을 만든다**(이름·가격·발매일·상품 번호·채널). 상세가 없어도 검색되도록 제목 앞 토큰으로 line·등급·스케일을 임시 판정한다(4장 `detailAt`이 null인 항목)
   2. 건프라는 일정을 `2015-01`(`--from`으로 변경)부터 이번 달까지 **최신 달부터 거슬러** 훑는다. 한 번에 끝나는 양(약 140개월)이고, 중간에 실패하면 거기서 멈추고 `meta.crawl.scheduleFrom` 커서를 남겨 다음 실행이 이어서 한다
-  3. 걸프라 5개 브랜드는 브랜드 목록을 전체 쪽수로 훑는다(브랜드 키가 목록에서 이미 알려져 line·등급이 바로 확정된다). 끝난 브랜드는 `meta.crawl.girlBrandsDone`에 기록
+  3. 걸프라 4개 브랜드는 브랜드 목록을 전체 쪽수로 훑는다(브랜드 키가 목록에서 이미 알려져 line·등급이 바로 확정된다). 끝난 브랜드는 `meta.crawl.girlBrandsDone`에 기록
   4. **상세는 실행마다 새 상품 최대 40 + 밀린 상품 최대 150**만 받는다(`--max-new`, `--max-backlog`; 합계 400 초과 불가). 밀린 상품은 임시 판정이 된 것 먼저, 발매일 최신순이다. 새 상품이 40개를 넘으면 남은 것도 밀린 슬롯에서 같은 순서로 경쟁한다(그래서 첫 실행도 190개를 받는다). 상세가 오면 브랜드 키로 line이 확정되고, 대상이 아니면 `catalog-pending.json`의 제외 목록으로 간다. `meta.crawl.backlog`가 0이 되면 채우기 끝 — 하루 1회 예약 실행만으로는 며칠 걸리므로 수동 실행(`workflow_dispatch`)을 여러 번 돌려 앞당긴다
   5. 최초 채우기 중에는 디스코드 알림이 없다. 그 이전 상품(2015-01 이전)은 사용자가 연결하려 할 때 상세 URL을 붙여넣어 추가할 수 있게 한다(6장)
 - 조이하비 과거 글: 최초 채우기 때 공지 게시판을 거슬러 올라가 반다이 제품리스트 글을 모은다. 몇 쪽까지 가능한지는 3단계에서 확인하고 `meta.since`에 기록
@@ -173,6 +177,8 @@ plamo-hangar/
 - 모델명은 `config.CLAUDE_MODEL` (daily-tech-digest와 같은 방식). `ANTHROPIC_API_KEY` 없으면 건너뜀
 - **가나 검사**: 번역(`ko`)에 히라가나·가타카나가 남아 있으면(예: `[カラーC]`) **그 항목만 한 번** 다시 요청한다(앞선 번역을 `prev_ko`로 알려 줌). 그래도 남으면 `nameKo`를 비워 두고 다음 실행에서 다시 시도한다. 중점 `・`은 가나로 보지 않는다. 재요청 수와 비운 수는 `meta.sources.translate`의 `kanaRetried`·`kanaRejected`
 - **용어집**: 자주 나오는 고유명사·표기는 `config.TRANSLATE_GLOSSARY`(일본어 → 한국어 사전)에 두고 시스템 프롬프트에 그대로 넣는다. 틀린 번역이 보이면 한 줄 추가하면 되고, 값에 가나를 쓰지 않는다(테스트가 확인)
+- **영문 그대로 두는 말**: 용어집 값이 영문이면 영문 그대로 쓴다(예: `アンプリファイド → Amplified`). 시스템 프롬프트에도 `Amplified`는 번역·음역하지 말라는 규칙이 있다
+- **nameKo 후처리**: `config.NAME_KO_REPLACEMENTS`(예: `앰플리파이드 → Amplified`)를 매 실행 시작과 번역 직후에 `nameKo`(와 피드의 `titleKo`)에 부분 문자열 치환으로 적용한다. 용어집을 고친 뒤 이미 저장된 번역을 맞추는 용도이고, 해당 글자 외에는 `updated` 포함 아무것도 바꾸지 않는다
 - 수동 확인: `python -m crawler.translate --sample 20` — 실제 파이프라인과 같은 경로(가나 재요청 포함)로 fixture 제목 20개를 한 번 번역해 출력. 테스트는 실제 Claude를 호출하지 않는다(클라이언트 생성·`.env` 읽기를 `conftest`가 막음)
 
 ## 6. 사이트 — 소유자 모드와 저장

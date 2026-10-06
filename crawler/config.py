@@ -39,7 +39,7 @@ UNSTABLE_URL_MARKERS = ("Expires=", "Signature=", "Key-Pair-Id=")
 # ---------------------------------------------------------------- 수집 범위·상한
 SCHEDULE_START = "2015-01"        # --bootstrap 때 일정을 거슬러 올라갈 시작 달 (--from으로 덮어씀)
 SCHEDULE_AHEAD_MONTHS = 3         # 매 실행: 이번 달 ~ +3개월
-GIRL_BRANDS = ["30ms", "30mp", "figurerise-standard", "figurerise-standard-amp", "figurerise-bust"]   # 브랜드 목록으로 전체 수집
+GIRL_BRANDS = ["30ms", "30mp", "figurerise-standard", "figurerise-standard-amp"]   # 브랜드 목록으로 전체 수집 (GIRL의 키와 같아야 한다)
 DETAIL_NEW_MAX = 40               # 실행당 상세: 이번에 처음 본 상품
 DETAIL_BACKLOG_MAX = 150          # 실행당 상세: 밀린 상품
 DETAIL_HARD_MAX = 400             # 어떤 옵션을 줘도 실행당 상세 합계는 이 수를 넘지 않는다
@@ -63,8 +63,8 @@ FEED_TYPES = {
 # ---------------------------------------------------------------- 번역 (SPEC 5장)
 DEFAULT_MODEL = "claude-sonnet-5-5"
 CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL") or DEFAULT_MODEL
-# 번역 용어집 (일본어 → 한국어). 시스템 프롬프트에 그대로 들어간다 — 틀린 번역이 자주 보이면 여기에 한 줄씩 추가한다.
-# 값에는 히라가나·가타카나를 쓰지 않는다(테스트가 막는다). 긴 용어를 앞에 두면 프롬프트에서 먼저 눈에 띈다.
+# 번역 용어집 (일본어 → 지정 표기). 시스템 프롬프트에 그대로 들어간다 — 틀린 번역이 자주 보이면 여기에 한 줄씩 추가한다.
+# 값에는 히라가나·가타카나를 쓰지 않는다(테스트가 막는다). 값이 영문이면 영문 그대로 쓴다.
 TRANSLATE_GLOSSARY: dict[str, str] = {
     # 기동전사 건담 수성의 마녀 — 인물·기체 (사용자 지정)
     "ディランザ": "딜란자",
@@ -86,7 +86,15 @@ TRANSLATE_GLOSSARY: dict[str, str] = {
     "ゲルググ": "겔구그",
     "シャア": "샤아",
     "マグナガルルモン": "매그너가루몬",
-    "アンプリファイド": "앰플리파이드",
+    # 한글로 옮기지 않고 영문 그대로 쓰는 용어 (값이 영문이면 그대로 쓰라는 뜻이다)
+    "アンプリファイド": "Amplified",
+    "パリトン": "파리톤",
+}
+
+# nameKo 후처리: 이미 저장된 번역에서 해당 부분 문자열만 바꾼다 (나머지 글자·다른 필드는 그대로). 용어집을 고친 뒤
+# 이전 번역을 맞추는 용도이고, 매 실행 시작과 번역 직후에 적용한다. 값에는 가나를 쓰지 않는다.
+NAME_KO_REPLACEMENTS: dict[str, str] = {
+    "앰플리파이드": "Amplified",
 }
 TRANSLATE_BATCH = 50
 TRANSLATE_MAX_PER_RUN = 600
@@ -114,14 +122,15 @@ GUNPLA_TENTATIVE = {   # 건프라 라인이지만 사용자 판단이 필요해
     "gundarium_gundam": ("gunpla", None), "gfy": ("gunpla", None), "expo2025-gunpla": ("gunpla", None),
     "hgamplifiedimgn": ("gunpla", "HG"),
 }
-GIRL = {   # 걸프라 — 사용자 지정 5개 (figurerise-bust는 2차 확인에서 추가)
+GIRL = {   # 걸프라 — 사용자 지정 4개
     "30ms": ("girl", "30MS"), "30mp": ("girl", "30MP"),
     "figurerise-standard": ("girl", "Figure-rise Standard"),
     "figurerise-standard-amp": ("girl", "Figure-rise Standard Amplified"),
-    "figurerise-bust": ("girl", "Figure-rise Bust"),
 }
 EXCLUDED_CANDIDATES = {k: (None, None) for k in (   # 제외, 걸프라/건프라 후보라 확인 필요
-    "figurerise-labo", "figurerise-mechanics", "figurerise-effect",
+    # figurerise-bust: 한 번 걸프라로 옮겼다가(6ee610b) 첫 crawl 결과를 보고 다시 제외로 돌렸다. 앞으로는 이 표만 고치면 된다 —
+    # 기존 항목은 다음 실행에서 자동으로 다시 분류된다 (catalog.reclassify)
+    "figurerise-bust", "figurerise-labo", "figurerise-mechanics", "figurerise-effect",
     "pb_charapla", "gundam-assemble", "30mm", "30mf")}
 EXCLUDED_ACCESSORY = {k: (None, None) for k in (    # 제외, 건프라 주변 악세서리·도구
     "gundam_decal", "optionpartsset", "optionpartsset_c", "parts", "actionbase", "actionbase_c",
@@ -153,7 +162,6 @@ TITLE_PREFIX_RULES: list[tuple[str, str, str]] = [
     (r"^FULL MECHANICS", "gunpla", "FULL MECHANICS"),
     (r"^30MS|^30 ?MINUTES SISTERS", "girl", "30MS"),
     (r"^30MP|^30 ?MINUTES PREFERENCE", "girl", "30MP"),
-    (r"^FIGURE-RISE ?BUST", "girl", "Figure-rise Bust"),
     (r"^FIGURE-RISE STANDARD AMPLIFIED", "girl", "Figure-rise Standard Amplified"),
     (r"^FIGURE-RISE STANDARD", "girl", "Figure-rise Standard"),
 ]

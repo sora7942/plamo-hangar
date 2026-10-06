@@ -8,7 +8,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from . import config
-from .catalog import LINES, Catalog
+from .catalog import LINES, Catalog, apply_replacements
 
 
 def _feed_item(item: dict, now_iso: str) -> dict:
@@ -42,6 +42,19 @@ def new_feed_items(catalog: Catalog, new_ids: list[str], now: datetime, now_iso:
             continue
         out.append(_feed_item(item, now_iso))
     return out
+
+
+def apply_title_ko_replacements(items: list[dict], replacements: dict[str, str]) -> int:
+    """피드의 titleKo(= nameKo의 복사본)에도 같은 부분 치환을 적용한다. 바뀐 항목 수를 돌려준다."""
+    changed = 0
+    for it in items:
+        ko = it.get("titleKo")
+        if ko:
+            new = apply_replacements(ko, replacements)
+            if new != ko:
+                it["titleKo"] = new
+                changed += 1
+    return changed
 
 
 def merge_feed(prev: list[dict], new: list[dict], catalog: Catalog) -> tuple[list[dict], list[dict]]:
