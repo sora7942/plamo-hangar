@@ -44,6 +44,7 @@ plamo-hangar/
 │  │  ├─ collection.json        # [사이트] 내 보유·위시
 │  │  ├─ catalog-gunpla.json    # [자동]
 │  │  ├─ catalog-girl.json      # [자동]
+│  │  ├─ catalog-pending.json   # [자동] 아직 line을 모르는 항목 + 제외 목록 (4장)
 │  │  ├─ feed.json              # [자동]
 │  │  └─ meta.json              # [자동]
 │  └─ photos/<kitId>/<photoId>.webp, <photoId>_t.webp   # [사이트] 내 사진
@@ -53,9 +54,13 @@ plamo-hangar/
 │  ├─ sources/
 │  │  ├─ hobby_schedule.py      # 월별 일정 (일반·ホビーオンライン·ガンダムベース 카드)
 │  │  ├─ hobby_item.py          # 상품 상세
-│  │  ├─ hobby_brand.py         # 브랜드 목록 페이지 (최초 채우기용)
-│  │  └─ joyhobby.py            # 공지 게시판 반다이 제품리스트
-│  ├─ catalog.py  match.py  translate.py  feed.py  discord.py
+│  │  ├─ hobby_brand.py         # 브랜드 목록 페이지 (걸프라 4개 브랜드 열거)
+│  │  └─ joyhobby.py            # 공지 게시판 반다이 제품리스트 (3단계)
+│  ├─ catalog.py                # 병합·분류·밀린 상품 선택·저장
+│  ├─ match.py                  # 3단계
+│  ├─ translate.py  feed.py  discord.py
+│  ├─ pipeline.py               # 실행 순서(일정 → 브랜드 → 상세 → 번역 → 피드 → 쓰기 → 디스코드). main.py는 인자 처리만
+│  └─ store.py                  # JSON 읽기·쓰기(한 항목 한 줄), 시간 helper
 ├─ spike/                       # 0단계 결과 (보존)
 ├─ tests/ (fixtures/ 포함)
 ├─ reference/artifact-v2.html
@@ -95,18 +100,22 @@ plamo-hangar/
   "release":{"month":"2022-10","date":"2022-10-01"},
   "kr":[{"date":"2026-09-29","type":"restock|new","source":"joyhobby","post":"139459","code":"BD5068846","priceKrw":46800,"seenAt":"ISO"}],
   "images":["https://bandai-a.akamaihd.net/bc/img/model/xl/1000179163_1.jpg"],
-  "firstSeen":"ISO","updated":"ISO"}]}
+  "firstSeen":"ISO","updated":"ISO","detailAt":"ISO|null"}]}
 ```
 - `id`: `bh-` + 호비사이트 상품 번호(`01_N`). ホビーオンライン 카드처럼 호비 상세가 없는 상품은 `pb-` + P-반다이 번호(`item-N`)
+- `detailAt` *(2단계에서 추가)*: 상세 페이지로 확정한 시각. **null이면 일정·브랜드 카드와 제목으로 만든 임시 항목**이다(이름·가격·발매일·채널만 믿을 수 있고 `images`·`series`는 비어 있다). 상세 실패가 반복되면 `detailFails`(횟수)가 붙고 3회부터 더 시도하지 않는다
+- `channel`: 일정 카드의 묶음. `online`=ホビーオンライン, `gbase`=ガンダムベース 계열(GUNDAM SIDE-F 포함), `general`=그 외. 상세로는 알 수 없어 일정·브랜드 카드에서만 채워진다
 - `release`: 일본 최초 발매. 날짜를 모르면 `month`만
 - `kr`: 국내 입고 이력. **쌓기만 하고 지우지 않는다.** 같은 (post, code)는 한 번만
   - `type`: 카탈로그 발매일보다 60일 이상 뒤면 `restock`, 아니면 `new` (발매일을 모르면 게시글에 "재입고" 문구가 있을 때만 `restock`, 없으면 `new`)
 - `images`: **안정 URL만** (호스트가 `bandai-a.akamaihd.net`, `bandai-hobby.net`). 서명 URL(`?Expires=`)은 저장하지 않는다. 사이트 갤러리 순서 그대로
 - `grade`: 브랜드 키 → 등급 매핑(`hg`/`hg-c`/`pb_hg`→HG, `rg`/`rg-c`→RG …)은 `config.py`. 없으면 상품명 앞 토큰
 - `scale`: 상품명의 `1/N` 정규식. 없으면 `null`
-- `line`: `config.py`의 브랜드 키 사전으로만 정한다. 어느 쪽에도 없는 브랜드는 카탈로그에서 제외
-  - girl: `30ms`, `30mp`, `figurerise-standard`, `figurerise-standard-amp`
-  - gunpla: 건프라 등급·라인 키 전부(0단계 `hobby-summary.json`의 `filters` 기준으로 작성하고, 사용자에게 목록 확인)
+- `line`: `config.py`의 브랜드 키 사전(`BRAND_LINE`, 호비 필터 키 77개 전부 분류)으로 **확정**한다. 키 중 하나라도 girl이면 girl, 아니면 gunpla 키가 있으면 gunpla, 둘 다 없으면 제외. 사전에 없는 새 키도 제외하고 `meta.unknownBrandKeys`에 남긴다
+  - girl: `30ms`, `30mp`, `figurerise-standard`, `figurerise-standard-amp` (브랜드 목록으로 전체 수집)
+  - gunpla: 건프라 등급·라인 키 (분류표는 사용자가 확인)
+  - **상세 전 임시 판정**: 일정 카드에는 브랜드 키가 없어 제목 앞 토큰(`HG`·`RG`·`MG`·`30MS`… 전각은 NFKC로 정규화)으로 line을 임시로 정한다. 임시 판정이 안 되는 카드는 `line=null`로 `catalog-pending.json`에 보류하고, P-반다이 카드(상세 없음)는 제목으로도 판정이 안 되면 제외한다
+- `catalog-pending.json`: `{"updatedAt","items":[line=null 항목],"excluded":{"<id>":"<사유>"}}`. 사유는 `brand:<키들>`·`no-brand-key`·`title-no-match`·`detail-404`. 제외된 id는 일정에 다시 나와도 항목을 만들지 않고 상세도 다시 받지 않는다
 - `nameKo`: 번역 실패·키 없음이면 `null`. 사이트 검색은 nameKo·nameJa 모두 대상
 
 ### feed.json (크롤러가 씀)
@@ -116,26 +125,41 @@ plamo-hangar/
   "date":"2026-10|2026-09-29","added":"ISO","catalogId":"bh-01_4257|null",
   "title":"원문 제목","titleKo":"...","url":"https://...","image":"안정 URL|null","source":"bandai-hobby|joyhobby"}]}
 ```
-- id: 호비 신제품 `bh-new-<번호>`, P-반다이 `pb-new-<번호>`, 조이하비 `jh-<글번호>-<상품코드>`
-- `added`: 처음 발견한 시각. 바꾸지 않는다
+- id: 호비 신제품 `bh-new-<번호>`(예 `bh-new-01_7249`), P-반다이 `pb-new-<번호>`(예 `pb-new-item-1000249921`), 조이하비 `jh-<글번호>-<상품코드>`
+- 호비 신제품 항목은 **이번 실행에서 처음 발견**됐고, 판정이 끝나 line이 gunpla/girl이며, 발매월이 이번 달 이후인 것만 만든다(지난 달 발매분을 최초 채우기로 훑을 때는 만들지 않는다). P-반다이 항목의 `url`은 P-반다이 링크(요청하지 않는다), `image`는 안정 URL이 있을 때만 — P-반다이 카드는 항상 `null`
+- `added`: 처음 발견한 시각. 바꾸지 않는다. `titleKo`·`image`는 나중에 번역·상세로 채워지면 빈 칸만 보충한다
 - 보관: `added` 내림차순 최대 1000개
 
 ### meta.json
-`{"updatedAt":"ISO","since":"수집 시작 YYYY-MM-DD","sources":{"hobby":{"ok":true,"at":"ISO","items":21,"error":null},"joyhobby":{...}}}`
+```json
+{"updatedAt":"ISO","since":"수집 시작 YYYY-MM-DD",
+ "sources":{"hobby_schedule":{"ok":true,"at":"ISO","items":21,"error":null},"hobby_brand":{...},"hobby_item":{...},
+            "translate":{"ok":true,"at":"ISO","items":50,"error":null,"pending":0,"skipped":null,"model":"..."},"joyhobby":{...}},
+ "crawl":{"scheduleFrom":"2015-01","girlBrandsDone":["30ms"],"backlog":120,"counts":{"gunpla":0,"girl":0,"pending":0,"excluded":0}},
+ "stats":{"requests":0,"byKind":{},"failures":0,"elapsedSec":0,"minGapSec":1.2},
+ "unknownBrandKeys":[]}
+```
+- `sources`는 단계별로 나눈다(`hobby`를 `hobby_schedule`·`hobby_brand`·`hobby_item`으로). 일부 항목만 실패하면 `ok:false`와 실패 목록이 `error`에 들어간다. `--only`로 돌리지 않은 소스는 이전 값을 유지한다
+- `crawl`: 최초 채우기 커서(5장) — `scheduleFrom`은 "이 달부터 현재까지 일정을 다 훑었다", `girlBrandsDone`은 전체 쪽수를 끝낸 걸프라 브랜드, `backlog`는 상세를 기다리는 항목 수(0이 되면 채우기 완료)
 - 사이트 하단에 "마지막 수집"과 실패한 소스, 재판 공백 문구에 `since`를 쓴다
 
 ## 5. 수집 소스 (0단계에서 확인한 구조)
 | 소스 | URL | 파싱 | 주기·양 |
 |---|---|---|---|
-| 호비 월별 일정 | `https://bandai-hobby.net/schedule/index.php?saledate=YYYYMM` | 카드 `a.p-card` (`.p-card__tit`, `.p-card__price`, `.p-card_date`). 묶음 ①일반 `/item/01_N/` ②ホビーオンライン `.p-card__tag.-online` → `p-bandai.jp/item/item-N`, 월 단위 ③ガンダムベース | 매일: 이번 달 ~ +3개월. 과거 월은 최초 채우기 때만 |
-| 호비 상품 상세 | `https://bandai-hobby.net/item/01_N/` | `h1.p-heading__h1-product`, `dl.pg-products__detail dt/dd`, `a.pg-products__pblink`, `li.p-card__link a.p-card__flat`(브랜드·작품 키), 갤러리 이미지 | **처음 보는 번호만**, 실행당 최대 40개 |
-| 호비 브랜드 목록 | `https://bandai-hobby.net/brand/<key>/` (페이저) | 상품 번호 열거 | 최초 채우기용 |
+| 호비 월별 일정 | `https://bandai-hobby.net/schedule/index.php?saledate=YYYYMM` | 카드 `a.p-card` (`.p-card__tit`, `.p-card__price`, `.p-card_date`). 묶음 ①일반 `/item/01_N/` ②ホビーオンライン `.p-card__tag.-online` → `p-bandai.jp/item/item-N`, 월 단위 ③ガンダムベース | 매일: 이번 달 ~ +3개월. 과거 월은 최초 채우기(`--bootstrap`) 때 `2015-01`까지 한 번만 |
+| 호비 상품 상세 | `https://bandai-hobby.net/item/01_N/` | `h1.p-heading__h1-product`, `dl.pg-products__detail dt/dd`, `a.pg-products__pblink`, `li.p-card__link a.p-card__flat`(브랜드·작품 키), 갤러리 이미지 | 상세가 없는 `bh-` 항목만. 실행당 **새 상품 최대 40 + 밀린 상품 최대 150** |
+| 호비 브랜드 목록 | `https://bandai-hobby.net/brand/<key>/?p=N` (`a.c-archives__pagination-list-item-link`) | 카드 `a.p-card`(일정 카드와 같은 구조, 슬라이드 `a.p-slide__link`는 제외) | 걸프라 4개 브랜드: 매일 1쪽, 최초 채우기 때 전체 쪽수 |
 | 조이하비 공지 | `https://www.joyhobby.co.kr/mall/board_list.asp?siteid=joyhobby&BoardCode=notice&nowPage=N` → 글 `board_view.asp?SiteID=joyhobby&BoardCode=notice&B_iID=<번호>` | 제목에 `반다이 제품리스트`가 있는 글. 본문 `상품코드 / 상품명 / 가격` 3줄 반복. 반다이 코드 `BD#######`만 | 매일 목록 1~2쪽, 처음 보는 글만 |
 
 - 호출: `requests` + `beautifulsoup4`. Actions에서 결과가 로컬과 다르면(차단·리다이렉트) 그 소스만 Playwright로 바꾼다
 - 모든 요청: robots.txt 준수, 요청 간 1.2초 이상, timeout 20초, 브라우저 형태 User-Agent, `requests.log`와 같은 형식으로 로그
 - 소스 하나가 실패해도 계속하고 `meta.json`에 기록
-- **최초 채우기**(`--bootstrap`): 걸프라는 브랜드 목록으로 전체, 건프라는 일정 페이지를 2015-01부터 이번 달까지 거슬러 상세를 나눠 받는다(실행당 40개, 여러 날 또는 수동 실행 여러 번). 그 이전 상품은 사용자가 연결하려 할 때 상세 URL을 붙여넣어 추가할 수 있게 한다(6장)
+- **최초 채우기**(`--bootstrap`) *(2단계에서 방식 변경: 카드 먼저, 상세는 나눠서)*
+  1. **일정 카드만으로 먼저 카탈로그 항목을 만든다**(이름·가격·발매일·상품 번호·채널). 상세가 없어도 검색되도록 제목 앞 토큰으로 line·등급·스케일을 임시 판정한다(4장 `detailAt`이 null인 항목)
+  2. 건프라는 일정을 `2015-01`(`--from`으로 변경)부터 이번 달까지 **최신 달부터 거슬러** 훑는다. 한 번에 끝나는 양(약 140개월)이고, 중간에 실패하면 거기서 멈추고 `meta.crawl.scheduleFrom` 커서를 남겨 다음 실행이 이어서 한다
+  3. 걸프라 4개 브랜드는 브랜드 목록을 전체 쪽수로 훑는다(브랜드 키가 목록에서 이미 알려져 line·등급이 바로 확정된다). 끝난 브랜드는 `meta.crawl.girlBrandsDone`에 기록
+  4. **상세는 실행마다 새 상품 최대 40 + 밀린 상품 최대 150**만 받는다(`--max-new`, `--max-backlog`; 합계 400 초과 불가). 밀린 상품은 임시 판정이 된 것 먼저, 발매일 최신순이다. 새 상품이 40개를 넘으면 남은 것도 밀린 슬롯에서 같은 순서로 경쟁한다(그래서 첫 실행도 190개를 받는다). 상세가 오면 브랜드 키로 line이 확정되고, 대상이 아니면 `catalog-pending.json`의 제외 목록으로 간다. `meta.crawl.backlog`가 0이 되면 채우기 끝 — 하루 1회 예약 실행만으로는 며칠 걸리므로 수동 실행(`workflow_dispatch`)을 여러 번 돌려 앞당긴다
+  5. 최초 채우기 중에는 디스코드 알림이 없다. 그 이전 상품(2015-01 이전)은 사용자가 연결하려 할 때 상세 URL을 붙여넣어 추가할 수 있게 한다(6장)
 - 조이하비 과거 글: 최초 채우기 때 공지 게시판을 거슬러 올라가 반다이 제품리스트 글을 모은다. 몇 쪽까지 가능한지는 3단계에서 확인하고 `meta.since`에 기록
 
 ### 매칭 (`match.py`) — 조이하비 상품명 ↔ 카탈로그
@@ -175,17 +199,23 @@ plamo-hangar/
 - 매 실행 1회, 이번에 새로 들어온 피드 항목을 묶어 보낸다
 - 순서: ① 내 보유·위시와 연결된 국내 입고 (따로 맨 앞, 강조 색) ② 국내 재입고·신규 ③ P-반다이 한정 신규 ④ 신제품 발매 일정
 - 임베드: 제목 링크, 종류, 시기, 안정 이미지가 있으면 썸네일. 메시지당 10개, 실행당 3메시지, 넘치면 "외 N건 — 사이트에서 보기"
-- 최초 채우기(`--bootstrap`) 중이거나 이전 feed가 비었으면 보내지 않는다
+- 최초 채우기(`--bootstrap`) 중이거나 이전 feed가 비었거나 이전 카탈로그가 비어 있었으면(첫 실행) 보내지 않는다. `--dry-run`은 이 규칙으로 건너뛰는 경우에도 형식 확인용으로 보낼 내용을 출력한다
 - `DISCORD_WEBHOOK_URL`이 없거나 `--dry-run`이면 콘솔 출력만. 발송 실패는 경고만
 
 ## 8. 실행 옵션
-- `python main.py` / `--dry-run` / `--only hobby,joyhobby` / `--bootstrap --max-details 40`
+- `python main.py` / `--dry-run` / `--only hobby,joyhobby` / `--bootstrap`
+  - `--only`: `hobby`(= `hobby_schedule`+`hobby_brand`+`hobby_item`), `translate` (3단계 이후 `joyhobby`)
+  - `--bootstrap [--from YYYY-MM]`: 최초 채우기(5장). `--from`은 확인용으로 범위를 줄일 때(기본 `2015-01`)
+  - `--max-new N` / `--max-backlog N`: 실행당 상세 상한(기본 40 / 150). `--max-details`는 폐지
+  - `--data-dir DIR`: `docs/data` 대신 다른 폴더에 읽고 쓴다(로컬에서 부분 채우기를 저장소와 섞지 않으려고)
+  - `--no-discord`: 발송만 끈다. `--dry-run`은 파일은 쓰고 디스코드는 보내지 않으며 **보낼 내용을 항상 출력**하고, API 비용이 드는 번역은 `--only translate`로 명시할 때만 돌린다
 - 로컬 미리보기: `python -m http.server -d docs 8000`
 
 ## 9. GitHub Actions (`crawl.yml`)
-- 트리거: `schedule: cron "10 22 * * *"` (KST 07:10), `workflow_dispatch`(입력: bootstrap)
+- 트리거: `schedule: cron "10 22 * * *"` (KST 07:10), `workflow_dispatch`(입력: `bootstrap`, `max_backlog`(기본 150))
 - `concurrency: { group: crawl }`, 권한 `contents: write`
-- 단계: checkout → Python 3.12 + pip 캐시 → `python main.py` → 바뀐 `docs/data/*`만 커밋(`data: crawl YYYY-MM-DD`) → `git pull --rebase` 후 push
+- 단계: checkout → Python 3.12 + pip 캐시 → `python main.py` → 요청 로그 artifact(7일) → `git pull --rebase --autostash` → **허용 목록 5개만 add**(`catalog-gunpla/girl/pending.json`, `feed.json`, `meta.json`; 그 밖의 경로가 staged면 실패해 `collection.json`·`photos/`를 지킨다) → 변경이 있으면 커밋(`data: crawl YYYY-MM-DD`) → push(충돌 시 `pull --rebase` 후 최대 3회). `timeout-minutes: 45`
+- 최초 채우기: 수동 실행에서 `bootstrap`을 켜고, `meta.crawl.backlog`가 0이 될 때까지 몇 번 반복한다(실행당 상세 최대 190개 + 일정·브랜드 수백 요청, 요청 간 1.2초 → 한 번에 10분 안팎)
 - (Playwright가 필요해진 소스가 있을 때만) Chromium 설치 단계 추가
 - Secrets: `DISCORD_WEBHOOK_URL`, `ANTHROPIC_API_KEY`
 - Pages: Deploy from a branch → `main` / `/docs`
@@ -212,6 +242,7 @@ plamo-hangar/
 0. ~~검증~~ 로컬 완료 → **spike.yml을 Actions에서 실행해 report의 Actions 열 채우기**. 여기서 해외 IP 차단이 나오면 9장 마지막 항목을 사용자와 정한다
 1. 이전 — `docs/`로 v2 옮기기, 소유자 토큰·GitHub API 저장, 사진 파일·대표 사진, v2 데이터 가져오기
 2. 카탈로그·피드 — 호비 일정·상세·브랜드, 등급·line 사전(사용자 확인), 번역, 피드, 디스코드(dry-run), crawl.yml
+   - **상태: 코드·테스트·로컬 실제 실행(`--bootstrap --from 2025-10`) 완료. 남은 것: 브랜드 키 분류표 사용자 확인, 번역 샘플(API 키 필요), Actions 첫 수동 실행(`bootstrap`)과 `meta.crawl.backlog`가 0이 될 때까지의 반복**
 3. 국내 입고 — 조이하비 수집·과거 글 채우기·매칭·`kr` 이력
 4. 사이트 연결 — 카탈로그 검색·연결, 공식 사진 갤러리·자리표시, 재판 공백, 신제품·입고 탭, 리뷰 링크
 5. 마무리 — 실제 알림 1회(사용자 요청 시), README, 이전 아티팩트 정리 여부 확인

@@ -1,0 +1,312 @@
+{
+"brand": [
+{
+"value": "claymonsters",
+"label": "ドラゴンクエストねんどモンスターズ"
+},
+{
+"value": "gundam-assemble",
+"label": "ガンダムアッセンブル"
+},
+{
+"value": "plakoro",
+"label": "プラコロ"
+},
+{
+"value": "hg",
+"label": "HG［ハイグレード］"
+},
+{
+"value": "rg",
+"label": "RG［リアルグレード］"
+},
+{
+"value": "mg",
+"label": "MG [マスターグレード]"
+},
+{
+"value": "mgka",
+"label": "MG Ver.Ka［マスターグレード バージョンカトキ］"
+},
+{
+"value": "mgsd",
+"label": "MASTER GRADE SD"
+},
+{
+"value": "pg",
+"label": "PG［パーフェクトグレード］"
+},
+{
+"value": "entry_grade_g",
+"label": "ENTRY GRADE"
+},
+{
+"value": "optionpartsset",
+"label": "オプションパーツセット"
+},
+{
+"value": "gundam_decal",
+"label": "ガンダムデカール"
+},
+{
+"value": "sdcs",
+"label": "SDガンダム クロスシルエット"
+},
+{
+"value": "SDEX",
+"label": "SDEXスタンダード"
+},
+{
+"value": "bb",
+"label": "SDガンダムBB戦士"
+},
+{
+"value": "re100",
+"label": "RE/100[リボーンワンハンドレッド]"
+},
+{
+"value": "fullmechanics",
+"label": "FULL MECHANICS[フルメカニクス]"
+},
+{
+"value": "mgex",
+"label": "MGEX [マスターグレードエクストリーム]"
+},
+{
+"value": "expo2025-gunpla",
+"label": "GUNDAM NEXT FUTURE PAVILION"
+},
+{
+"value": "ecoplaproject_g",
+"label": "エコプラプロジェクト"
+},
+{
+"value": "30mm",
+"label": "30 MINUTES MISSIONS"
+},
+{
+"value": "30ms",
+"label": "30 MINUTES SISTERS"
+},
+{
+"value": "30mf",
+"label": "30 MINUTES FANTASY"
+},
+{
+"value": "30mp",
+"label": "30 MINUTES PREFERENCE"
+},
+{
+"value": "hg-c",
+"label": "ＨＧ[ハイグレード]"
+},
+{
+"value": "rg-c",
+"label": "RG［ リアルグレード ］"
+},
+{
+"value": "pokepla",
+"label": "ポケモンプラモコレクション"
+},
+{
+"value": "figurerise-standard",
+"label": "Figure-rise Standard[フィギュアライズ スタンダード]"
+},
+{
+"value": "figurerise-standard-amp",
+"label": "Figure-rise Standard Amplified[フィギュアライズ スタンダード アンプリファイド]"
+},
+{
+"value": "entry_grade",
+"label": "ENTRY GRADE"
+},
+{
+"value": "customize_scenebase",
+"label": "カスタマイズシーンベース/エフェクト/マテリアル/ウェポンズ"
+},
+{
+"value": "claymodelkit",
+"label": "クレイモデルキット"
+},
+{
+"value": "mecha-colle",
+"label": "メカコレクション"
+},
+{
+"value": "hgamplifiedimgn",
+"label": "HG Amplified IMGN"
+},
+{
+"value": "besthit_chronicle",
+"label": "BEST HIT CHRONICLE"
+},
+{
+"value": "limex",
+"label": "ライメックス"
+},
+{
+"value": "actionbase",
+"label": "アクションベース"
+},
+{
+"value": "tool",
+"label": "BANDAI SPIRITS ツール"
+},
+{
+"value": "gundarium_gundam",
+"label": "ガンダリウム合金モデル"
+},
+{
+"value": "figurerise-bust",
+"label": "Figure-riseBust[フィギュアライズバスト]"
+},
+{
+"value": "megasize",
+"label": "メガサイズモデル"
+},
+{
+"value": "sdgundamseries",
+"label": "SDガンダムシリーズ"
+},
+{
+"value": "imaginary_skeleton",
+"label": "Imaginary Skeleton"
+},
+{
+"value": "exploringlab_nature",
+"label": "Exploring Lab Nature[エクスプローリングラボネイチャー]"
+},
+{
+"value": "ultimagear",
+"label": "ULTIMAGEAR"
+},
+{
+"value": "figurerise-labo",
+"label": "Figure-riseLABO[フィギュアライズラボ]"
+},
+{
+"value": "tokyo2020_official",
+"label": "東京2020 公式ライセンス商品"
+},
+{
+"value": "figurerise-mechanics",
+"label": "Figure-rise Mechanics[フィギュアライズメカニクス]"
+},
+{
+"value": "figurerise-effect",
+"label": "Figure-rise Effect[フィギュアライズエフェクト]"
+},
+{
+"value": "petit_rits",
+"label": "ぷちりっつ"
+},
+{
+"value": "keitorabusou",
+"label": "軽トラぶそう"
+},
+{
+"value": "nekobusou",
+"label": "ねこぶそう"
+},
+{
+"value": "peti",
+"label": "ぷちゅあらいず"
+},
+{
+"value": "actionbase_c",
+"label": "アクションベース_c"
+},
+{
+"value": "disney_castle",
+"label": "キャッスルクラフトコレクション"
+},
+{
+"value": "ecopla",
+"label": "エコプラ"
+},
+{
+"value": "entry_nipper_c",
+"label": "BANDAI SPIRITS ツール"
+},
+{
+"value": "gunpla40th",
+"label": "ガンプラ40周年記念"
+},
+{
+"value": "geki-drive",
+"label": "ゲキドライヴ"
+},
+{
+"value": "gfy",
+"label": "GUNDAM FACTORY YOKOHAMA"
+},
+{
+"value": "gundam_g40",
+"label": "ガンダムG40"
+},
+{
+"value": "hgce",
+"label": "HG COSMIC ERA"
+},
+{
+"value": "hguc",
+"label": "HG UNIVERSAL CENTURY"
+},
+{
+"value": "hirm",
+"label": "Hi-Resolution Model[ハイレゾリューションモデル]"
+},
+{
+"value": "parts",
+"label": "ビルダーズパーツ"
+},
+{
+"value": "pb_bb",
+"label": "SDガンダムBB戦士／プレバンガンプラ"
+},
+{
+"value": "pb_charapla",
+"label": "プレバンキャラプラ"
+},
+{
+"value": "pb_gunpla",
+"label": "プレバンガンプラ"
+},
+{
+"value": "pb_hg",
+"label": "HG［ハイグレード］／プレバンガンプラ"
+},
+{
+"value": "pb_others",
+"label": "その他シリーズ／プレバンガンプラ"
+},
+{
+"value": "pb_pg",
+"label": "PG［パーフェクトグレード］／プレバンガンプラ"
+},
+{
+"value": "pb_rg",
+"label": "RG［リアルグレード］／プレバンガンプラ"
+},
+{
+"value": "optionpartsset_c",
+"label": "オプションパーツ　セット"
+},
+{
+"value": "pb_mg",
+"label": "MG [マスターグレード]／プレバンガンプラ"
+},
+{
+"value": "petitgguy",
+"label": "プチッガイ/ベアッガイ"
+},
+{
+"value": "sdcs-c",
+"label": "SDクロスシルエット"
+},
+{
+"value": "train",
+"label": "Bトレインショーティー"
+}
+]
+}

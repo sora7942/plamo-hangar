@@ -11,3 +11,6 @@ spike/screenshots/
 
 # e2e 스크린샷 (tests/e2e/site_mock_check.py)
 tests/e2e/out/
+
+# 크롤러 요청 로그 (간격 확인용, 커밋하지 않는다)
+crawler/out/

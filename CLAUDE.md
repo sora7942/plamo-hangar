@@ -13,7 +13,7 @@
 - 이후 작업 전: `conda activate plamo`
 - 수집, 알림 없이: `python main.py --dry-run`
 - 일부 소스만: `python main.py --dry-run --only joyhobby`
-- 최초 카탈로그 채우기: `python main.py --bootstrap --max-details 40`
+- 최초 카탈로그 채우기: `python main.py --bootstrap` (상세는 실행당 새 40 + 밀린 150. 확인용으로 범위를 줄일 때: `--bootstrap --from 2025-10 --data-dir <임시폴더>`)
 - 사이트 미리보기: `python -m http.server -d docs 8000` → http://localhost:8000
 - 테스트: `pytest -q` (사이트 순수 함수는 `node tests/site_*.test.mjs`)
 
