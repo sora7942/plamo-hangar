@@ -8,3 +8,6 @@ spike/out/
 spike/out-actions/
 # 공식 이미지가 찍힌 스크린샷은 저장소에 넣지 않는다 (CLAUDE.md Critical)
 spike/screenshots/
+
+# e2e 스크린샷 (tests/e2e/site_mock_check.py)
+tests/e2e/out/
