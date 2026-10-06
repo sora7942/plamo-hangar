@@ -1,0 +1,1785 @@
+{
+ "site": "joyhobby",
+ "errors": [],
+ "robots_rules": [
+  [
+   "disallow",
+   "/admin/"
+  ]
+ ],
+ "board_url_allowed": true,
+ "home": {
+  "status": 200,
+  "final": "https://www.joyhobby.co.kr/mall/main.asp?siteid=joyhobby&",
+  "redirects": 1,
+  "title": "조이하비"
+ },
+ "board": {
+  "rows": 51,
+  "bandai_weekly_lists": [
+   [
+    "139506",
+    "2026-10-02",
+    "10/3(토) 판매예정 반다이 제품리스트 안내"
+   ],
+   [
+    "139459",
+    "2026-09-28",
+    "9/29(화) 판매예정 반다이 제품리스트 안내"
+   ],
+   [
+    "139407",
+    "2026-09-18",
+    "9/19(토) 판매예정 반다이 제품리스트 안내"
+   ],
+   [
+    "139345",
+    "2026-09-11",
+    "9/12(토) 판매예정 반다이 제품리스트 안내"
+   ],
+   [
+    "139281",
+    "2026-09-04",
+    "9/5(토) 판매예정 반다이 제품리스트 안내"
+   ],
+   [
+    "139506",
+    "2026-10-02",
+    "10/3(토) 판매예정 반다이 제품리스트 안내"
+   ],
+   [
+    "139177",
+    "2026-08-14",
+    "8/15(토) 판매예정 반다이 제품리스트 및 판매방침안내"
+   ],
+   [
+    "139117",
+    "2026-08-07",
+    "8/8(토) 판매예정 반다이 제품리스트 안내"
+   ],
+   [
+    "139070",
+    "2026-07-31",
+    "8/1(토) 판매예정 반다이 제품리스트 및 판매방침안내"
+   ],
+   [
+    "139020",
+    "2026-07-23",
+    "7/25(토) 판매예정 반다이 제품리스트 및 판매방침안내"
+   ],
+   [
+    "138979",
+    "2026-07-16",
+    "7/18(토) 판매예정 반다이 제품리스트 및 판매방침안내"
+   ],
+   [
+    "138951",
+    "2026-07-10",
+    "7/11(토) 판매예정 반다이 제품리스트 및 판매방침안내"
+   ],
+   [
+    "138901",
+    "2026-07-03",
+    "7/4(토) 판매예정 반다이 제품리스트 및 판매방침안내"
+   ]
+  ],
+  "new_arrival_posts": [
+   [
+    "139454",
+    "2026-09-28",
+    "반프레스토 피규어 신제품 입고안내"
+   ],
+   [
+    "139433",
+    "2026-09-22",
+    "피규어 신제품 입고안내"
+   ],
+   [
+    "139432",
+    "2026-09-22",
+    "프라모델 신제품 입고안내"
+   ],
+   [
+    "139392",
+    "2026-09-16",
+    "게이머즈 그라스 신규입고안내 (미니어처 디오라마용)"
+   ],
+   [
+    "139391",
+    "2026-09-16",
+    "ASUKA, MENG, MAGIC FACTORY 등 프라모델 입고안내"
+   ],
+   [
+    "139347",
+    "2026-09-11",
+    "워해머 키트, 툴 입고안내"
+   ],
+   [
+    "139276",
+    "2026-09-04",
+    "ASUKA Model / MAGIC FACTORY 입고안내"
+   ],
+   [
+    "139254",
+    "2026-08-31",
+    "지난주 입고된 신상 피규어/프라모델 안내 드립니다."
+   ],
+   [
+    "139224",
+    "2026-08-25",
+    "아카데미과학 신제품 입고안내"
+   ],
+   [
+    "139113",
+    "2026-08-06",
+    "피규어 신제품 입고안내"
+   ],
+   [
+    "139112",
+    "2026-08-06",
+    "코토부키야 타카라토미 프라모델 입고안내"
+   ],
+   [
+    "139019",
+    "2026-07-23",
+    "게임즈워크샵 신제품 입고안내"
+   ],
+   [
+    "139018",
+    "2026-07-23",
+    "반프레스토 피규어 및 이치방쿠지 입고안내"
+   ],
+   [
+    "138978",
+    "2026-07-16",
+    "굿스마일 게열 피규어/프라모델 입고안내"
+   ],
+   [
+    "138941",
+    "2026-07-09",
+    "7/8(수) 코토부키야, 메가하우스 제품 입고안내"
+   ],
+   [
+    "138940",
+    "2026-07-09",
+    "7/8(수) 타미야, 이탈레리 제품 입고안내"
+   ],
+   [
+    "138780",
+    "2026-06-22",
+    "반프레스토 피규어 입고안내"
+   ],
+   [
+    "138763",
+    "2026-06-19",
+    "피규어/프라모델 신제품 입고안내"
+   ]
+  ],
+  "sample": [
+   {
+    "id": "139506",
+    "category": "공지",
+    "title": "10/3(토) 판매예정 반다이 제품리스트 안내",
+    "date": "2026-10-02",
+    "is_bandai_weekly_list": true
+   },
+   {
+    "id": "139503",
+    "category": "공지",
+    "title": "(오프라인전용)구매금액대별 신도림 테크노마트 상품권 증정앵사 안내",
+    "date": "2026-10-02",
+    "is_bandai_weekly_list": false
+   },
+   {
+    "id": "139464",
+    "category": "공지",
+    "title": "ASUKA 35053 M4A1 탱크 구매시 사은품 증정 및 밀리터리 특가전 재안내",
+    "date": "2026-09-29",
+    "is_bandai_weekly_list": false
+   },
+   {
+    "id": "137658",
+    "category": "공지",
+    "title": "26년 10월 무이자할부 안내",
+    "date": "2026-06-05",
+    "is_bandai_weekly_list": false
+   },
+   {
+    "id": "137474",
+    "category": "공지",
+    "title": "굿스마일 제품 불량시 AS방법",
+    "date": "2026-05-12",
+    "is_bandai_weekly_list": false
+   },
+   {
+    "id": "133641",
+    "category": "공지",
+    "title": "조이하비 불량/반품/AS 규정",
+    "date": "2024-11-13",
+    "is_bandai_weekly_list": false
+   },
+   {
+    "id": "132529",
+    "category": "공지",
+    "title": "주말 및 공휴일  방문수령 불가 안내",
+    "date": "2024-05-03",
+    "is_bandai_weekly_list": false
+   },
+   {
+    "id": "139505",
+    "category": "프라모델",
+    "title": "10/3(토) 출시예정 워해머 신제품 안내",
+    "date": "2026-10-02",
+    "is_bandai_weekly_list": false
+   }
+  ]
+ },
+ "posts": {
+  "139459": {
+   "title": "[ 프라모델 ] 9/29(화) 판매예정 반다이 제품리스트 안내",
+   "posted": "09-28 오후 7:44:00",
+   "intro_keywords": [
+    "연기",
+    "입고",
+    "재입고",
+    "판매예정"
+   ],
+   "intro_excerpt": "[ 프라모델 ] 9/29(화) 판매예정 반다이 제품리스트 안내 이 름: 조이하비 조회수: 17626 09-28 오후 7:44:00 안녕하세요 조이하비입니다. 9/29(화)부터 판매되는 반다이 재입고 제품리스트 안내드립니다. 반다이가 평일 입고되는 경우는 주말 입고와 달리 사전입장이 불가능하여 별도의 대기줄을 운영하지 않습니다. 오픈시간에 맞춰서 질서있게 이용 부탁드립니다. 감사합니다. (기존",
+   "items": [
+    {
+     "code": "BD5063505",
+     "maker_prefix": "BD",
+     "name": "[HGUC011] 1/144 큐베레이 마크2 - 플 전용기 Qubeley Mk.II",
+     "bracket": "HGUC011",
+     "scale": "1/144",
+     "price_krw": 19800,
+     "ends_with_plamo_tag": false,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5063505"
+    },
+    {
+     "code": "BD5060658",
+     "maker_prefix": "BD",
+     "name": "[HGUC017] 1/144 MS-09F 돔 트로펜 (Dom Tropen) - 기동전사 건담 0083 스타더스트 메모리(프라모델)",
+     "bracket": "HGUC017",
+     "scale": "1/144",
+     "price_krw": 16500,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5060658"
+    },
+    {
+     "code": "BD5063534",
+     "maker_prefix": "BD",
+     "name": "[HGUC023] 1/144 MSA-0011 S건담(S-Gundam) - 기동전사 건담 센티넬(프라모델)",
+     "bracket": "HGUC023",
+     "scale": "1/144",
+     "price_krw": 19800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5063534"
+    },
+    {
+     "code": "BD5060394",
+     "maker_prefix": "BD",
+     "name": "[HGUC050] 1/144 G아머-G파이터+RX-78-2 건담 (G Armor) - 기동전사 건담(프라모델)",
+     "bracket": "HGUC050",
+     "scale": "1/144",
+     "price_krw": 38500,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5060394"
+    },
+    {
+     "code": "BD5062914",
+     "maker_prefix": "BD",
+     "name": "[HGUC173] 1/144 AMX-014 도벤울프(DOVEN WOLF) - 기동전사 건담 ZZ(프라모델)",
+     "bracket": "HGUC173",
+     "scale": "1/144",
+     "price_krw": 26400,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5062914"
+    },
+    {
+     "code": "BD5057406",
+     "maker_prefix": "BD",
+     "name": "[HGUC206] 1/144 MS-08TX/S 이프리트 슈나이드(EFREET SCHNEID) - 기동전사 건담 UC(프라모델)",
+     "bracket": "HGUC206",
+     "scale": "1/144",
+     "price_krw": 22000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5057406"
+    },
+    {
+     "code": "BD5072052",
+     "maker_prefix": "BD",
+     "name": "[HGAW270] 1/144 GT-9600 건담 레오파드(GUNDAM LEOPARD) - 기동신세기 건담 X(프라모델)",
+     "bracket": "HGAW270",
+     "scale": "1/144",
+     "price_krw": 24200,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5072052"
+    },
+    {
+     "code": "BD5062166",
+     "maker_prefix": "BD",
+     "name": "[HGWFM02] 1/144 CEK-040 베귀르베우(Beguir-Beu) - 기동전사 건담 수성의 마녀(프라모델)",
+     "bracket": "HGWFM02",
+     "scale": "1/144",
+     "price_krw": 17600,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5062166"
+    },
+    {
+     "code": "BD5068569",
+     "maker_prefix": "BD",
+     "name": "[HGGQX04] 1/144 붉은 건담(RED GUNDAM) - 기동전사 건담 지쿠악스(프라모델)",
+     "bracket": "HGGQX04",
+     "scale": "1/144",
+     "price_krw": 27500,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5068569"
+    },
+    {
+     "code": "BD5061605",
+     "maker_prefix": "BD",
+     "name": "[RG29] 1/144 MSN-04 사자비(SAZABI) - 기동전사 건담 역습의 샤아(프라모델)",
+     "bracket": "RG29",
+     "scale": "1/144",
+     "price_krw": 52800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5061605"
+    },
+    {
+     "code": "BD5060425",
+     "maker_prefix": "BD",
+     "name": "[RG34] 1/144 MSN-02 지옹(Zeong) - 기동전사 건담(프라모델)",
+     "bracket": "RG34",
+     "scale": "1/144",
+     "price_krw": 60500,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5060425"
+    },
+    {
+     "code": "BD5063571",
+     "maker_prefix": "BD",
+     "name": "[MG] 1/100 MS-14S 샤아 전용 겔구그 Ver.2.0 - 기동전사 건담(프라모델)",
+     "bracket": "MG",
+     "scale": "1/100",
+     "price_krw": 58800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5063571"
+    },
+    {
+     "code": "BD5063539",
+     "maker_prefix": "BD",
+     "name": "[MG] 1/100 MSM-03 고그(곡그)(GOGG) - 기동전사 건담(프라모델)",
+     "bracket": "MG",
+     "scale": "1/100",
+     "price_krw": 46800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5063539"
+    },
+    {
+     "code": "BD5063048",
+     "maker_prefix": "BD",
+     "name": "[MG] 1/100 V2 건담 Ver.Ka(V2 GUNDAM Ver.Ka) - 기동전사 V건담(프라모델)",
+     "bracket": "MG",
+     "scale": "1/100",
+     "price_krw": 58800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5063048"
+    },
+    {
+     "code": "BD5062846",
+     "maker_prefix": "BD",
+     "name": "[MG] 1/100 건담 DX(더블X)(GUNDAM DOUBLE X) - 기동신세기 건담 X(프라모델)",
+     "bracket": "MG",
+     "scale": "1/100",
+     "price_krw": 58800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5062846"
+    },
+    {
+     "code": "BD5068846",
+     "maker_prefix": "BD",
+     "name": "[MGSD04] XVX-016 건담 에어리얼(GUNDAM AERIAL) - 기동전사 건담 수성의 마녀(프라모델)",
+     "bracket": "MGSD04",
+     "scale": null,
+     "price_krw": 46800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5068846"
+    },
+    {
+     "code": "BD5066742",
+     "maker_prefix": "BD",
+     "name": "[RE009] 1/100 비기나 기나(Vigina-Ghina) - 기동전사 건담 F91(프라모델)",
+     "bracket": "RE009",
+     "scale": "1/100",
+     "price_krw": 42900,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5066742"
+    },
+    {
+     "code": "BD5060257",
+     "maker_prefix": "BD",
+     "name": "[RG] 에반게리온 0호기(EVANGELION UNIT-00) - 에반게리온 신극장판(프라모델)",
+     "bracket": "RG",
+     "scale": null,
+     "price_krw": 52800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5060257"
+    },
+    {
+     "code": "BD5063944",
+     "maker_prefix": "BD",
+     "name": "[원피스] 고잉 메리호 (GOING MERRY)(프라모델)",
+     "bracket": "원피스",
+     "scale": null,
+     "price_krw": 47300,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5063944"
+    }
+   ],
+   "maker_prefixes": {
+    "BD": 19
+   },
+   "dup_codes": [],
+   "id": "139459",
+   "status": 200
+  },
+  "139506": {
+   "title": "[ 프라모델 ] 10/3(토) 판매예정 반다이 제품리스트 안내",
+   "posted": "10-02 오후 7:31:00",
+   "intro_keywords": [
+    "판매예정"
+   ],
+   "intro_excerpt": "[ 프라모델 ] 10/3(토) 판매예정 반다이 제품리스트 안내 이 름: 조이하비 조회수: 405 10-02 오후 7:31:00 안녕하세요 조이하비입니다. 10/03(토) 판매예정 반다이 제품리스트 안내 드립니다. 테크노마트쪽과 협의하여 9시부터 3층 출입이 가능하게 변경되었습니다. 아래 첨부하는 3층 약도의 배너앞에서 줄 서신분들에 한해서 매장 운영시작에 앞서 순차적으로 입장하여 반다이 제품",
+   "items": [
+    {
+     "code": "BD5068558",
+     "maker_prefix": "BD",
+     "name": "[RG42] 1/144 GF13-017NJ 샤이닝 건담(SHINING GUNDAM) - 기동무투전 G건담(프라모델)",
+     "bracket": "RG42",
+     "scale": "1/144",
+     "price_krw": 38500,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5068558"
+    },
+    {
+     "code": "BD5074303",
+     "maker_prefix": "BD",
+     "name": "[MGSD06] 크샤트리아(KSHATRIYA) - 기동전사 건담 UC(프라모델)",
+     "bracket": "MGSD06",
+     "scale": null,
+     "price_krw": 84000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5074303"
+    },
+    {
+     "code": "BD5072559",
+     "maker_prefix": "BD",
+     "name": "[피규어라이즈스탠다드] 매그너가루몬 앰플리파이드(MagnaGarurumon Amplified) - 디지몬 프론티어(프라모델)",
+     "bracket": "피규어라이즈스탠다드",
+     "scale": null,
+     "price_krw": 66000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5072559"
+    },
+    {
+     "code": "BD5074255",
+     "maker_prefix": "BD",
+     "name": "[30MM_EXM_80] 1/144 xEXM-000 제노발트(XENOVALT)(프라모델)",
+     "bracket": "30MM_EXM_80",
+     "scale": "1/144",
+     "price_krw": 24200,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5074255"
+    },
+    {
+     "code": "BD5074276",
+     "maker_prefix": "BD",
+     "name": "[30MF_ITS_05] 아이템샵5 마셜 옵션(ITEM SHOP 5 MARTIAL OPTION)(프라모델)",
+     "bracket": "30MF_ITS_05",
+     "scale": null,
+     "price_krw": 11000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5074276"
+    }
+   ],
+   "maker_prefixes": {
+    "BD": 5
+   },
+   "dup_codes": [],
+   "id": "139506",
+   "status": 200
+  },
+  "139432": {
+   "title": "[ 프라모델 ] 프라모델 신제품 입고안내",
+   "posted": "09-22 오후 8:13:00",
+   "intro_keywords": [
+    "신제품",
+    "입고"
+   ],
+   "intro_excerpt": "[ 프라모델 ] 프라모델 신제품 입고안내 이 름: 조이하비 조회수: 31863 09-22 오후 8:13:00 안녕하세요 조이하비입니다. 주말간 입고된 프라모델 제품 안내드립니다. 많은 이용 부탁드립니다. 감사합니다.",
+   "items": [
+    {
+     "code": "ANN26713",
+     "maker_prefix": "ANN",
+     "name": "브리짓 가동 플라스틱 모델: 블랙 컬러 VER. - 길티기어 스트라이브(전고:약140mm)(프라모델)",
+     "bracket": null,
+     "scale": null,
+     "price_krw": 72000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=ANN26713"
+    },
+    {
+     "code": "ANN26714",
+     "maker_prefix": "ANN",
+     "name": "브리짓 가동 플라스틱 모델: 퍼플 컬러 VER. - 길티기어 스트라이브(전고:약140mm)(프라모델)",
+     "bracket": null,
+     "scale": null,
+     "price_krw": 72000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=ANN26714"
+    },
+    {
+     "code": "PLM38975",
+     "maker_prefix": "PLM",
+     "name": "[PP274] 프라피아 카후우 치노 - 주문은 토끼입니까?(전고:약135mm)(프라모델)",
+     "bracket": "PP274",
+     "scale": null,
+     "price_krw": 60500,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=PLM38975"
+    },
+    {
+     "code": "PLM38976",
+     "maker_prefix": "PLM",
+     "name": "[PP275] 프라피아 카후우 치노 + 미니 피규어 세트 - 주문은 토끼입니까?(전고:약135mm)(프라모델)",
+     "bracket": "PP275",
+     "scale": null,
+     "price_krw": 77000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=PLM38976"
+    },
+    {
+     "code": "APM27265",
+     "maker_prefix": "APM",
+     "name": "[AX-0265] 다크 어드벤트 소피아 릴렉스 VER. (전고:약160mm)(프라모델)",
+     "bracket": "AX-0265",
+     "scale": null,
+     "price_krw": 59500,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=APM27265"
+    },
+    {
+     "code": "APM27352",
+     "maker_prefix": "APM",
+     "name": "[AX-0352] 다크 어드벤트 라니아 릴렉스 VER.(전고:약160mm)(프라모델)",
+     "bracket": "AX-0352",
+     "scale": null,
+     "price_krw": 59500,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=APM27352"
+    },
+    {
+     "code": "AO04429",
+     "maker_prefix": "AO",
+     "name": "[KO-02RGW] 케모프라 팔 & 다리 파츠 세트 01 (회색 늑대 컬러)(프라모델)",
+     "bracket": "KO-02RGW",
+     "scale": null,
+     "price_krw": 22000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO04429"
+    },
+    {
+     "code": "AO04412",
+     "maker_prefix": "AO",
+     "name": "[KO-02RJW] 케모프라 팔 & 다리 파츠 세트 01 (일본 늑대 컬러)(프라모델)",
+     "bracket": "KO-02RJW",
+     "scale": null,
+     "price_krw": 22000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO04412"
+    },
+    {
+     "code": "AO04405",
+     "maker_prefix": "AO",
+     "name": "[KO-02RKM] 케모프라 팔 & 다리 파츠 세트 01 (카오 마니 컬러)(프라모델)",
+     "bracket": "KO-02RKM",
+     "scale": null,
+     "price_krw": 19800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO04405"
+    },
+    {
+     "code": "AO04436",
+     "maker_prefix": "AO",
+     "name": "[KO-03R] 케모프라 사람 파츠 세트 컬러 B(전고:약135mm)(프라모델)",
+     "bracket": "KO-03R",
+     "scale": null,
+     "price_krw": 37400,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO04436"
+    },
+    {
+     "code": "AO00155",
+     "maker_prefix": "AO",
+     "name": "[KP-02R] 케모프라 일본 늑대(전고:약155mm)(프라모델)",
+     "bracket": "KP-02R",
+     "scale": null,
+     "price_krw": 63800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO00155"
+    },
+    {
+     "code": "AO04399",
+     "maker_prefix": "AO",
+     "name": "[KP-03R] 케모프라 회색 늑대(전고:약155mm)(프라모델)",
+     "bracket": "KP-03R",
+     "scale": null,
+     "price_krw": 63800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO04399"
+    },
+    {
+     "code": "TMT26452",
+     "maker_prefix": "TMT",
+     "name": "[LA022] 1/12 리틀아머리 M134 미니건타입 (전장:약80mm/총본체)(프라모델)",
+     "bracket": "LA022",
+     "scale": "1/12",
+     "price_krw": 39600,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=TMT26452"
+    },
+    {
+     "code": "TMT26823",
+     "maker_prefix": "TMT",
+     "name": "[LA026] 1/12 리틀아머리 MP5SD6타입 (프라모델)",
+     "bracket": "LA026",
+     "scale": "1/12",
+     "price_krw": 17600,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=TMT26823"
+    },
+    {
+     "code": "TMT29109",
+     "maker_prefix": "TMT",
+     "name": "[LA050] 1/12 리틀아머리 M4A1 2.0 돌격소총(프라모델)",
+     "bracket": "LA050",
+     "scale": "1/12",
+     "price_krw": 17600,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=TMT29109"
+    },
+    {
+     "code": "TMT33713",
+     "maker_prefix": "TMT",
+     "name": "[LA118] 1/12 리틀아머리 RPG7 V2 대전차 유탄 발사기(프라모델)",
+     "bracket": "LA118",
+     "scale": "1/12",
+     "price_krw": 24200,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=TMT33713"
+    },
+    {
+     "code": "TMT33592",
+     "maker_prefix": "TMT",
+     "name": "[LA-GG01] 1/12 리틀아머리 헨리에타 P90 기관단총 + SIG P239 권총 - 건슬링거 걸(프라모델)",
+     "bracket": "LA-GG01",
+     "scale": "1/12",
+     "price_krw": 30800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=TMT33592"
+    },
+    {
+     "code": "TMT26184",
+     "maker_prefix": "TMT",
+     "name": "[LD002] 1/12 리틀아머리 건랙A (프라모델)",
+     "bracket": "LD002",
+     "scale": "1/12",
+     "price_krw": 38500,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=TMT26184"
+    },
+    {
+     "code": "TMT26822",
+     "maker_prefix": "TMT",
+     "name": "[LD009] 1/12 리틀아머리 M2 중기관총 (전장 약 140mm)(프라모델)",
+     "bracket": "LD009",
+     "scale": "1/12",
+     "price_krw": 44000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=TMT26822"
+    },
+    {
+     "code": "TMT29036",
+     "maker_prefix": "TMT",
+     "name": "[LD019] 1/12 리틀아머리 컨실멘트(은폐) 케이스 A (프라모델)",
+     "bracket": "LD019",
+     "scale": "1/12",
+     "price_krw": 30800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=TMT29036"
+    },
+    {
+     "code": "TMT30035",
+     "maker_prefix": "TMT",
+     "name": "[LD022] 1/12 리틀아머리 건즈 액세서리 A2(FDE컬러VER)(프라모델)",
+     "bracket": "LD022",
+     "scale": "1/12",
+     "price_krw": 19800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=TMT30035"
+    },
+    {
+     "code": "TMT33699",
+     "maker_prefix": "TMT",
+     "name": "[LD053] 1/12 리틀아머리 건즈 악세서리 B2(대검/조준경/탄창/소음기/양각대 등)(프라모델)",
+     "bracket": "LD053",
+     "scale": "1/12",
+     "price_krw": 22000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=TMT33699"
+    },
+    {
+     "code": "DIG27224",
+     "maker_prefix": "DIG",
+     "name": "1/12 프리프라 피규어 놀이 돈다발 VOL.3  (전고:약mm)(프라모델)",
+     "bracket": null,
+     "scale": "1/12",
+     "price_krw": 11000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=DIG27224"
+    },
+    {
+     "code": "DIG27223",
+     "maker_prefix": "DIG",
+     "name": "1/12 프리프라 피규어 놀이 목마의 마음가짐 메르헨♪ (전고:약mm)(프라모델)",
+     "bracket": null,
+     "scale": "1/12",
+     "price_krw": 22000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=DIG27223"
+    },
+    {
+     "code": "DIG27222",
+     "maker_prefix": "DIG",
+     "name": "1/12 프리프라 피규어 밥 VOL.12 토시코시 소바 (전고:약mm)(프라모델)",
+     "bracket": null,
+     "scale": "1/12",
+     "price_krw": 12100,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=DIG27222"
+    },
+    {
+     "code": "FJ45244",
+     "maker_prefix": "FJ",
+     "name": "[FH1",
+     "bracket": null,
+     "scale": null,
+     "price_krw": null,
+     "ends_with_plamo_tag": false,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=FJ45244"
+    },
+    {
+     "code": "FJ45245",
+     "maker_prefix": "FJ",
+     "name": "[FH47",
+     "bracket": null,
+     "scale": null,
+     "price_krw": null,
+     "ends_with_plamo_tag": false,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=FJ45245"
+    },
+    {
+     "code": "FJ42338",
+     "maker_prefix": "FJ",
+     "name": "[치비마루1EX1] 치비마루함대 야마토(大和) 특별 사양(이펙트 파트 포함)",
+     "bracket": "치비마루1EX1",
+     "scale": null,
+     "price_krw": 33000,
+     "ends_with_plamo_tag": false,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=FJ42338"
+    },
+    {
+     "code": "AO04061",
+     "maker_prefix": "AO",
+     "name": "1/700 일본해군전함 야마시로(山城) 1944 (금속포신포함)(IJN Battleship Yamashiro 1944 w/Metal Gun Barrel)",
+     "bracket": null,
+     "scale": "1/700",
+     "price_krw": 44000,
+     "ends_with_plamo_tag": false,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO04061"
+    },
+    {
+     "code": "FJ14219",
+     "maker_prefix": "FJ",
+     "name": "[12NX6EX1] 1/12 혼다 슈퍼 커브110 (아베인 데님 블루 메탈릭) 특별 사양 (옵션 부품 포함)",
+     "bracket": "12NX6EX1",
+     "scale": "1/12",
+     "price_krw": 49500,
+     "ends_with_plamo_tag": false,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=FJ14219"
+    },
+    {
+     "code": "PLM38957",
+     "maker_prefix": "PLM",
+     "name": "1/12 혼다 슈퍼 커브: 즌다몬 에디션 -토호쿠 즌코(사이즈:약107mm)(프라모델)",
+     "bracket": null,
+     "scale": "1/12",
+     "price_krw": 55000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=PLM38957"
+    },
+    {
+     "code": "AO03392",
+     "maker_prefix": "AO",
+     "name": "[바리바리전설[BA-01] 1/12 코마 군 CB750F 모터 바이크(프라모델)",
+     "bracket": "바리바리전설[BA-01",
+     "scale": "1/12",
+     "price_krw": 46200,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO03392"
+    },
+    {
+     "code": "AO58299",
+     "maker_prefix": "AO",
+     "name": "[더모델카19] 1/24 다이하츠 L880K 코펜 얼티메이트 에디션 '06 (프라모델)",
+     "bracket": "더모델카19",
+     "scale": "1/24",
+     "price_krw": 30800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO58299"
+    },
+    {
+     "code": "AO02715",
+     "maker_prefix": "AO",
+     "name": "[더슈퍼카09] 1/24 람보르기니 쿤타치(카운타크) 5000QV 1985(프라모델)",
+     "bracket": "더슈퍼카09",
+     "scale": "1/24",
+     "price_krw": 55000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO02715"
+    },
+    {
+     "code": "AO54758",
+     "maker_prefix": "AO",
+     "name": "[무비11] 1/43 풀백 드로리안(들로리안) Part I - 백투더퓨처 (프라모델)",
+     "bracket": "무비11",
+     "scale": "1/43",
+     "price_krw": 11000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO54758"
+    },
+    {
+     "code": "AO54765",
+     "maker_prefix": "AO",
+     "name": "[무비12] 1/43 풀백 드로리안(들로리안) PartⅡ - 백투더퓨처 (프라모델)",
+     "bracket": "무비12",
+     "scale": "1/43",
+     "price_krw": 11000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO54765"
+    },
+    {
+     "code": "AO54772",
+     "maker_prefix": "AO",
+     "name": "[무비13] 1/43 풀백 드로리안(들로리안) PartⅢ & 레일 로드 - 백투더퓨처 (프라모델)",
+     "bracket": "무비13",
+     "scale": "1/43",
+     "price_krw": 11000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO54772"
+    },
+    {
+     "code": "AO64368",
+     "maker_prefix": "AO",
+     "name": "[무비메카BT-01] 1/24 타임머신 - 백투더 퓨처 파트1(프라모델)",
+     "bracket": "무비메카BT-01",
+     "scale": "1/24",
+     "price_krw": 66000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO64368"
+    },
+    {
+     "code": "AO02180",
+     "maker_prefix": "AO",
+     "name": "[사이버포뮬러_01] 1/24 뉴 아스라다 AKF-0(프라모델)",
+     "bracket": "사이버포뮬러_01",
+     "scale": "1/24",
+     "price_krw": 33000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO02180"
+    },
+    {
+     "code": "AO02197",
+     "maker_prefix": "AO",
+     "name": "[사이버포뮬러_03] 1/24 슈퍼 아스라다 AKF-11(프라모델)",
+     "bracket": "사이버포뮬러_03",
+     "scale": "1/24",
+     "price_krw": 33000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO02197"
+    },
+    {
+     "code": "AO02203",
+     "maker_prefix": "AO",
+     "name": "[사이버포뮬러_04] 1/24 가랜드 SF-03 서킷 모드 & SF-03/G 부스트 모드(선택조립식)(프라모델)",
+     "bracket": "사이버포뮬러_04",
+     "scale": "1/24",
+     "price_krw": 35200,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO02203"
+    },
+    {
+     "code": "AO02227",
+     "maker_prefix": "AO",
+     "name": "[사이버포뮬러_06] 1/24 뉴 아스라다 AKF-0 에어로 모드/에어로 부스터 모드/스파이럴 부스트 모드(선택조립식)(프라모델)",
+     "bracket": "사이버포뮬러_06",
+     "scale": "1/24",
+     "price_krw": 37400,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO02227"
+    },
+    {
+     "code": "AO02234",
+     "maker_prefix": "AO",
+     "name": "[사이버포뮬러_08] 1/24 뉴 아스라다 AKF-0/G 리프팅 턴 모드(프라모델)",
+     "bracket": "사이버포뮬러_08",
+     "scale": "1/24",
+     "price_krw": 37400,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO02234"
+    },
+    {
+     "code": "AO56219",
+     "maker_prefix": "AO",
+     "name": "[이니셜D24_12] 1/24 이니셜D 타카하시 케이스케 FD3S RX-7 제1권사양(프라모델)",
+     "bracket": "이니셜D24_12",
+     "scale": "1/24",
+     "price_krw": 33000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO56219"
+    },
+    {
+     "code": "AO59548",
+     "maker_prefix": "AO",
+     "name": "[이니셜D24_14] 1/24 후지와라 타쿠미 AE86 토레노 프로젝트 D사양 드라이버 피규어 포함(프라모델)",
+     "bracket": "이니셜D24_14",
+     "scale": "1/24",
+     "price_krw": 39600,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO59548"
+    },
+    {
+     "code": "AO59555",
+     "maker_prefix": "AO",
+     "name": "[이니셜D24_15] 1/24 이니셜D 타카하시케이스케 FD3S RX-7 프로젝트 D사양 드라이버 피규어 포함 (프라모델)",
+     "bracket": "이니셜D24_15",
+     "scale": "1/24",
+     "price_krw": 39600,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO59555"
+    },
+    {
+     "code": "AO64184",
+     "maker_prefix": "AO",
+     "name": "[이니셜D24_16] 1/24 오오미야 사토시 NB8C 로드스타",
+     "bracket": "이니셜D24_16",
+     "scale": "1/24",
+     "price_krw": 33000,
+     "ends_with_plamo_tag": false,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO64184"
+    },
+    {
+     "code": "AO64931",
+     "maker_prefix": "AO",
+     "name": "[이니셜D24_18] 1/24 타카하시 케이스케 FD3S RX-7 Vol18 SSR (프라모델)",
+     "bracket": "이니셜D24_18",
+     "scale": "1/24",
+     "price_krw": 35200,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO64931"
+    },
+    {
+     "code": "AO02685",
+     "maker_prefix": "AO",
+     "name": "[이니셜D24_21] 1/24 아키야마 와타루 토요타 AE86 제25권 사양(전장:약174mm)(프라모델)",
+     "bracket": "이니셜D24_21",
+     "scale": "1/24",
+     "price_krw": 35200,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO02685"
+    },
+    {
+     "code": "AO02692",
+     "maker_prefix": "AO",
+     "name": "[이니셜D24_22] 1/24 켄지 RPS13 닛산 180SX(전장:약188mm)(프라모델)",
+     "bracket": "이니셜D24_22",
+     "scale": "1/24",
+     "price_krw": 48400,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO02692"
+    },
+    {
+     "code": "XPL02617",
+     "maker_prefix": "XPL",
+     "name": "1/35 티라노사우루스 렉스 - 쥬라기 공원(전장:약420mm)(프라모델)",
+     "bracket": null,
+     "scale": "1/35",
+     "price_krw": 59000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=XPL02617"
+    },
+    {
+     "code": "GDS664371",
+     "maker_prefix": "GDS",
+     "name": "PLAMATEA(프라마테아) 시커 - 메타포 리판타지오(전고:약165mm)(프라모델)",
+     "bracket": null,
+     "scale": null,
+     "price_krw": 89000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=GDS664371"
+    },
+    {
+     "code": "MFT01528",
+     "maker_prefix": "MFT",
+     "name": "PLAMAX AAA 분더(WUNDER) 전함 - 에반게리온 신극장판(전장:약509mm)(프라모델)",
+     "bracket": null,
+     "scale": null,
+     "price_krw": 90000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=MFT01528"
+    },
+    {
+     "code": "GDS676848",
+     "maker_prefix": "GDS",
+     "name": "모데로이드 라이딘 - 용자 라이딘(전고:약190mm)(프라모델)",
+     "bracket": null,
+     "scale": null,
+     "price_krw": 50000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=GDS676848"
+    },
+    {
+     "code": "WV06218",
+     "maker_prefix": "WV",
+     "name": "[BK-218] 1/35 머시독 PS판 - 장갑기병 보톰즈(전고:약120mm)(프라모델)",
+     "bracket": "BK-218",
+     "scale": "1/35",
+     "price_krw": 59400,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=WV06218"
+    },
+    {
+     "code": "WV06256",
+     "maker_prefix": "WV",
+     "name": "[BK-256] 1/35 다이빙 비틀 PS판 - 장갑기병 보톰즈(전고:약120mm)(프라모델)",
+     "bracket": "BK-256",
+     "scale": "1/35",
+     "price_krw": 63800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=WV06256"
+    },
+    {
+     "code": "BLF24027",
+     "maker_prefix": "BLF",
+     "name": "[BP027] 1/1 칭찬돼지 로봇(오다테부타)  - 타임보칸 시리즈 얏타맨(전고:약390mm)(프라모델)",
+     "bracket": "BP027",
+     "scale": "1/1",
+     "price_krw": 55000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BLF24027"
+    },
+    {
+     "code": "BLF24031",
+     "maker_prefix": "BLF",
+     "name": "[BP031] 1/32 K(케이)의 스피너 차량 - 블레이드 러너 2049(프라모델)",
+     "bracket": "BP031",
+     "scale": "1/32",
+     "price_krw": 55000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BLF24031"
+    },
+    {
+     "code": "AO69349",
+     "maker_prefix": "AO",
+     "name": "[DN-01] ACKS 초수기신 단쿠가 + 단공검 옵션 파츠 세트 - 초수기신 단쿠가(전고:약290mm)(프라모델)",
+     "bracket": "DN-01",
+     "scale": null,
+     "price_krw": 151800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=AO69349"
+    },
+    {
+     "code": "WV47082",
+     "maker_prefix": "WV",
+     "name": "[MK-082] 1/20 S.A.F.S. MK.III 타입R 라푼(Rapoon) - 마시넨 크리거(재판)(프라모델)",
+     "bracket": "MK-082",
+     "scale": "1/20",
+     "price_krw": 49500,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=WV47082"
+    },
+    {
+     "code": "WV19086",
+     "maker_prefix": "WV",
+     "name": "[마크로스_MC-086] 1/100 ADR-04-MKX 데스트로이드 디펜더 - 초시공요새 마크로스(전고:약110mm)(프라모델)",
+     "bracket": "마크로스_MC-086",
+     "scale": "1/100",
+     "price_krw": 46200,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=WV19086"
+    }
+   ],
+   "maker_prefixes": {
+    "ANN": 2,
+    "PLM": 3,
+    "APM": 2,
+    "AO": 27,
+    "TMT": 10,
+    "DIG": 3,
+    "FJ": 4,
+    "XPL": 1,
+    "GDS": 2,
+    "MFT": 1,
+    "WV": 4,
+    "BLF": 2
+   },
+   "dup_codes": [],
+   "id": "139432",
+   "status": 200
+  },
+  "139407": {
+   "title": "[ 전체공지 ] 9/19(토) 판매예정 반다이 제품리스트 안내",
+   "posted": "09-18 오후 7:51:00",
+   "intro_keywords": [
+    "판매예정"
+   ],
+   "intro_excerpt": "[ 전체공지 ] 9/19(토) 판매예정 반다이 제품리스트 안내 이 름: 조이하비 조회수: 29519 09-18 오후 7:51:00 안녕하세요 조이하비입니다. 9/19(토) 판매예정 반다이 제품리스트 안내 드립니다. 테크노마트쪽과 협의하여 9시부터 3층 출입이 가능하게 변경되었습니다. 아래 첨부하는 3층 약도의 배너앞에서 줄 서신분들에 한해서 매장 운영시작에 앞서 순차적으로 입장하여 반다이 제",
+   "items": [
+    {
+     "code": "BD5073703",
+     "maker_prefix": "BD",
+     "name": "[BB172] SD 호검 건담 - 신SD전국전 이패대장군(프라모델)",
+     "bracket": "BB172",
+     "scale": null,
+     "price_krw": 14300,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5073703"
+    },
+    {
+     "code": "BD5055439",
+     "maker_prefix": "BD",
+     "name": "[SDBF030] SD 스타 위닝 건담 - 건담 빌드 파이터즈 트라이(프라모델)",
+     "bracket": "SDBF030",
+     "scale": null,
+     "price_krw": 16500,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5055439"
+    },
+    {
+     "code": "BD5058891",
+     "maker_prefix": "BD",
+     "name": "[HGAC174] 1/144 XXXG-00W0 윙 건담 제로 - 신기동전기 건담W(프라모델)",
+     "bracket": "HGAC174",
+     "scale": "1/144",
+     "price_krw": 19800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5058891"
+    },
+    {
+     "code": "BD5064116",
+     "maker_prefix": "BD",
+     "name": "[HGAW118] 1/144 GX-9900-DV 건담 X 디바이더 - 기동신세기 건담 X(프라모델)",
+     "bracket": "HGAW118",
+     "scale": "1/144",
+     "price_krw": 22000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5064116"
+    },
+    {
+     "code": "BD5069220",
+     "maker_prefix": "BD",
+     "name": "[HGBF014] 1/144 크로스본 건담 마왕(마오) - 건담 빌드 파이터즈(프라모델)",
+     "bracket": "HGBF014",
+     "scale": "1/144",
+     "price_krw": 19800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5069220"
+    },
+    {
+     "code": "BD5055434",
+     "maker_prefix": "BD",
+     "name": "[HGBF021] 1/144 건담 EZ-SR - 건담 빌드 파이터즈 트라이",
+     "bracket": "HGBF021",
+     "scale": "1/144",
+     "price_krw": 22000,
+     "ends_with_plamo_tag": false,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5055434"
+    },
+    {
+     "code": "BD5055437",
+     "maker_prefix": "BD",
+     "name": "[HGBF028] 1/144 트라이 버닝 건담 - 건담 빌드 파이터즈 트라이(프라모델)",
+     "bracket": "HGBF028",
+     "scale": "1/144",
+     "price_krw": 22000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5055437"
+    },
+    {
+     "code": "BD5060401",
+     "maker_prefix": "BD",
+     "name": "[HGCC177] 1/144 턴에이 건담(Turn A Gundam)(프라모델)",
+     "bracket": "HGCC177",
+     "scale": "1/144",
+     "price_krw": 17600,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5060401"
+    },
+    {
+     "code": "BD5074249",
+     "maker_prefix": "BD",
+     "name": "[HGCE269] 1/144 ZGMF-2000 구프 이그나이티드 하이네 베스텐플루스 전용기 - 기동전사 건담 시드 데스티니(프라모델)",
+     "bracket": "HGCE269",
+     "scale": "1/144",
+     "price_krw": 28600,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5074249"
+    },
+    {
+     "code": "BD5055720",
+     "maker_prefix": "BD",
+     "name": "[HGFC119] 1/144 GF13-050NSW 노벨 건담 - 기동무투전 G건담(프라모델)",
+     "bracket": "HGFC119",
+     "scale": "1/144",
+     "price_krw": 19800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5055720"
+    },
+    {
+     "code": "BD5057746",
+     "maker_prefix": "BD",
+     "name": "[HGFC127] 1/144 GF13-017NJ 샤이닝 건담 - 기동무투전 G건담(프라모델)",
+     "bracket": "HGFC127",
+     "scale": "1/144",
+     "price_krw": 19800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5057746"
+    },
+    {
+     "code": "BD5068570",
+     "maker_prefix": "BD",
+     "name": "[HGGQX03] 1/144 gMS-01 겔구그 스가이기 - 기동전사 건담 지쿠악스(프라모델)",
+     "bracket": "HGGQX03",
+     "scale": "1/144",
+     "price_krw": 24200,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5068570"
+    },
+    {
+     "code": "BD5068590",
+     "maker_prefix": "BD",
+     "name": "[HGGQX05] 1/144 gMS-01 겔구그 보카타기 - 기동전사 건담 지쿠악스 (프라모델)",
+     "bracket": "HGGQX05",
+     "scale": "1/144",
+     "price_krw": 24200,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5068590"
+    },
+    {
+     "code": "BD5060649",
+     "maker_prefix": "BD",
+     "name": "[HGOO43] 1/144 GNW-20000 아르케 건담 - 기동전사 건담 더블오(프라모델)",
+     "bracket": "HGOO43",
+     "scale": "1/144",
+     "price_krw": 20900,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5060649"
+    },
+    {
+     "code": "BD5059150",
+     "maker_prefix": "BD",
+     "name": "[HGPG07] 1/144 판다(팬더)가이(프라모델)",
+     "bracket": "HGPG07",
+     "scale": "1/144",
+     "price_krw": 6600,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5059150"
+    },
+    {
+     "code": "BD5056829",
+     "maker_prefix": "BD",
+     "name": "[HGUC006] 1/144 MSM-07 즈고크 양산형 (Z'GOK') - 기동전사 건담(프라모델)",
+     "bracket": "HGUC006",
+     "scale": "1/144",
+     "price_krw": 11000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5056829"
+    },
+    {
+     "code": "BD5056831",
+     "maker_prefix": "BD",
+     "name": "[HGUC008] 1/144 MSM-03 고그(곡그) - 기동전사 건담(프라모델)",
+     "bracket": "HGUC008",
+     "scale": "1/144",
+     "price_krw": 13200,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5056831"
+    },
+    {
+     "code": "BD5059248",
+     "maker_prefix": "BD",
+     "name": "[HGUC020] 1/144 RGM-79 짐(GM) - 기동전사 건담(프라모델)",
+     "bracket": "HGUC020",
+     "scale": "1/144",
+     "price_krw": 11000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5059248"
+    },
+    {
+     "code": "BD5060967",
+     "maker_prefix": "BD",
+     "name": "[HGUC025] 1/144 RX-78 GP03 건담 시작3호기 스테이맨 - 기동전사 건담 0083 스타더스트 메모리(프라모델)",
+     "bracket": "HGUC025",
+     "scale": "1/144",
+     "price_krw": 17600,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5060967"
+    },
+    {
+     "code": "BD5055876",
+     "maker_prefix": "BD",
+     "name": "[HGUC037] 1/144 MSM-03C 하이고그(하이곡그) - 기동전사 건담 0080:주머니(포켓) 속의 전쟁(프라모델)",
+     "bracket": "HGUC037",
+     "scale": "1/144",
+     "price_krw": 16500,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5055876"
+    },
+    {
+     "code": "BD5055729",
+     "maker_prefix": "BD",
+     "name": "[HGUC051] 1/144 짐 커맨드 우주사양 - 기동전사 건담 0080 주머니(포켓) 속의 전쟁(프라모델)",
+     "bracket": "HGUC051",
+     "scale": "1/144",
+     "price_krw": 12100,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5055729"
+    },
+    {
+     "code": "BD5063144",
+     "maker_prefix": "BD",
+     "name": "[HGUC061] 1/144 MSA-005 메타스(Methuss) - 기동전사 Z건담(프라모델)",
+     "bracket": "HGUC061",
+     "scale": "1/144",
+     "price_krw": 15400,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5063144"
+    },
+    {
+     "code": "BD5059569",
+     "maker_prefix": "BD",
+     "name": "[HGUC078] 1/144 MSM-04 앗가이(ACGUY) - 기동전사 건담(프라모델)",
+     "bracket": "HGUC078",
+     "scale": "1/144",
+     "price_krw": 17600,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5059569"
+    },
+    {
+     "code": "BD5057396",
+     "maker_prefix": "BD",
+     "name": "[HGUC092] 1/144 AMS-119 기라 도가 레즌 전용기 - 기동전사 건담 역습의 샤야(프라모델)",
+     "bracket": "HGUC092",
+     "scale": "1/144",
+     "price_krw": 24200,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5057396"
+    },
+    {
+     "code": "BD5057744",
+     "maker_prefix": "BD",
+     "name": "[HGUC105] 1/144 MS-0F-2 자쿠 II F2 지온사양 - 기동전사 건담 0083 스타더스트 메모리(프라모델)",
+     "bracket": "HGUC105",
+     "scale": "1/144",
+     "price_krw": 18700,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5057744"
+    },
+    {
+     "code": "BD5059162",
+     "maker_prefix": "BD",
+     "name": "[HGUC106] 1/144 D-50C 로토 트윈 셋 ((프라모델)",
+     "bracket": "HGUC106",
+     "scale": "1/144",
+     "price_krw": 19800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5059162"
+    },
+    {
+     "code": "BD5057745",
+     "maker_prefix": "BD",
+     "name": "[HGUC107] 1/144 MS-06F-2 자쿠IIF2 지구연방군 사양 - 기동전사 건담 0083 스타더스트 메모리(프라모델)",
+     "bracket": "HGUC107",
+     "scale": "1/144",
+     "price_krw": 18700,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5057745"
+    },
+    {
+     "code": "BD5056832",
+     "maker_prefix": "BD",
+     "name": "[HGUC108] 1/144 RGZ-95C 리젤 대장기 - 기동전사 건담 UC(프라모델)",
+     "bracket": "HGUC108",
+     "scale": "1/144",
+     "price_krw": 26400,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5056832"
+    },
+    {
+     "code": "BD5057954",
+     "maker_prefix": "BD",
+     "name": "[HGUC111] 1/144 MSZ-010 더블제타 건담(ZZ 건담)(ZZ GUNDAM) - 기동전사 건담 ZZ(프라모델)",
+     "bracket": "HGUC111",
+     "scale": "1/144",
+     "price_krw": 27500,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5057954"
+    },
+    {
+     "code": "BD5058004",
+     "maker_prefix": "BD",
+     "name": "[HGUC114] 1/144 RB-79 볼 트윈 세트 - 기동전사 건담(프라모델)",
+     "bracket": "HGUC114",
+     "scale": "1/144",
+     "price_krw": 17600,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5058004"
+    },
+    {
+     "code": "BD5063038",
+     "maker_prefix": "BD",
+     "name": "[HGUC165] 1/144 LM312V04 V(빅토리) 건담(VICTORY GUNDAM) - 기동전사 V건담(프라모델)",
+     "bracket": "HGUC165",
+     "scale": "1/144",
+     "price_krw": 15400,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5063038"
+    },
+    {
+     "code": "BD5059240",
+     "maker_prefix": "BD",
+     "name": "[HGUC197] 1/144 YMS-15 걍 리바이브(GYAN) - 기동전사 건담(프라모델)",
+     "bracket": "HGUC197",
+     "scale": "1/144",
+     "price_krw": 16500,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5059240"
+    },
+    {
+     "code": "BD5061787",
+     "maker_prefix": "BD",
+     "name": "[HGUC240] 1/144 MSN-04 II 나이팅게일 - 기동전사 건담 역습의 샤아(전폭:약400mm)(프라모델)",
+     "bracket": "HGUC240",
+     "scale": "1/144",
+     "price_krw": 77000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5061787"
+    },
+    {
+     "code": "BD5072537",
+     "maker_prefix": "BD",
+     "name": "[HGUC267] 1/144 Me-02R 멧사(멧서) M01형 가우만기 - 기동전사 건담 섬광의 하사웨이 키르케의 마녀(프라모델)",
+     "bracket": "HGUC267",
+     "scale": "1/144",
+     "price_krw": 37400,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5072537"
+    },
+    {
+     "code": "BD5064254",
+     "maker_prefix": "BD",
+     "name": "[HGWFM13] 1/144 미라소울사제 플라이트 유닛 - 기동전사 건담 수성의 마녀(프라모델)",
+     "bracket": "HGWFM13",
+     "scale": "1/144",
+     "price_krw": 8800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5064254"
+    },
+    {
+     "code": "BD5065020",
+     "maker_prefix": "BD",
+     "name": "[HGWFM14] 1/144 F/D-19 조워트 - 기동전사 건담 수성의 마녀(프라모델)",
+     "bracket": "HGWFM14",
+     "scale": "1/144",
+     "price_krw": 17600,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5065020"
+    },
+    {
+     "code": "BD5065111",
+     "maker_prefix": "BD",
+     "name": "[HGWFM20] 1/144 F/D-20 조워트 헤비 - 기동전사 건담 수성의 마녀((프라모델)",
+     "bracket": "HGWFM20",
+     "scale": "1/144",
+     "price_krw": 17600,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5065111"
+    },
+    {
+     "code": "BD5065113",
+     "maker_prefix": "BD",
+     "name": "[HGWFM21] 1/144 MD-0031UL 딜란자 솔 - 기동전사 건담 수성의 마녀(프라모델)",
+     "bracket": "HGWFM21",
+     "scale": "1/144",
+     "price_krw": 17600,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5065113"
+    },
+    {
+     "code": "BD5065112",
+     "maker_prefix": "BD",
+     "name": "[HGWFM22] 1/144 하인드리 슈트름 - 기동전사 건담 수성의 마녀(프라모델)",
+     "bracket": "HGWFM22",
+     "scale": "1/144",
+     "price_krw": 17600,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5065112"
+    },
+    {
+     "code": "BD5061617",
+     "maker_prefix": "BD",
+     "name": "[RG14] 1/144 ZGMF-X20A 스트라이크 프리덤 건담  - 기동전사 건담 시드 데스티니(프라모델)",
+     "bracket": "RG14",
+     "scale": "1/144",
+     "price_krw": 38500,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5061617"
+    },
+    {
+     "code": "BD5063149",
+     "maker_prefix": "BD",
+     "name": "[MG] 1/100 GX-9900 건담 X - 기동신세기 건담 X(프라모델)",
+     "bracket": "MG",
+     "scale": "1/100",
+     "price_krw": 54000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5063149"
+    },
+    {
+     "code": "BD5061585",
+     "maker_prefix": "BD",
+     "name": "[MG] 1/100 MS-07B 구프 Ver.2.0 - 기동전사 건담(프라모델)",
+     "bracket": "MG",
+     "scale": "1/100",
+     "price_krw": 50400,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5061585"
+    },
+    {
+     "code": "BD5063538",
+     "maker_prefix": "BD",
+     "name": "[MG] 1/100 MSM-07 즈고크(즈곡크) 양산형(Z GOK) - 기동전사 건담(프라모델)",
+     "bracket": "MG",
+     "scale": "1/100",
+     "price_krw": 43200,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5063538"
+    },
+    {
+     "code": "BD5061579",
+     "maker_prefix": "BD",
+     "name": "[MG] 1/100 RX-178 건담 마크2 티탄즈 사양 VER 2.0 - 기동전사 Z건담(프라모델)",
+     "bracket": "MG",
+     "scale": "1/100",
+     "price_krw": 48000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5061579"
+    },
+    {
+     "code": "BD5063570",
+     "maker_prefix": "BD",
+     "name": "[MG] 1/100 RX-77-2 건캐논 - 기동전사 건담(프라모델)",
+     "bracket": "MG",
+     "scale": "1/100",
+     "price_krw": 43200,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5063570"
+    },
+    {
+     "code": "BD5184125",
+     "maker_prefix": "BD",
+     "name": "[MG] 1/100 백식 + 밸류트 시스템 - 기동전사 Z건담(프라모델)",
+     "bracket": "MG",
+     "scale": "1/100",
+     "price_krw": 54000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5184125"
+    },
+    {
+     "code": "BD5063147",
+     "maker_prefix": "BD",
+     "name": "[MG080] 1/100 MSM-04 앗가이(Acguy) - 기동전사 건담(프라모델)",
+     "bracket": "MG080",
+     "scale": "1/100",
+     "price_krw": 55200,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5063147"
+    },
+    {
+     "code": "BD5063825",
+     "maker_prefix": "BD",
+     "name": "[PG] 1/60 윙건담 제로 커스텀 - 신기동전기 건담W 엔들레스 왈츠(프라모델)",
+     "bracket": "PG",
+     "scale": "1/60",
+     "price_krw": 180000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5063825"
+    },
+    {
+     "code": "BD5060426",
+     "maker_prefix": "BD",
+     "name": "[RG] 에반게리온 2호기(Evangelion Model-02)(프라모델)",
+     "bracket": "RG",
+     "scale": null,
+     "price_krw": 52800,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5060426"
+    },
+    {
+     "code": "BD5069168",
+     "maker_prefix": "BD",
+     "name": "[HG] 1/100 VF-31C 지크프리드 미라쥬 파리나 지너스기 - 마크로스 델타(프라모델)",
+     "bracket": "HG",
+     "scale": "1/100",
+     "price_krw": 55000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5069168"
+    },
+    {
+     "code": "BD5072556",
+     "maker_prefix": "BD",
+     "name": "[30MF_MST_02] 두로 와이번(DLRO WYVERN)(프라모델)",
+     "bracket": "30MF_MST_02",
+     "scale": null,
+     "price_krw": 24200,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5072556"
+    },
+    {
+     "code": "BD5060925",
+     "maker_prefix": "BD",
+     "name": "[30MM_SB_05] 1/144 커스터마이즈 씬 베이스 수상 버전",
+     "bracket": "30MM_SB_05",
+     "scale": "1/144",
+     "price_krw": 9900,
+     "ends_with_plamo_tag": false,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5060925"
+    },
+    {
+     "code": "BD5064255",
+     "maker_prefix": "BD",
+     "name": "수성의 마녀 웨폰 디스플레이 베이스(프라모델)",
+     "bracket": null,
+     "scale": null,
+     "price_krw": 5500,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5064255"
+    },
+    {
+     "code": "BD5059578",
+     "maker_prefix": "BD",
+     "name": "액션베이스 2 그레이(1/144 거치용)(프라모델)",
+     "bracket": null,
+     "scale": "1/144",
+     "price_krw": 5000,
+     "ends_with_plamo_tag": true,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5059578"
+    },
+    {
+     "code": "BD5065614",
+     "maker_prefix": "BD",
+     "name": "액션베이스 6 [클리어 컬러] 기동전사 건담 수성의 마녀 스티커 세트(베이스 2개 + 스티커 씰 4장)(4장 중 2장 선택부착식)",
+     "bracket": null,
+     "scale": null,
+     "price_krw": 11000,
+     "ends_with_plamo_tag": false,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5065614"
+    },
+    {
+     "code": "BD5074258",
+     "maker_prefix": "BD",
+     "name": "[데칼] 30MS 습식 데칼 범용 VOL.3",
+     "bracket": "데칼",
+     "scale": null,
+     "price_krw": 6600,
+     "ends_with_plamo_tag": false,
+     "url": "https://www.joyhobby.co.kr/mall/Item.asp?siteid=joyhobby&productcode=BD5074258"
+    }
+   ],
+   "maker_prefixes": {
+    "BD": 56
+   },
+   "dup_codes": [],
+   "id": "139407",
+   "status": 200
+  }
+ },
+ "item_page": {
+  "code": "BD5063505",
+  "status": 200,
+  "len": 17659,
+  "price": "27,000 원",
+  "status_words": [
+   "품절"
+  ],
+  "title_tag": "조이하비"
+ },
+ "extra_lists": {
+  "NewGoods(신상품)": {
+   "status": 200,
+   "item_links": 67,
+   "samples": [
+    "입고예정일 : 26년 10월 입고예정 상품코드 : MFT06976 [완성품] 피그마 655 게롤트 - 위쳐3 와일드 헌트 (전고:약160mm)",
+    "입고예정일 : 26년 10월 입고예정 상품코드 : TKT08689 [조이드] 1/100 RMZ-020 자뱃(프라모델)",
+    "입고예정일 : 26년 10월 입고예정 상품코드 : TKT07397 [조이드] 1/100 RMZ-018 트리니티 라이거: 노획 컬러 VER.(프라모델)",
+    "입고예정일 : 26년 10월 입고예정 상품코드 : TKT07398 [조이드] 1/100 RMZ-019 헬 캣 & 모르가(몰가) 제네버스 컬러 세트(프라모델)",
+    "입고예정일 : 26년 10월 입고예정 상품코드 : TKT07482 [조이드][MV-01A] 1/10 키리야마 아오 & 블레이드 라이거 드레스 코드 #스칼렛 - 메타몰 버스(프라모델)",
+    "입고예정일 : 26년 10월 입고예정 상품코드 : TKT07069 [조이드] 1/72 AZ-15 사이코 제노 자우러(프라모델)"
+   ]
+  },
+  "ipgo": {
+   "status": 200,
+   "item_links": 13,
+   "samples": [
+    "상품코드: KB07988 ( KOTOBUKIYA ) 판매가: 88,000원",
+    "상품코드: KB05895 ( KOTOBUKIYA ) 판매가: 275,000원",
+    "상품코드: KB07612 ( KOTOBUKIYA ) 판매가: 275,000원",
+    "상품코드: KB08494 ( KOTOBUKIYA ) 판매가: 100,000원",
+    "상품코드: KB08700 ( KOTOBUKIYA ) 판매가: 70,000원",
+    "상품코드: KB08485 ( KOTOBUKIYA ) 판매가: 75,000원"
+   ]
+  }
+ },
+ "name_samples": [
+  "[HGUC011] 1/144 큐베레이 마크2 - 플 전용기 Qubeley Mk.II",
+  "[HGUC017] 1/144 MS-09F 돔 트로펜 (Dom Tropen) - 기동전사 건담 0083 스타더스트 메모리(프라모델)",
+  "[HGUC023] 1/144 MSA-0011 S건담(S-Gundam) - 기동전사 건담 센티넬(프라모델)",
+  "[HGUC050] 1/144 G아머-G파이터+RX-78-2 건담 (G Armor) - 기동전사 건담(프라모델)",
+  "[HGUC173] 1/144 AMX-014 도벤울프(DOVEN WOLF) - 기동전사 건담 ZZ(프라모델)",
+  "[HGUC206] 1/144 MS-08TX/S 이프리트 슈나이드(EFREET SCHNEID) - 기동전사 건담 UC(프라모델)",
+  "[HGAW270] 1/144 GT-9600 건담 레오파드(GUNDAM LEOPARD) - 기동신세기 건담 X(프라모델)",
+  "[HGWFM02] 1/144 CEK-040 베귀르베우(Beguir-Beu) - 기동전사 건담 수성의 마녀(프라모델)",
+  "[HGGQX04] 1/144 붉은 건담(RED GUNDAM) - 기동전사 건담 지쿠악스(프라모델)",
+  "[RG29] 1/144 MSN-04 사자비(SAZABI) - 기동전사 건담 역습의 샤아(프라모델)",
+  "[RG34] 1/144 MSN-02 지옹(Zeong) - 기동전사 건담(프라모델)",
+  "[MG] 1/100 MS-14S 샤아 전용 겔구그 Ver.2.0 - 기동전사 건담(프라모델)"
+ ],
+ "name_stats": {
+  "total_items": 141,
+  "with_scale": 109,
+  "with_bracket_code": 125,
+  "with_plamo_tag": 130
+ },
+ "detail_requests_used": 5
+}

@@ -1,0 +1,326 @@
+{
+ "site": "pbandai",
+ "errors": [],
+ "jp_robots": {
+  "readable": false,
+  "raw_first_line": "# (spike) robots.txt 없음 또는 비정상: status=200 content-type=text/html final=https://p-bandai.jp/global_newpc.html"
+ },
+ "jp_probes": [
+  {
+   "name": "top",
+   "url": "https://p-bandai.jp/",
+   "status": 200,
+   "final": "https://p-bandai.jp/global_newpc.html",
+   "redirects": 1,
+   "title": "【プレミアムバンダイ】INTERNATIONAL SHIPPING AVAILABLE｜PREMIUM BANDAI",
+   "region_redirect": true
+  },
+  {
+   "name": "category(hobby)",
+   "url": "https://p-bandai.jp/hobby/",
+   "status": 200,
+   "final": "https://p-bandai.jp/global_newpc.html",
+   "redirects": 1,
+   "title": "【プレミアムバンダイ】INTERNATIONAL SHIPPING AVAILABLE｜PREMIUM BANDAI",
+   "region_redirect": true
+  },
+  {
+   "name": "item",
+   "url": "https://p-bandai.jp/item/item-1000188677",
+   "status": 200,
+   "final": "https://p-bandai.jp/global_newpc.html",
+   "redirects": 1,
+   "title": "【プレミアムバンダイ】INTERNATIONAL SHIPPING AVAILABLE｜PREMIUM BANDAI",
+   "region_redirect": true
+  }
+ ],
+ "jp_blocked_region": true,
+ "alt_global_us": {
+  "robots_rules": [
+   [
+    "disallow",
+    "/*?*offset="
+   ],
+   [
+    "disallow",
+    "/*?*limit="
+   ],
+   [
+    "disallow",
+    "/*?*sortType="
+   ],
+   [
+    "disallow",
+    "/*?*_f_productStatuses="
+   ]
+  ],
+  "search_url_allowed": false,
+  "item_url_allowed": true,
+  "home": {
+   "status": 200,
+   "final": "https://p-bandai.com/us/",
+   "redirects": 0,
+   "sections": {
+    "(top)": [
+     {
+      "id": "F2907291001",
+      "text": "PRE-ORDER ONE PIECE GIGA WORLD COLLECTABLE FIGURE LOKI \"With his overwhelming size, ‘Loki,"
+     },
+     {
+      "id": "F2912581001",
+      "text": "PRE-ORDER EXCLUSIVE DRAGON BALL WORLD COLLECTABLE FIGURE PREMIUM-TENKAICHI BUDOKAI- The se"
+     },
+     {
+      "id": "F2894820001",
+      "text": "PRE-ORDER EXCLUSIVE S.H.Figuarts SON GOKU <RETURN TO EARTH> Son Goku, having returned to E"
+     },
+     {
+      "id": "F2883591001",
+      "text": "PRE-ORDER EXCLUSIVE THE METAL ROBOT SPIRITS <SIDE MS> BLACK KNIGHT SQUAD Cal-re.A The dist"
+     },
+     {
+      "id": "F2882904001",
+      "text": "PRE-ORDER S.H.Figuarts (SHINKOCCHOU SEIHOU) MASKED RIDER SCISSORS The analysis of historic"
+     },
+     {
+      "id": "F2815190001",
+      "text": "PRE-ORDER EXCLUSIVE HG 1/144 GUNDAM LFRITH JIU TWO View product"
+     },
+     {
+      "id": "F2845075001",
+      "text": "PRE-ORDER EXCLUSIVE HG 1/144 RYUSEI-GO (GRAZE CUSTOM III) View product"
+     },
+     {
+      "id": "F2423965005",
+      "text": "PRE-ORDER EXCLUSIVE HG 1/144 GUNDAM GROUND TYPE (PARACHUTE PACK) ● The distinctive parachu"
+     },
+     {
+      "id": "F2487791002",
+      "text": "PRE-ORDER EXCLUSIVE MG 1/100 JEGAN TYPE-D (FIRST DEPLOYMENT TYPE) The early deployment Jeg"
+     },
+     {
+      "id": "F2866245001",
+      "text": "PRE-ORDER EXCLUSIVE SAINT CLOTH MYTH EX CYGNUS HYOGA [FINAL BRONZE CLOTH] -ORIGINAL COLOR "
+     }
+    ],
+    "NEW ARRIVALS": [
+     {
+      "id": "F2912581001",
+      "text": "DRAGON BALL WORLD COLLECTABLE FIGURE PREMIUM-TENKAICHI BUDOKAI- US$ ‌260.00"
+     },
+     {
+      "id": "F2912910001",
+      "text": "THE METAL ROBOT SPIRITS <SIDE MS> GUNDAM VIDAR [Re:Coordinate] US$ ‌180.00"
+     },
+     {
+      "id": "F2894766001",
+      "text": "S.H.Figuarts ANTLAR 60th Anniversary Edition US$ ‌100.00"
+     },
+     {
+      "id": "F2866245001",
+      "text": "SAINT CLOTH MYTH EX CYGNUS HYOGA [FINAL BRONZE CLOTH] -ORIGINAL COLOR EDITION- US$ ‌160.00"
+     },
+     {
+      "id": "F2212888008",
+      "text": "MG 1/100 MS-06R-1A ZAKUII UMA LIGHTNING CUSTOM US$ ‌66.00"
+     },
+     {
+      "id": "F2835905002",
+      "text": "HG 1/35 LANCELOT US$ ‌50.00"
+     },
+     {
+      "id": "F2693619006",
+      "text": "RG 1/144 BLAST IMPULSE GUNDAM SpecⅡ US$ ‌53.00"
+     },
+     {
+      "id": "F2487791002",
+      "text": "MG 1/100 JEGAN TYPE-D (FIRST DEPLOYMENT TYPE) US$ ‌59.00"
+     },
+     {
+      "id": "F2423965005",
+      "text": "HG 1/144 GUNDAM GROUND TYPE (PARACHUTE PACK) US$ ‌28.00"
+     },
+     {
+      "id": "F2866271001",
+      "text": "METAL BUILD STRIKE NOIR GUNDAM (20th MEMORIAL COLOR) US$ ‌360.00"
+     },
+     {
+      "id": "F2866276001",
+      "text": "THE METAL ROBOT SPIRITS <SIDE MS> HWS ＆ DISPLAY PARTS SET For ν GUNDAM US$ ‌110.00"
+     },
+     {
+      "id": "FZ003127001",
+      "text": "EMOTION BIG JACKET COLLECTION MOBILE SUIT GUNDAM I US$ ‌90.00"
+     },
+     {
+      "id": "FZ003128001",
+      "text": "EMOTION BIG JACKET COLLECTION MOBILE SUIT GUNDAM II Soldiers of Sorrow US$ ‌90.00"
+     },
+     {
+      "id": "FZ003129001",
+      "text": "EMOTION BIG JACKET COLLECTION MOBILE SUIT GUNDAM III Encounters in Space US$ ‌90.00"
+     },
+     {
+      "id": "FZ003130001",
+      "text": "EMOTION BIG JACKET COLLECTION MOBILE SUIT GUNDAM Char's Counterattack US$ ‌90.00"
+     },
+     {
+      "id": "N9065181001",
+      "text": "ONE PIECE CARD GAME -THE WORLD’S STRONGEST WARRIORS- [OP-17] Booster Box US$ ‌120.00"
+     },
+     {
+      "id": "N9065180001",
+      "text": "ONE PIECE CARD GAME -THE TIME OF BATTLE- [OP-16] Booster Box US$ ‌120.00"
+     },
+     {
+      "id": "F2866459001",
+      "text": "THE ROBOT SPIRITS ＜SIDE MS＞ QUIN-MANTHA ～MARKING PLUS～ US$ ‌320.00"
+     },
+     {
+      "id": "F2904133001",
+      "text": "THE METAL ROBOT SPIRITS (Ka signature) ＜SIDE MS＞ FULL ARMOR PARTS SET For ENHANCED ZZ GUND"
+     },
+     {
+      "id": "F2878273001",
+      "text": "S.H.Figuarts (SHINKOCCHOU SEIHOU) MASKED RIDER KICKHOPPER & MASKED RIDER PUNCHHOPPER 20th "
+     }
+    ],
+    "CLOSING SOON": [
+     {
+      "id": "F2907291001",
+      "text": "ONE PIECE GIGA WORLD COLLECTABLE FIGURE LOKI US$ ‌195.00"
+     },
+     {
+      "id": "N9065181001",
+      "text": "ONE PIECE CARD GAME -THE WORLD’S STRONGEST WARRIORS- [OP-17] Booster Box US$ ‌120.00"
+     },
+     {
+      "id": "N9065180001",
+      "text": "ONE PIECE CARD GAME -THE TIME OF BATTLE- [OP-16] Booster Box US$ ‌120.00"
+     },
+     {
+      "id": "F2723577003",
+      "text": "HG 1/144 BEGUIR-BEU TORCHE (KENANJI TEAM/RIDRICK TEAM) US$ ‌29.00"
+     },
+     {
+      "id": "F2563438005",
+      "text": "HG 1/144 MESSER TYPE-F02 (COMMANDER TYPE) US$ ‌40.00"
+     },
+     {
+      "id": "F2656317004",
+      "text": "HG 1/35 GUREN Type-08 Elements \"SEITEN\" US$ ‌70.00"
+     },
+     {
+      "id": "F2655096005",
+      "text": "HG 1/144 GUNDAM MAXTER US$ ‌35.00"
+     },
+     {
+      "id": "F2687871002",
+      "text": "HG 1/35 GAWAIN US$ ‌66.00"
+     },
+     {
+      "id": "F2611002003",
+      "text": "MG 1/100 JOHNNY RIDDEN’S GELGOOG US$ ‌83.00"
+     },
+     {
+      "id": "F2388667003",
+      "text": "MG 1/100 MS-06R-1 BRENISS OX'S ZAKU II US$ ‌70.00"
+     }
+    ],
+    "IN STOCK": [
+     {
+      "id": "F2172898011",
+      "text": "HGUC 1/144 GMIII (UNICORN DESERT COLOR VER.) US$ ‌24.00"
+     },
+     {
+      "id": "F2188280010",
+      "text": "HGUC 1/144 ReZEL TYPE-C (GR) US$ ‌25.00"
+     },
+     {
+      "id": "F2238166009",
+      "text": "MG 1/100 ZAKU CANNON (GUNDAM UNICORN Ver.) US$ ‌67.00"
+     },
+     {
+      "id": "F2213700007",
+      "text": "MG 1/100 MARASAI (GUNDAM UNICORN Ver.) US$ ‌63.00"
+     },
+     {
+      "id": "F2864672004",
+      "text": "RG 1/144 FORCE IMPULSE GUNDAM DEACTIVE MODE US$ ‌40.00"
+     },
+     {
+      "id": "F2072272002",
+      "text": "MG 1/100 MS-09 DOM (GRAVITY BATTLE LINE IMAGE COLOR VER.) US$ ‌59.00"
+     },
+     {
+      "id": "F2146842002",
+      "text": "MG 1/100 Trans‑Am Raiser US$ ‌92.00"
+     },
+     {
+      "id": "F2661387004",
+      "text": "HG EXPANSION PARTS SET 2 for SCOPEDOG US$ ‌21.00"
+     },
+     {
+      "id": "F2457563005",
+      "text": "MG 1/100 HYAKU-SHIKI CRASH US$ ‌84.00"
+     },
+     {
+      "id": "F2570545012",
+      "text": "PG 1/60 UNICORN GUNDAM PERFECTIBILITY US$ ‌363.00"
+     }
+    ]
+   },
+   "counts": {
+    "(top)": 10,
+    "NEW ARRIVALS": 20,
+    "CLOSING SOON": 10,
+    "IN STOCK": 10
+   }
+  },
+  "items": [
+   {
+    "available": false,
+    "title": "PAGE NOT AVAILABLE｜PREMIUM BANDAI",
+    "id": "F2423965005",
+    "status": 200
+   },
+   {
+    "available": false,
+    "title": "PAGE NOT AVAILABLE｜PREMIUM BANDAI",
+    "id": "F2835905002",
+    "status": 200
+   }
+  ]
+ },
+ "alt_hobby_site": {
+  "online_cards_per_month": {
+   "202610": 4,
+   "202611": 3,
+   "202609": 4,
+   "202607": 5,
+   "202510": 3,
+   "202410": 6,
+   "202210": 3,
+   "202010": 4,
+   "201810": 6,
+   "201510": 1,
+   "201010": 1,
+   "200510": 0,
+   "199510": 0,
+   "199307": 0,
+   "199007": 0,
+   "198507": 0,
+   "198007": 0
+  },
+  "pb_brand_keys": [
+   "pb_bb",
+   "pb_charapla",
+   "pb_gunpla",
+   "pb_hg",
+   "pb_others",
+   "pb_pg",
+   "pb_rg",
+   "pb_mg"
+  ]
+ }
+}

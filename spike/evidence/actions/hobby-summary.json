@@ -1,0 +1,2094 @@
+{
+ "site": "hobby",
+ "base": "https://bandai-hobby.net",
+ "errors": [],
+ "plain_requests": {
+  "ok": true,
+  "status": 200,
+  "final": "https://bandai-hobby.net/schedule/",
+  "redirects": 0,
+  "has_cards": true,
+  "len": 92482
+ },
+ "schedule": {
+  "202610": {
+   "url": "https://bandai-hobby.net/schedule/",
+   "status": 200,
+   "redirects": 0,
+   "final": "https://bandai-hobby.net/schedule/",
+   "cards": 21,
+   "general": 17,
+   "online(P-반다이 링크)": 4,
+   "gbase": 0,
+   "reissue_text_hits": [],
+   "first": "ドラゴンクエストねんどモンスターズ スライム"
+  },
+  "202611": {
+   "url": "https://bandai-hobby.net/schedule/index.php?saledate=202611",
+   "status": 200,
+   "redirects": 0,
+   "final": "https://bandai-hobby.net/schedule/index.php?saledate=202611",
+   "cards": 26,
+   "general": 23,
+   "online(P-반다이 링크)": 3,
+   "gbase": 0,
+   "reissue_text_hits": [],
+   "first": "30MS オプションボディパーツ タイプMG01[カラーC]"
+  },
+  "202609": {
+   "url": "https://bandai-hobby.net/schedule/index.php?saledate=202609",
+   "status": 200,
+   "redirects": 0,
+   "final": "https://bandai-hobby.net/schedule/index.php?saledate=202609",
+   "cards": 28,
+   "general": 23,
+   "online(P-반다이 링크)": 4,
+   "gbase": 1,
+   "reissue_text_hits": [],
+   "first": "プラノサウルス ステラーカイギュウ"
+  },
+  "202607": {
+   "url": "https://bandai-hobby.net/schedule/index.php?saledate=202607",
+   "status": 200,
+   "redirects": 0,
+   "final": "https://bandai-hobby.net/schedule/index.php?saledate=202607",
+   "cards": 27,
+   "general": 20,
+   "online(P-반다이 링크)": 5,
+   "gbase": 2,
+   "reissue_text_hits": [],
+   "first": "HG 1/144 グフイグナイテッド(ハイネ・ヴェステンフルス専用機)"
+  },
+  "202510": {
+   "url": "https://bandai-hobby.net/schedule/index.php?saledate=202510",
+   "status": 200,
+   "redirects": 0,
+   "final": "https://bandai-hobby.net/schedule/index.php?saledate=202510",
+   "cards": 18,
+   "general": 11,
+   "online(P-반다이 링크)": 3,
+   "gbase": 4,
+   "reissue_text_hits": [],
+   "first": "ENTRY GRADE 1/144 ウイングガンダム"
+  },
+  "202410": {
+   "url": "https://bandai-hobby.net/schedule/index.php?saledate=202410",
+   "status": 200,
+   "redirects": 0,
+   "final": "https://bandai-hobby.net/schedule/index.php?saledate=202410",
+   "cards": 22,
+   "general": 14,
+   "online(P-반다이 링크)": 6,
+   "gbase": 2,
+   "reissue_text_hits": [],
+   "first": "ベストメカコレクション 1/144 RX-78-2 ガンダム (REVIVAL Ver.)"
+  },
+  "202210": {
+   "url": "https://bandai-hobby.net/schedule/index.php?saledate=202210",
+   "status": 200,
+   "redirects": 0,
+   "final": "https://bandai-hobby.net/schedule/index.php?saledate=202210",
+   "cards": 15,
+   "general": 9,
+   "online(P-반다이 링크)": 3,
+   "gbase": 2,
+   "reissue_text_hits": [],
+   "first": "HG 1/144 ガンダムエアリアル"
+  },
+  "202010": {
+   "url": "https://bandai-hobby.net/schedule/index.php?saledate=202010",
+   "status": 200,
+   "redirects": 0,
+   "final": "https://bandai-hobby.net/schedule/index.php?saledate=202010",
+   "cards": 13,
+   "general": 4,
+   "online(P-반다이 링크)": 4,
+   "gbase": 2,
+   "reissue_text_hits": [],
+   "first": "Figure-rise Standard BUILD FIGHTERS TRY ホシノ・フミナ"
+  },
+  "201810": {
+   "url": "https://bandai-hobby.net/schedule/index.php?saledate=201810",
+   "status": 200,
+   "redirects": 0,
+   "final": "https://bandai-hobby.net/schedule/index.php?saledate=201810",
+   "cards": 17,
+   "general": 10,
+   "online(P-반다이 링크)": 6,
+   "gbase": 1,
+   "reissue_text_hits": [],
+   "first": "HGUC 1/144 ユニコーンガンダム3号機 フェネクス (デストロイモード) (ナラティブVer.) [ゴールドコーティング]"
+  },
+  "201510": {
+   "url": "https://bandai-hobby.net/schedule/index.php?saledate=201510",
+   "status": 200,
+   "redirects": 0,
+   "final": "https://bandai-hobby.net/schedule/index.php?saledate=201510",
+   "cards": 17,
+   "general": 13,
+   "online(P-반다이 링크)": 1,
+   "gbase": 0,
+   "reissue_text_hits": [],
+   "first": "ＭＧオーラバトラー 1/35 トカマクダンバイン （３月発送分）"
+  },
+  "201010": {
+   "url": "https://bandai-hobby.net/schedule/index.php?saledate=201010",
+   "status": 200,
+   "redirects": 0,
+   "final": "https://bandai-hobby.net/schedule/index.php?saledate=201010",
+   "cards": 18,
+   "general": 17,
+   "online(P-반다이 링크)": 1,
+   "gbase": 0,
+   "reissue_text_hits": [],
+   "first": "HG 1/144 ダブルオーライザー（粒子貯蔵タンク型）"
+  },
+  "200510": {
+   "url": "https://bandai-hobby.net/schedule/index.php?saledate=200510",
+   "status": 200,
+   "redirects": 0,
+   "final": "https://bandai-hobby.net/schedule/index.php?saledate=200510",
+   "cards": 4,
+   "general": 4,
+   "online(P-반다이 링크)": 0,
+   "gbase": 0,
+   "reissue_text_hits": [],
+   "first": "BB戦士284 鉄機武者斎胡"
+  },
+  "199510": {
+   "url": "https://bandai-hobby.net/schedule/index.php?saledate=199510",
+   "status": 200,
+   "redirects": 0,
+   "final": "https://bandai-hobby.net/schedule/index.php?saledate=199510",
+   "cards": 4,
+   "general": 4,
+   "online(P-반다이 링크)": 0,
+   "gbase": 0,
+   "reissue_text_hits": [],
+   "first": "1/60 ウイングガンダムゼロ"
+  },
+  "199307": {
+   "url": "https://bandai-hobby.net/schedule/index.php?saledate=199307",
+   "status": 200,
+   "redirects": 0,
+   "final": "https://bandai-hobby.net/schedule/index.php?saledate=199307",
+   "cards": 5,
+   "general": 5,
+   "online(P-반다이 링크)": 0,
+   "gbase": 0,
+   "reissue_text_hits": [],
+   "first": "1/100 Vダッシュガンダム"
+  },
+  "199007": {
+   "url": "https://bandai-hobby.net/schedule/index.php?saledate=199007",
+   "status": 200,
+   "redirects": 0,
+   "final": "https://bandai-hobby.net/schedule/index.php?saledate=199007",
+   "cards": 3,
+   "general": 3,
+   "online(P-반다이 링크)": 0,
+   "gbase": 0,
+   "reissue_text_hits": [],
+   "first": "HG 1/144 ガンダムMK2"
+  },
+  "198507": {
+   "url": "https://bandai-hobby.net/schedule/index.php?saledate=198507",
+   "status": 200,
+   "redirects": 0,
+   "final": "https://bandai-hobby.net/schedule/index.php?saledate=198507",
+   "cards": 3,
+   "general": 3,
+   "online(P-반다이 링크)": 0,
+   "gbase": 0,
+   "reissue_text_hits": [],
+   "first": "1/144 マラサイ"
+  },
+  "198007": {
+   "url": "https://bandai-hobby.net/schedule/index.php?saledate=198007",
+   "status": 200,
+   "redirects": 0,
+   "final": "https://bandai-hobby.net/schedule/index.php?saledate=198007",
+   "cards": 2,
+   "general": 2,
+   "online(P-반다이 링크)": 0,
+   "gbase": 0,
+   "reissue_text_hits": [],
+   "first": "1/144 ガンダム"
+  },
+  "198010": {
+   "url": "https://bandai-hobby.net/schedule/index.php?saledate=198010",
+   "status": 200,
+   "redirects": 0,
+   "final": "https://bandai-hobby.net/schedule/index.php?saledate=198010",
+   "cards": 0,
+   "general": 0,
+   "online(P-반다이 링크)": 0,
+   "gbase": 0,
+   "reissue_text_hits": [],
+   "first": null
+  }
+ },
+ "brand_rg": {
+  "status": 200,
+  "item_links": 3
+ },
+ "details": [
+  {
+   "title": "HG 1/144 ガンダムエアリアル",
+   "fields": {
+    "価格": "1,760 円(税10%込)",
+    "発売日": "2022年10月01日 (土)",
+    "対象年齢": "8歳以上"
+   },
+   "pbandai_link": "https://p-bandai.jp/item/item-1000188677",
+   "brands_series": [
+    {
+     "type": "brand",
+     "key": "hg",
+     "label": "HG［ハイグレード］"
+    },
+    {
+     "type": "series",
+     "key": "g-witch",
+     "label": "機動戦士ガンダム 水星の魔女"
+    }
+   ],
+   "gallery": [
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000179163_1.jpg",
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000179163_2.jpg",
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000179163_3.jpg",
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000179163_4.jpg",
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000179163_5.jpg",
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000179163_6.jpg",
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000179163_7.jpg",
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000179163_8.jpg",
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000179163_9.jpg",
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000179163_10.jpg",
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000179163_11.jpg"
+   ],
+   "gallery_hosts": [
+    "akamai(비서명)"
+   ],
+   "description_images": [
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/03/g7yZpN7SIAMhBxUF/OyvqDY3hgoeZrFtq.jpg?Expires=1791262219&Key-Pair-Id=K7AVJM1114TH7&Signature=Q1QZqU3yIA1f5ZjGmmU-GLoRSHgY8A5WuS~3Gkadg7ilyjRV-ig4DgvBhHfohqEF5smtn-oYfOFEjvy8GE5fC~vmYnnXAVIeAEV3KvkF9LU55niFWwZ13OLxYzPeZ-Laem8dL3Kcy1O4PMWMa7nwi4TMjxuruK8529y-jR-BLNfTe~5p0JJnGMpcT09DYW8tHU3WI9k3u-WnK1XBgfgCoE1y5jUm3dKsT24VCCClL7Hu6BCvQOHvSrS0SNw4A~KtFdwHq8D2P0VLe29LWsFWOpoCoApE7PXOBJFLb1LGuDw5hNnivzHwQLtHFZIkUzwxwlnkFVATldKRPodH4ykAAA__"
+   ],
+   "description_image_hosts": [
+    "cloudfront(서명, 만료)"
+   ],
+   "signed_url_ttl_s": [
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/03/g7yZpN7SIAMhBxUF/OyvqDY3hgoeZrFtq.jpg",
+     "ttl_s": 300.0
+    }
+   ],
+   "release_dates_in_text": [
+    "2022年10月01日"
+   ],
+   "reissue_text_hits": [],
+   "og_image": "https://bandai-hobby.net/ogp.png?=ver2",
+   "id": "01_4257",
+   "why": "HG 2022 초회 (P-반다이 링크 있음)",
+   "url": "https://bandai-hobby.net/item/01_4257/",
+   "fetched_at": "2026-10-06T13:45:19+09:00"
+  },
+  {
+   "title": "HG 1/144 ガンダムヴァサーゴ",
+   "fields": {
+    "価格": "3,190 円(税10%込)",
+    "発売日": "2026年10月31日 (土)",
+    "対象年齢": "8歳以上"
+   },
+   "pbandai_link": null,
+   "brands_series": [
+    {
+     "type": "brand",
+     "key": "hg",
+     "label": "HG［ハイグレード］"
+    },
+    {
+     "type": "series",
+     "key": "x",
+     "label": "機動新世紀ガンダムＸ"
+    }
+   ],
+   "gallery": [
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/05/AX1qITSDtM29J4C5/oYvLAzGeFS67bpbC.jpg?Expires=1791262221&Key-Pair-Id=K7AVJM1114TH7&Signature=elKWDRVa0RsTGwW3XhUb-VBzRE1AUwdd-klJAztMua6WWMF8PUoAlCTNpp2qKoNTEiCchYGupEvmkObagnNO6Bv7KbKHJ6Pr~VKSp8yhIXmmTx1PazPsR7eUUa0k-w3KZuy09lijqIXeHhCWTWaZqqrKrwwiyT-nI7CW-xaeFGZxl2OiBJ2vqr2YXwUO0YUqciZpBq4lpDrhy~-otPTlSVBVCS7LPlXICuU0Zcz4rEasGvrDVFyQIY35vW1cMwBegZOKHU3uJRsN-lxa3dlHdyP-4jEVvEBbVQPsGbpVznTwduJmv8Xx9U93wIf4eLJ5Ykc01EL0wIJPmHytL-Gt0w__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/05/gP7NNLC46mOfXSI9/hVt3PiPGA2ZtS9NZ.jpg?Expires=1791262221&Key-Pair-Id=K7AVJM1114TH7&Signature=jKXnOPnIJWpGvMlWCbHpbsW2hf1rW~Qy2w~xiEzThAwgGmKGROssX6Evs3LMknx3ehpodHrN4rX4Wx15h95csD7u3G7YO1AFTAyuhjDpucFStNUXaI-YOapHNOhJ0icv2DlvSZfxX-ufyk1BBVvzdxiAUelh5upETMeI1ucsVRZJa9pDDa-aHq-pH4TFNlbun69Ca7Kd2o1S~ijXHiuOtq5OMLw3E9i5d1ZnCI~sZgdJzPhPkkOleOJPq61wWFeHg6Ey4MjLJ8R5gsh6kUE01Ei0TghPxzNSzNmIqfuulBugsuYCz5ZQlPIA7yFAOi~V5pjBQRasfPIOQctWaxuNMA__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/05/lbXQGcZQ1kFYCIQc/6Bdlk1xW2fBExjhT.jpg?Expires=1791262221&Key-Pair-Id=K7AVJM1114TH7&Signature=iMwBz7SjhQcUPE7zjk-xr7F1LKUcVHeHb7MAUPS76-~ndufvEk40N6Uo0PaamjQp9iBceZIGZVyxi5RTJuV1DuSXxE23F9P7lWALHPHMHTxwHcCzEdwAFCcRpL5Wrt3wMfjwSMigUJUzsUaSzJsUpCXwjhIpz~7or31GZcT9uABsvbaQLQH3kSuRgm2hQ5BkrDEiHx72pnQ-gs6lvfT9pWNPccQq287zN1nbl62dBH5IvHqB~FEagMvgjA4yPIIox-DWUw39r3KNmJvGye6MK67iJPptvIA-rGRnFToetu6q2NbkxrgWiExbWgiAbpSgLO68sXD5wzjDPu8r0J9itg__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/05/tjWTZC6aWGcjTNoN/sAXRsvb49IsVYHTQ.jpg?Expires=1791262221&Key-Pair-Id=K7AVJM1114TH7&Signature=Gf58vpgzCBqlx8i71khoW1Zh6yiGcQtbkl1-Cl-Uw8mdm7dPw7LLnIX3ADTC6DhILG9zrHZw3g7aQQSfQEuQtgEe4ebRTxkVE4DgNkuCz0gIb8KrDt7rKY3rtOBOraCMoxRE6giiH9sxsD0gGNwMI-he8n7iEWAA9uEeMdR7w~X-niGw4WOXQy5x~BS7zpg1aD-63o8PkRjIDWog-nlw06kMatUiAMgOGpybTvDtZRM60s9CsvKxR2vBAFcPO1A~JcN~K-AbfBptmHUNG8qBgoFyX5pvBZaemDwInYCfmafnWsULp~9oR~YwtIiDktv8pGubQf-~f18aDC7-~7vuIw__"
+   ],
+   "gallery_hosts": [
+    "cloudfront(서명, 만료)"
+   ],
+   "description_images": [],
+   "description_image_hosts": [],
+   "signed_url_ttl_s": [
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/05/AX1qITSDtM29J4C5/oYvLAzGeFS67bpbC.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/05/gP7NNLC46mOfXSI9/hVt3PiPGA2ZtS9NZ.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/05/lbXQGcZQ1kFYCIQc/6Bdlk1xW2fBExjhT.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/05/tjWTZC6aWGcjTNoN/sAXRsvb49IsVYHTQ.jpg",
+     "ttl_s": 297.0
+    }
+   ],
+   "release_dates_in_text": [
+    "2026年10月31日"
+   ],
+   "reissue_text_hits": [],
+   "og_image": "https://bandai-hobby.net/ogp.png?=ver2",
+   "id": "01_7249",
+   "why": "HG 2026-10 신제품(미발매)",
+   "url": "https://bandai-hobby.net/item/01_7249/",
+   "fetched_at": "2026-10-06T13:45:24+09:00"
+  },
+  {
+   "title": "30MS SIS-E00 ミャスティ[カラーC]",
+   "fields": {
+    "価格": "2,750 円(税10%込)",
+    "発売日": "2026年10月24日 (土)",
+    "対象年齢": "15歳以上"
+   },
+   "pbandai_link": null,
+   "brands_series": [
+    {
+     "type": "brand",
+     "key": "30ms",
+     "label": "30 MINUTES SISTERS"
+    }
+   ],
+   "gallery": [
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/02/dPXZYzc4uVvHiPrP/Q8dqWzLQnWhHm89j.jpg?Expires=1791262225&Key-Pair-Id=K7AVJM1114TH7&Signature=SLerXaqP23RTblIJALHM~q28PL5vqdoQT-DEDDViX9Kw3lZJm-4jLYSX4C5pXzLPyPDZn-y4S-FLnui7PK~CIB8Wd0uOhRFGspoUjqTgIqGgsySwIlkbgqAPRNFldHFOGs-w~EqUd8zVN~M5QahXc9ClqjxFILPW4u9jupCDbMxAUme3GSapFoyQoYDYVDlpaRLh1K5Fmali~fLZ7d1ZPI6SYaE5qPs~ZpU3BimYCUISyR-eVR8jKdQ5JAnqVAkRgnU8Jc0yuEmejb1OxIBusQSrwaq6f3uWpOAu0zh5LVuZpud3eIMZG-5VRfxuTLZmjYn2q-yfxBCUqBcGOaUxCQ__"
+   ],
+   "gallery_hosts": [
+    "cloudfront(서명, 만료)"
+   ],
+   "description_images": [],
+   "description_image_hosts": [],
+   "signed_url_ttl_s": [
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/02/dPXZYzc4uVvHiPrP/Q8dqWzLQnWhHm89j.jpg",
+     "ttl_s": 297.0
+    }
+   ],
+   "release_dates_in_text": [
+    "2026年10月24日"
+   ],
+   "reissue_text_hits": [],
+   "og_image": "https://bandai-hobby.net/ogp.png?=ver2",
+   "id": "01_7142",
+   "why": "30MS 걸프라",
+   "url": "https://bandai-hobby.net/item/01_7142/",
+   "fetched_at": "2026-10-06T13:45:28+09:00"
+  },
+  {
+   "title": "30MS 花海咲季 (20th Anniv. YOU AND アイ ！)",
+   "fields": {
+    "価格": "5,060 円(税10%込)",
+    "発売日": "2026年11月",
+    "対象年齢": "15歳以上"
+   },
+   "pbandai_link": null,
+   "brands_series": [
+    {
+     "type": "brand",
+     "key": "30ms",
+     "label": "30 MINUTES SISTERS"
+    },
+    {
+     "type": "series",
+     "key": "idolmaster",
+     "label": "アイドルマスターシリーズ"
+    }
+   ],
+   "gallery": [
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/05/yJuNDL5dIaypAubX/vO28A9dAO4aVcHiD.jpg?Expires=1791262230&Key-Pair-Id=K7AVJM1114TH7&Signature=kPEFHPQnth5vJvTbLeEDgcRLCgyGvY7IOZ9EikoGjcFdsNScc7ViUsmiabToW5lPvqmz4DOcr9kKtKKi0kO24U-1xir8C5cjHHhZxfOEmXojCkM6Cv9Yz-Y2s-c6dSvf9Y0HR0wqBWvDPc3nziRfWDV~ElSavC-4QBZ0bMmQ7stJp6E9QopfdOjiGE0U7-dXuBmF0gBWvlA4341xHUGQzP0Y~SdeO7thPJn9HgqvHGOGDCSsW~nxiIayULiQgDWYcW-8OPl7QPrZYgRHiTglD5eA~7f3266fnJerMIc-OdP09cwLbMYw-yVxY0P71t1wfvNLhjGlwwitACSGC9t4Xw__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/05/ajWRnE3UkrpuJpbc/diKm4gxwSkKnW1ZN.jpg?Expires=1791262230&Key-Pair-Id=K7AVJM1114TH7&Signature=TlVspMO~DlbjtizzyPfPPOcjcJTtfuk3TkDZHYQqqJXzR35Zt6fO0jKT9h1rk89y7aZqtbR~ZJynvzq6ffzOGPZc3d1Q8nM~fnAxnqa5J4IiiwPgyW12EMIkO8xTk970SJhaFXCsB7H-YsN7foCFtZDyyAuXB7kLVdAHufKRRnvSOgQLfNpq7bD5g0r-nmf4hmHQj~5Dm0XbC-uKLrdJHKdTe49poAD1KzSZFDA4l9qp3kxbpoU7yqOFXxtU--TiPXNKO7mngc8YQuO~jv9bSpB4gaUh4T8eZF9kT9a8zCIKu1ajva~X4UOuqGJLX5SdKC7dP89knXkk0W2NH4lIaQ__"
+   ],
+   "gallery_hosts": [
+    "cloudfront(서명, 만료)"
+   ],
+   "description_images": [],
+   "description_image_hosts": [],
+   "signed_url_ttl_s": [
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/05/yJuNDL5dIaypAubX/vO28A9dAO4aVcHiD.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/05/ajWRnE3UkrpuJpbc/diKm4gxwSkKnW1ZN.jpg",
+     "ttl_s": 297.0
+    }
+   ],
+   "release_dates_in_text": [
+    "2026年11月"
+   ],
+   "reissue_text_hits": [],
+   "og_image": "https://bandai-hobby.net/ogp.png?=ver2",
+   "id": "01_7260",
+   "why": "30MS 캐릭터(2026-11)",
+   "url": "https://bandai-hobby.net/item/01_7260/",
+   "fetched_at": "2026-10-06T13:45:33+09:00"
+  },
+  {
+   "title": "30MP 鹿目まどか(ワルプルギスの廻天Ver.)",
+   "fields": {
+    "価格": "4,950 円(税10%込)",
+    "発売日": "2026年11月",
+    "対象年齢": "15歳以上"
+   },
+   "pbandai_link": null,
+   "brands_series": [
+    {
+     "type": "brand",
+     "key": "30mp",
+     "label": "30 MINUTES PREFERENCE"
+    },
+    {
+     "type": "series",
+     "key": "madoka-magica",
+     "label": "魔法少女まどか☆マギカ"
+    }
+   ],
+   "gallery": [
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/05/CqtT8MtZX0QxxPiQ/StPg63uN4b0okNPs.jpg?Expires=1791262234&Key-Pair-Id=K7AVJM1114TH7&Signature=Q4x42JOG~J9wkugSbmGbKEwAFNgz7QQkVfzY~6l41ZajiMdJ-GrZZABmtOrgk9i8zr6GhB8hZCSS~doxXl~wJkPkQCN88KHyFmKFmnsCGjDy2eLKjGFXxDahEF2OMU-Dcza~DObdtZpZl~NYGDsj9-rwaZuKf5hWLS74lsdmJKfXaY0iGCPuKdpQgVg6zgatlB2KLy6k4D359jLOv4qSpeYf05bkNWvb7XXYSDXzsI-jIULm-j7GGDp-M5oLGawwFnlQcxcT0AUEpbipk15SkdyjZK5o1MsdM3vLb9TiL1ssE~wj6Hdg5rBLHz-86Xudht8Nxnb1fvU14oNKhz9oPw__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/05/CqL0uhYV3l9yjbVt/AHlUlBw649hl6U0m.jpg?Expires=1791262234&Key-Pair-Id=K7AVJM1114TH7&Signature=AvC8p59AC9Q60gYTX~A~UC-Rm50mNWmVJa~hccizBc~ZdccKcb27rqO9o2YuPTc~3wavQ0iJQGFEFvTZdFkD0FqVnTyglwtEr44jHFV5q6PJmQs7rQYfXyK-caUK~YBU06sd6bUinDIJRx-YFoD2XIHj0B~TjjarXac76NCPw18SYEm2hvNk-QC0i5oS-aHByJbv1qIKY1C7vINxOth8jUDUia~YZX5oStk8VBLSsNjRpkEjX9I1iHYIDkCDmQ0WreUhFZWf5df5HWFTFnjWqEJg3QTrpeDcxTjrH7-TEgFDG3s15awN0DsJlx3Ru-G-gaePg-RXKpz6TOKB3dZ1WQ__"
+   ],
+   "gallery_hosts": [
+    "cloudfront(서명, 만료)"
+   ],
+   "description_images": [],
+   "description_image_hosts": [],
+   "signed_url_ttl_s": [
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/05/CqtT8MtZX0QxxPiQ/StPg63uN4b0okNPs.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/05/CqL0uhYV3l9yjbVt/AHlUlBw649hl6U0m.jpg",
+     "ttl_s": 297.0
+    }
+   ],
+   "release_dates_in_text": [
+    "2026年11月"
+   ],
+   "reissue_text_hits": [],
+   "og_image": "https://bandai-hobby.net/ogp.png?=ver2",
+   "id": "01_7263",
+   "why": "30MP 캐릭터",
+   "url": "https://bandai-hobby.net/item/01_7263/",
+   "fetched_at": "2026-10-06T13:45:37+09:00"
+  },
+  {
+   "title": "Figure-rise Standard スレッタ・マーキュリー",
+   "fields": {
+    "価格": "3,520 円(税10%込)",
+    "発売日": "2022年10月15日 (土)",
+    "対象年齢": "15歳以上"
+   },
+   "pbandai_link": "https://p-bandai.jp/item/item-1000182118",
+   "brands_series": [
+    {
+     "type": "brand",
+     "key": "figurerise-standard",
+     "label": "Figure-rise Standard[フィギュアライズ スタンダード]"
+    },
+    {
+     "type": "series",
+     "key": "g-witch",
+     "label": "機動戦士ガンダム 水星の魔女"
+    }
+   ],
+   "gallery": [
+    "https://bandai-hobby.net/images/153_5176_s_q75wv84aj9ba2gxn7j98f1fsujj9.jpg",
+    "https://bandai-hobby.net/images/155_5176_s_me1c6039l4lrce2ishn5nr3hy9an.jpg",
+    "https://bandai-hobby.net/images/156_5176_s_1k2ao8p14aj7964ia1hxu1dvx6r6.jpg",
+    "https://bandai-hobby.net/images/157_5176_s_rhf6j0hcinlpvfzdgqkgz0zjk1u0.jpg",
+    "https://bandai-hobby.net/images/158_5176_s_3uhthw0hwv1v4zf1wl7ghup552dk.jpg",
+    "https://bandai-hobby.net/images/159_5176_s_w037q0imh2um0zo1ej4gm2ne0unq.jpg",
+    "https://bandai-hobby.net/images/189_5176_s_dv0b7nfztg2cm6kwm8glr5p4l53y.jpg",
+    "https://bandai-hobby.net/images/190_5176_s_jneoobuh70f3wakhx4sntyyztvyu.jpg",
+    "https://bandai-hobby.net/images/191_5176_s_e9cul5q7se2r1tif1m7b4sux06b0.jpg",
+    "https://bandai-hobby.net/images/192_5176_s_ey5atv6pb0v9bpiga8il8rjmiwdz.jpg",
+    "https://bandai-hobby.net/images/193_5176_s_chu9uqr7jj9b2jw6ky6s3nna5tnw.jpg"
+   ],
+   "gallery_hosts": [
+    "hobby-site(정적)"
+   ],
+   "description_images": [],
+   "description_image_hosts": [],
+   "signed_url_ttl_s": [],
+   "release_dates_in_text": [
+    "2022年10月15日"
+   ],
+   "reissue_text_hits": [],
+   "og_image": "https://bandai-hobby.net/ogp.png?=ver2",
+   "id": "01_4259",
+   "why": "Figure-rise Standard",
+   "url": "https://bandai-hobby.net/item/01_4259/",
+   "fetched_at": "2026-10-06T13:45:41+09:00"
+  },
+  {
+   "title": "ENTRY GRADE 1/144 ウイングガンダム",
+   "fields": {
+    "価格": "1,100 円(税10%込)",
+    "発売日": "2025年10月11日 (土)",
+    "対象年齢": "8歳以上"
+   },
+   "pbandai_link": "https://p-bandai.jp/item/item-1000239492",
+   "brands_series": [
+    {
+     "type": "brand",
+     "key": "entry_grade_g",
+     "label": "ENTRY GRADE"
+    },
+    {
+     "type": "series",
+     "key": "endlesswaltz",
+     "label": "新機動戦記ガンダムWシリーズ"
+    }
+   ],
+   "gallery": [
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/10/ZMjjAKeZ2qUkLLWK/Si0mf8QZMUIHzVNM.jpeg?Expires=1791262243&Key-Pair-Id=K7AVJM1114TH7&Signature=RFqNsc~Bwi-F1xlr46uzwjmu8DWu7MZ~SmtjrMqKndVC7GE~2KedJj~w8wY20OtMK7AyU6QC8rLkUajJPW15QchUMQ0TRGSbHna0wOecdEBxx3mg9g3XeuP34xNOFGDKQKYlhHcs9Guc6l5RRup5jvCzTzDkJeQ86Sh238VyuXHzau5bDB0uf4wZWDKmsz8o9XcBxIVW2w0Y5ZZe5ra~UOzt4gaAukdgu-U9ozmsiavmSnGc9jm1v49~4l09Dq5p-ujqg-0C6tjhb2mpK38CPYg6wRTF8D4WSEIPAoz13hYV563myBBw13jj3iP9JK9Y-YJxfegPR2EKjgbitQSCcA__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/10/XBecP3LNaZQKkDBd/2C4Xrq245GTGlJnC.jpeg?Expires=1791262243&Key-Pair-Id=K7AVJM1114TH7&Signature=YZiTXIfw1WED6NYU~88EkpO5F8fSqsIi3Ld0TUxXUP5sln-4oTVukflsbQ0-L9lKBacoAt9DQCcAisPNuilFTWfceURTs3kQn2Y8pcN-Fk4cPc1KgLMNwB9GQ9eFZ8-2CWQ23MO036WofpAej31W4XaKbt27oQlJ7M69yBXlkoWnRjTjOUwLqTrMABSgRNZf0zAYt2W4ZFmu5gc0a95mEAOjSbz9-eAn2StLpD2QVJDAGOMut3oj3FbgCayDIIuOXBDRrQ~L7Ldl32Pi9bLbAkz6aaeEN6iLG3OvTpKF31bSqGCqqB59hVxbHuQjnNzGiERDgR0ooKhRAXGZmJm0AQ__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/10/IpSBCOBIgGi4vVsQ/YdLnYBooQ6QagDSx.jpeg?Expires=1791262243&Key-Pair-Id=K7AVJM1114TH7&Signature=OvqXaB3J5-p~NPR4wvPOyBfulc8CDCgPv1TZnHuk8s4p1c0-rqRjdRdKjh3samJ1jyPLlhgS65-VE2rb4ReKYcj7Wcpw-Re9iwKNOHRl0HT8cThbL8mIpofcWvU89IbqEOuSGcB22nv4Rjl86OoN5RG6XJ~tATHyYtoyaK0galA0dYb0vsIWebrqGWtxbURpa-te7j99o2pZIvKF9cUM9Wv3iozZg0zeDIfhEe8WNJfINL1l8-Hk3ZkKTVUfh20IHJge65FHJ7c8Vq3v7jjpMTYxG-M-lLkdt3nDwP~MARy~Mdqe-9DLU3ZqlZ~kb10R3S61G~cu3b1UvI8sV2Ye2g__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/10/MRuIM1q2VPa0LVTh/a0cebUV0VoYTpg0x.jpeg?Expires=1791262243&Key-Pair-Id=K7AVJM1114TH7&Signature=X~uX7USgJPZV2EJz9ONEcuBG-C0AF8Vww8rkQ6dJA2~76RY5qdJrTyDZzAweciZYV-u2Pl04ZCFEXPSFgocWkULJvW62XkmXWkwK77fp1FpeguLESxOYrpN-nf7026s1E50NmUhiQ7x3cHA63Yjt1d1nefSTAIa6oKVl6ShXMV099Fq3LueTAUSyLX9ny0CuVCBp0SF4mW53h8rIskK5OyvMeT6VEg6fcJmN1Lplw1hsk59LmvkLuP3T9cf3vRKkBg9o7tIB5AKMQSCyhvIVw5AIiAYs8tXFhBnxzA0m6K6f~Hs~ZJob0I3~pAMj9hi0b90SstNk3KIq7HPjGkUMqQ__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/10/nvmEzgwTEMubvNGk/SJEkg4rOZnicZudf.jpeg?Expires=1791262243&Key-Pair-Id=K7AVJM1114TH7&Signature=BEzD0vHD-aLLfjlhDVdrRQx8YDjCJBP5~891YP19NmDTjUdFJxaCnUNkvSI9-EFelTW6LmpZ8v9DJh2w95Q5JZHH-MtwCw~4vYn0hkkZq-IQl3Bh8K4zXR8Qehs1rz8rI7u92CJ76pXE2eY766N5yw-kFpuCq-P9-DGA-3QxU0U5Ln4ZuYuhcDkWHWMgY2FwrimpvMap-~4BmcK5fd91SN4irvStuwLJ~NoITh5rOpXEgsxUWao8IC3q94XtTZ1k1cte9gtODC1s-aSOhvxn3KawZy2XIHgvUnHzuaRI~HCyCuwxMGRjSnMGWlwBVc0jk3oulhz142MI~SrbsdRdGQ__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/10/DmJgCBG2ZTmnYFFw/tKoM9cma37jxXpO3.jpeg?Expires=1791262243&Key-Pair-Id=K7AVJM1114TH7&Signature=SRfzzLylMP4a26RJ0HsQ9k6HQtnTLO5vAlgY2c6P2aKTAiGaYZfYrnU29l1nDp5z3iX8JOnuJ192kNIlxgN-rpLdSnwRjrL3MrGV91LQkaEJDbn4GeFOZ9q-cPgYpINcFwVY9voXP3j4PlzNlP23x0WLbCPaUUX0qcL1STBgNu04ywi3-R5vpaD7z5eX0p4ec2GjELBuhxRD~~Is9alE2XmgJxiyOL4xeO1AaWpj8oRDz2OuFmS3D1Cl73EHY2ZLrE3g8hyFi7SZb~HmkEQvGiqtIOyAy--MeDFQ9vXLJ4WRz7K0umTM4NiwQvFCn-fzXp6oLLW9BPBl5gJ8b2Orzg__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/10/K0UbeDJsWG0X7J4C/bnlgdRYYjCMytNM0.jpeg?Expires=1791262243&Key-Pair-Id=K7AVJM1114TH7&Signature=mg1UJdtVsnOWtb0IKHeasvUXEMLKqffAAyB3rnhvuTss22jJe1pc6lUTaS6XQdzwojzZVFLF2aB4y5NTt9YGlAmpVTqGL9ET45WCiKQDdBoW~41VfgFqRJ4M2HANOc5kqGoUtMSXTu3vJFHDKPywSAo1ELK3u0LQlXZi75xfIHIXObOeSOXhQGUj8mY-FPXTc8uAuMaN3CKqBQ-OIAzlNd5cNbWp3yMgGsecc1Wb9tJjrqAuxs-Z0EOAtGnb-0DWwgDcots4z0sRihPItwuYG9t2E7rt4460XB3mMjV3bRHxmE2Brl~-YCWfN1mmATbOWH~bqDNb6Xr7v5VratBpOw__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/10/fkpHTTBSWCtr4TeH/TQfWlW4H44AuHzMk.jpeg?Expires=1791262243&Key-Pair-Id=K7AVJM1114TH7&Signature=lBqrSRa1verLHAKxH11NcIiAGzdEGO~iknLCAzYQp~ZnVo1k43VsyyDYgqK6VacDs3ySoWeC1fRzd~8YiR37UYOPHKxa7Tlbo6IbqvxB-ZEk4oXQqMwgxVSZ0wCXwsmQpGzmBMIyG4PC~QVdswOzAtcF9nV2r~fE4GsI-I8EpXnLdfi8Q9gymzIrRif1QxSiCMdIetrc0XdPEujv5Uy9JEh2b4aYBTpmGOv0BkLJB7DKILHo7vepjGoTqHayVbYD1Hh9koCNXhzpO~MlfTxRbx5tj87pYOtbOFrv~hF6QobyS3FI7f5uCE52HQjORzW2j~PP4hDgRNLZKPnPSKKMbw__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/10/sFytvl5SHT1Wk88L/MkTJZw2gyA5y6ID3.jpeg?Expires=1791262243&Key-Pair-Id=K7AVJM1114TH7&Signature=F84vqvIGxE7uwPUkvqtf3kOZQmpOQ6yuEGyZN0GPybyhEZhYoKqAQadh0OsJjYsR51yU6OTH0d8LvU8EHRkWZ4eqYS5p4pOanNJsOkve5~GDjq-07MuBN7iXt-QlkktGUfaVNm-6pwrXKjjfhcR6MTM0mz0ZCNIzenKiv6LX0kd6QqZOY5fOB2RayI4XkeoZegyJEUXNQDju6EeN72qx48rUyRHwQmta0~7A4VMfdseX1BPC6pJecb-~NrDvXjyJivIDatUtorhtR9~rablQ9QAWrZAjpVnp4PkbYKkCwi1IagXBObNre87eBAR0hBTnRBQHIJWl5WEw9ibb0yIizQ__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/10/fh2vp6g5oZ5zVnqW/jm3wXtookil3YmFY.jpg?Expires=1791262243&Key-Pair-Id=K7AVJM1114TH7&Signature=AAlJJ0B2qyRXQoLTq6k9ANt05DHitwQAJ~jS1nhqenUJ5xXFpb2OAz7X3q~fs9K8ojW2HDCo0iH0yztQaUYfUD0~TpeGAQMu-iH6j~3ATq6K7C-M91B4binwCNqjI5iTJKEUjIHemB1xtjXD1K1gdk7k7uy54ZE~O~i2MQDtAJxumi3lTctU-FlaxuCd7MMwKO5tqGrIbQYCw6e5jiLmmrYbbtV-ezJ0AZCJ-HGb8WGoFfXpxL9xBc0FNrwD9EHHayl4YD1J7D29dU~7DNA8vOEJ3nEsUUaCR8un7Sj3mkPio14d2CNHyV0bG9H7Q1hB~rXUuFlUH0EmOE1tlk7zaw__"
+   ],
+   "gallery_hosts": [
+    "cloudfront(서명, 만료)"
+   ],
+   "description_images": [],
+   "description_image_hosts": [],
+   "signed_url_ttl_s": [
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/10/ZMjjAKeZ2qUkLLWK/Si0mf8QZMUIHzVNM.jpeg",
+     "ttl_s": 298.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/10/XBecP3LNaZQKkDBd/2C4Xrq245GTGlJnC.jpeg",
+     "ttl_s": 298.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/10/IpSBCOBIgGi4vVsQ/YdLnYBooQ6QagDSx.jpeg",
+     "ttl_s": 298.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/10/MRuIM1q2VPa0LVTh/a0cebUV0VoYTpg0x.jpeg",
+     "ttl_s": 298.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/10/nvmEzgwTEMubvNGk/SJEkg4rOZnicZudf.jpeg",
+     "ttl_s": 298.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/10/DmJgCBG2ZTmnYFFw/tKoM9cma37jxXpO3.jpeg",
+     "ttl_s": 298.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/10/K0UbeDJsWG0X7J4C/bnlgdRYYjCMytNM0.jpeg",
+     "ttl_s": 298.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/10/fkpHTTBSWCtr4TeH/TQfWlW4H44AuHzMk.jpeg",
+     "ttl_s": 298.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/10/sFytvl5SHT1Wk88L/MkTJZw2gyA5y6ID3.jpeg",
+     "ttl_s": 298.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/10/fh2vp6g5oZ5zVnqW/jm3wXtookil3YmFY.jpg",
+     "ttl_s": 298.0
+    }
+   ],
+   "release_dates_in_text": [
+    "2025年10月11日"
+   ],
+   "reissue_text_hits": [],
+   "og_image": "https://bandai-hobby.net/ogp.png?=ver2",
+   "id": "01_6753",
+   "why": "ENTRY GRADE",
+   "url": "https://bandai-hobby.net/item/01_6753/",
+   "fetched_at": "2026-10-06T13:45:45+09:00"
+  },
+  {
+   "title": "MGSD クシャトリヤ",
+   "fields": {
+    "価格": "7,700 円(税10%込)",
+    "発売日": "2026年09月26日 (土)",
+    "対象年齢": "15歳以上"
+   },
+   "pbandai_link": null,
+   "brands_series": [
+    {
+     "type": "brand",
+     "key": "mgsd",
+     "label": "MASTER GRADE SD"
+    },
+    {
+     "type": "series",
+     "key": "unicorn",
+     "label": "機動戦士ガンダムUC[ユニコーン]"
+    }
+   ],
+   "gallery": [
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/B6tV5jtqCg7WgQpI/bTfOW9CFNmctQXwI.jpg?Expires=1791262247&Key-Pair-Id=K7AVJM1114TH7&Signature=m5S~fVh6H4HCfT6gomWxSoCtrJePXjFD5xhNeAlMDaku~15uIP6BUVN1iSDHZbuzTYyW5CHVoxVAERHL-l84Vfj78v70n-PO6NYc~-V5DtdjWbiGydaF1Brm0psfKrMJTC0Y9EepuB03zxf49IyG-duUFzxHs2ohBO-JmPDku6h~lUT~ktFII2mUB4Xj8wagNU~DsxPdDHNLj4R0o3WZwyjz9ISheA3fwFQfARBkDqwAEOhCgq7U5IkWVqjCYGCEbRZjkNQr2i4wwyL2Umxccwnchrh3kqUP8HSTB64ESYowiGZLfXD29Z~urzloCXKpS3MrrQ1zqvaQh7V6G7SPeQ__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/hdaJYhBpxiQzYRxA/8ygDyWBa8n6dl5Ec.jpg?Expires=1791262247&Key-Pair-Id=K7AVJM1114TH7&Signature=aJR-l4hXgkeagkDd2TLRjKpNHOJVZQGCWE2VVuLmmMhVHBnvD94LRBPsFwNp7QUJS6hOhtbGNeUSpeiqGvD1dzdCoXaa6Dw225-gAv1ea~81wVfA0kUUAg~LB6MDt0M0z2Q3PA~2DUuzdoc-omUtFzV5IvbYKg4~q2R7XI0DLSMXHOAlzyZ7RIs9oUeQxdEfHBy~w2HlirNFyxFHofbDYUCdTDToOLgi3DMg2ljxA75pIULpbSpFp21Ev20pU2JLrMd~z~oWjWsxLn9XCIUDy9TQ89wL6wV8uT24Rpv784~SkmZsHd-A0pRyP9f8Sjlq7erQchIUDM~4LIFHhKQOqg__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/FxOhFmk4iN3m9DLX/5IjanCwj5PF4vELq.jpg?Expires=1791262247&Key-Pair-Id=K7AVJM1114TH7&Signature=H9MQDFWiP~xZ6hKH-9p-hm7rfdser9K5IbvxxfayMLRY2VqlpE33vsKoYLz6pPI6kHHPL-znfXf-XJUiaeG9TiYnJcB9GZM80Dq~d4ri-PeRMFMUneMqIxIgFHrgcZiERGaaxjuVVthSWkirpYy20siiWKIQz3DnyeZxldVDH7U0StZXVwoitEOGNmpqzrVMfvnRlCYnnmwBk32P7aiR30uc0SQkd-iNNLRvPN03jw6aZf7HfkUIjwHujcNRvoDqExS9EPWt46KuNfKd7-aswOS7v0NITAcTOcJitOswX4tbUPqrMtjENPnDiIos9iaica4pujUBM-yXzZCbVOKO7g__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/auIspRsJ7hfWdZy3/TFQuS7JQe7wqIK5C.jpg?Expires=1791262247&Key-Pair-Id=K7AVJM1114TH7&Signature=gW7TStZwOOe8iZm~oUcNoYqjQajgAFkfZY6kG-BEdiHLdojifwvs1qHvIKQnBqeVNXNi0PTWmvQAov5Wtyd~MSidF8M8locIosJ7uwXN-K5CzpjMmqjff30EU1~VQkRhijrpVM2CYlQrD8-EvJsWdQv~jYdNTJrFvAkDe80DYI6wdE5PJv6Jvby7DQhxQQX5Ms80t2kJrkTPqT6kCXVWbNG4l6g53X550ugaasSqpBWdsKmXVEa5BI6hDFioLteQAQapeOncbKUsagdCW04zUe3TSEQPDItIvya9pBXkMe1lVWIzxdkSWoN1s3T4de4cSZ0L1AGZGdEeh9Qgm02eGw__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/4LdKQXLoGXn7yXoR/IuIr3avJns7vU3ie.jpg?Expires=1791262247&Key-Pair-Id=K7AVJM1114TH7&Signature=XKIDZcWjq1YMfbyxuTZTG5f~deRoucF4~IrA8eHHfjLhWf0eMC4JnlTPVHkZBFWJf4hq0X0T3T9mtOE5ZOVnlqYMQEQwXj9qSXm4gQj-Jkw~WEWNuRPpr4vnWyqoOEd3wf5jJ0KlxcjNQ3LMb~phCOuEysu3L8JUgFAecVmxw4YdsmO64zIHYEhtSz0QenfjkSzppbH3wGCEhw4rXKNNTMutrOIBPgvANGrzzCH2vxwHfWNuAFQPV~TI55W8nhkBufG6nC8gSC~f5tCSVEgaO1RXRjPTgaVWldSMw2JvyFCBCUmHdCfIKmGI4UaZfM6cnQaJThZ64gA~QjMM~TAELg__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/5Nt9vL79OlZqvecC/fR1MB6grTMU9eLbB.jpg?Expires=1791262247&Key-Pair-Id=K7AVJM1114TH7&Signature=IjgiTAPSTOKcZCysnBZjO0-do1gWHskERlK1UrdE-4fSfYbnlzegQlwwg0xUDqb1~4wLJXwM-HG-GRAkFPHSOOcX5tXOMo1am3zcostToev3U0q6NEIgx5CkP3vt46DJV7gJhrKy~sPv95ii3mMRsXNkU9Av3P9-yTsOfsFGBxUvIXcm1oyxHmm9Efymw7MLhRIEHN5iApa98RTazM~2XR1PTg0xdtRL5ONd7bM8Idr6fvlX9SJHxo9ruuSxxccWSLF1SNqHGd0-d1X6AF0YEL6Z20PDCY9vguR3~rsp-SAHFd7LWWmRm-RIWQ7NXqns1K92c-mrz184ii8Tqp71tw__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/dHlL8mefM2OAa0WY/J8t6D2c6g0nya7EM.jpg?Expires=1791262247&Key-Pair-Id=K7AVJM1114TH7&Signature=bbAE492NJm0J-qARsLyGOzqyCFtfleWOxaZv~MnxGNOd4LXT0ypFSEGWB5Rn7Unr2kkmQl8eK9ZntWTg0bgCXemfFPoWDrO67GXHnNTVhdddQ8YNS6jqsQpHhvXp1XQhoOndpl2Vudq3mQYLNVUrOcSP7gIUPfC2HWEnUFmVRAgp7iMsbM1vrWH3cKNv-VEgG8EDFqOk9~lieEBMCSon9XUp~mS-7lXqqe~jfKkSx388z68-2I4xqhvtoh1Y~j82FTzByVyJsOOSrh4QC6NjaY1vXHJKNaEtTFE5qPO4jy-fWrtwGpdQ40G9ajX7Ytt5snEn0ri37aQGnr9bQ~QC1A__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/HVnqA9RoHQMAoxVc/zXoXbk87J3iYx31h.jpg?Expires=1791262248&Key-Pair-Id=K7AVJM1114TH7&Signature=d7wi6s1v95b1iergdDA7EvceMFZGXq9tfuWq~U35kw1eCr6JC5PjNPmNNt6MU6yUUTJzO19hS3tvkvueo~OIuCY8ulkujT0qBqJShw9PwiE5Gf0myMp46JodUOayZQdTOUjHytSZzico69HAjuNZlVwLKigVp~mbxwnE0NnbIerKlRBoZduqTD~ZZ7VBdIW2AFELNuLxZ7-4UENEJvNWzlUxxqnsAbTMj2CtbWvLLaoKxaptl5M2AT2B6VNOlT7J3kb0ompyYwyIlKoCSI-a6vO-xkO7uTDDgg0tYP~0X0k58q0lEeO1ErLPCNCvdBFvlvDgvPfcRryR24VM-mChkQ__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/H8Q3hTyzpourxcaG/79NQ65dYhZDucBJo.jpg?Expires=1791262248&Key-Pair-Id=K7AVJM1114TH7&Signature=Pr57f5jm-3Rg5vZd8eZ0F9ZhCldC0tBoerF6BCnVYWPOBBmJ8Vxam~NSewu-PNXK9mSqbHpYq5-sxUq7B2Yy9bWt5ZavRhitlJMD7rYfT0CR~WSkXsfw8J6-dTMUR8DqN4-8Sbe4Sv2pPPV3tSy87VmSLFIlH2tDk7Qqb~k7kbh5WwQurdbJQexWBrZHmsBJzabwwlz9~D4F25OId1etknxiUcai2K0ceIv4yzyxTdfdcGoGnT60PnCImqxADUjAlXZRiW~6pgWI3Z2Z71sNpSfnNd6cvWJmsLqcSj-3iQS3E1xn-0qFhUFMrXN847l8-dvE8SbsBqIxzeVDRQVlBg__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/HXf6ME16kiZMEcnt/x10W2E1ukq55AgoE.jpg?Expires=1791262248&Key-Pair-Id=K7AVJM1114TH7&Signature=ShM7bAb4HoIwEIw4DWJtQotNNvKf616bvxJKds-8oD2KxRyZNmB3-cKb0wKA9WLzOCcL5io0nB6zfloUgKRXbdUqPZ23NRiW4rTxyhGrorPWlJihefvxKLJ~Ax-7ybU7kpyw4YYfwSMDRDayp71MeARG2c2rFa9vrxDUEbqq9oMne~qcmVSZVOebdjASSKPuMGDqmeFWyMqlRq3a13VlxuVz4NoLAtsr86AQQ69Hg~AKxXFkERgz3Qn3r7MvPiOigosDHzpv3hOVuEb6pamRwqv~t~skHdq5CoyU2PJcasiPJsZrQZz5BfuNm-2JrJ2yRJj9jojgQpcB-c~~1euInQ__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/JMK2mVyq72HoLLQa/0ipxtSXFqemnoBwp.jpg?Expires=1791262248&Key-Pair-Id=K7AVJM1114TH7&Signature=KXn9b1MAC67pRnydTwsEP2hDv6yfz9T-jkSh29PGUal~gt8cFN5-9CzPLJ-vIPaoCGI4y4pVUy8Mzyq5bG4IXasdcu2BBeqOOJGIZ0M1ePIAOJRbbdnDJE0g5mS2lCo6HtdfH~Davv7O8sGIkoSdCMYEBATYA-BQXmkJ-rtKfAwexo18pQCoXY31DNSS~2W~V8ys1DEXjJ~N8SOpvGWR4Qstuub92brKYLPNwmtGUmyZvq~2NH5xEXVh8IMPcoLG2Gn4biBpQVstvioizL5jLMmMW3Y~wPVJgFO8UFJssdLSB4htJFk5H5hWMzEVlxDXo4lrioAwXZKQcdujnWpiRA__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/qGO1fgAju13HDccf/uxSq7iyEYQKy2lYH.jpg?Expires=1791262248&Key-Pair-Id=K7AVJM1114TH7&Signature=ezl-LoZ3d0i08lu-K0LGBZKKZm9LNf5H7ipcbwJsbbE8m6yWyKd1PoYsHC5pfQHmHX6WzrC8-KFqcLA4r9CRl~gn3MlUS8XRXZG4xF1t5Ad0MN2NCZR0wf0tKBj9oc~xVGHkEn4Omx6mk8wwJPXg0SJAmcheh6l6BS0gKhBqDONz6~6PCVWMEbVmOgH6ei23M4ZVTqfujdIWhLqx5Uh3tiH4rt~QKozYBRf0rQxmFpX5TZ9xvLtnKueo3YdSwGJGi-wIGSvaz2mg53uUuaOjxulaeURJnANH2NQ820s5xjpPz70U~3UOY54~-IyGIZ8dXkJlWQR7HGdI3CxYjK8fTA__"
+   ],
+   "gallery_hosts": [
+    "cloudfront(서명, 만료)"
+   ],
+   "description_images": [],
+   "description_image_hosts": [],
+   "signed_url_ttl_s": [
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/B6tV5jtqCg7WgQpI/bTfOW9CFNmctQXwI.jpg",
+     "ttl_s": 298.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/hdaJYhBpxiQzYRxA/8ygDyWBa8n6dl5Ec.jpg",
+     "ttl_s": 298.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/FxOhFmk4iN3m9DLX/5IjanCwj5PF4vELq.jpg",
+     "ttl_s": 298.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/auIspRsJ7hfWdZy3/TFQuS7JQe7wqIK5C.jpg",
+     "ttl_s": 298.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/4LdKQXLoGXn7yXoR/IuIr3avJns7vU3ie.jpg",
+     "ttl_s": 298.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/5Nt9vL79OlZqvecC/fR1MB6grTMU9eLbB.jpg",
+     "ttl_s": 298.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/dHlL8mefM2OAa0WY/J8t6D2c6g0nya7EM.jpg",
+     "ttl_s": 298.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/HVnqA9RoHQMAoxVc/zXoXbk87J3iYx31h.jpg",
+     "ttl_s": 299.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/H8Q3hTyzpourxcaG/79NQ65dYhZDucBJo.jpg",
+     "ttl_s": 299.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/HXf6ME16kiZMEcnt/x10W2E1ukq55AgoE.jpg",
+     "ttl_s": 299.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/JMK2mVyq72HoLLQa/0ipxtSXFqemnoBwp.jpg",
+     "ttl_s": 299.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/qGO1fgAju13HDccf/uxSq7iyEYQKy2lYH.jpg",
+     "ttl_s": 299.0
+    }
+   ],
+   "release_dates_in_text": [
+    "2026年09月26日"
+   ],
+   "reissue_text_hits": [],
+   "og_image": "https://bandai-hobby.net/ogp.png?=ver2",
+   "id": "01_7135",
+   "why": "MGSD",
+   "url": "https://bandai-hobby.net/item/01_7135/",
+   "fetched_at": "2026-10-06T13:45:49+09:00"
+  },
+  {
+   "title": "HG 1/100 VF-25G メサイアバルキリー(ミハエル･ブラン機)",
+   "fields": {
+    "価格": "5,280 円(税10%込)",
+    "発売日": "2026年09月26日 (土)",
+    "対象年齢": "15歳以上"
+   },
+   "pbandai_link": null,
+   "brands_series": [
+    {
+     "type": "brand",
+     "key": "hg-c",
+     "label": "ＨＧ[ハイグレード]"
+    },
+    {
+     "type": "series",
+     "key": "macross",
+     "label": "マクロスシリーズ"
+    }
+   ],
+   "gallery": [
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/tOkHqg98ETipPO5f/lSRHnRCzIXlVLU4Z.jpg?Expires=1791262251&Key-Pair-Id=K7AVJM1114TH7&Signature=P7ifXcGznP2kSABuExDDcJQ8ZVUIP27N2TfbW6XRfLF-C8hiOqJePhR5zZE8NISkpa9J1PjryP5J3iWADNzd9sVLT3oN0t34avZsCtwl5r-6g4924rF5IL~PYDxGhgh8hwQI5bULNNw1H-U4SZBzHMaA4hF7OPzj6DMlwxBZfFiv4PoBW-5m1NidPXzX3NM1r-cXkiKCeUyJY4befnoBOIua0nFZDp5VPx2khEJqOGwg7am1gjKDRM0JEfC2OIjsBexyxfJoa~T7~rYAyNf-gLcPUgqnx~SAt3O-t~yi5sWHHlOLlgUrNwPYB526rhv5xuSnnBd~HC74nliVu5pobw__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/hF8VZKpHJ1cUSUB2/u1ouj1gkSkodHcNZ.jpg?Expires=1791262251&Key-Pair-Id=K7AVJM1114TH7&Signature=J1-V3cKXnRc0yIVAAeRE0hrzTUj7kMOnbK-0BEzuVCnrMEXC5g9xGmBAhqwXNpVsRunPN6r8KI1Xd-1RxnkJmGBPvpBtSLBZqsa6pNfmXKlM54XGz~28woi-JB4v-4BNwQnn5PpXE-1lvM~8Pkgsrnq0CenYE-uxAW7Mq570j8kJHbQ3x9Hr2Ix4WeZNOScqR6cMVZ08hg~LyubdGpYY9wZl1Ion68qZljlHmG-2z5LfueyBlUxjbYgm-glHyy17MjtjvzYSMavSwMlaDmYoQ1wfHsjlFt3mFr3AhMR2uIdDiaSdlM2sPbpv2CeNWyKM7xjiU4FZosreQu9xtdyRsg__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/FVQZGoxgeNN0BL0d/yYkyx7MDScxymB1u.jpg?Expires=1791262251&Key-Pair-Id=K7AVJM1114TH7&Signature=nGH6fXeeRGnXBK9DeIog1D4zLTm6Sa0BpJUmIyWhxYbos8jwXMQrIRC8165jGqTsplpOz1iTlxPlJ1Kq4pXDIiEjxtVb6PBvxglRmN5cdNuO1PpxZxYkK878V8cv0YScFSiVcTXO9rRJtPZf~XjMM8184t0C5XaXZQWKDzI1zN4VrW1shcqGTUxgr00T26sjZTCFgfacBfsJ30U7bLKB5f1Bv3yY0qIqMZh7dCuJj1-vXqxtjtGHmE2NRzNlXXBQqYQOpPZoOndTN3fTigk8KnGEg4yzMVsK9XeEuOdfGBsGfstT0KTi1up95GG0iQ-gg8ZYSgr46g5VENUOKDJNvg__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/egncQYO2DtsUSmGz/pQz21xonoducWYs8.jpg?Expires=1791262251&Key-Pair-Id=K7AVJM1114TH7&Signature=aI1slZDWsjdC6rw21gFg5q~8BHbhH08d3Szb51T7nfH2NmTleRAeDiDoOmxXsQXfaOJ4ECpO4SvKE7lOQT-yXl-p79FvxUgMIQ0c-ACJTRCYz1SsiIpHOOY8pbihoZzD9sgN6XOjFiNFDbpAstvWCIossMjPqZ9L7YC~8kvsL3~uaebntGushaCjMQzm7YEj7kqnUkuj~GqvI211GT7jPmdJ4tPSf9z0728zWUfRDJq6gHrB6H3VR0ZkndO2rza7Xg60llsElo~Fh7f9COyo8h3WZMU8GiedDufwZCT7zYiy~NBG1UNnK8U~en-nm~0d-HJhKb24W2c8DGhWcjv1zw__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/t8DMMduNYqCsdc8Y/HeLPVnuJqL7US1m2.jpg?Expires=1791262251&Key-Pair-Id=K7AVJM1114TH7&Signature=YVGQ6Gt6Gy0VlOu~0Fy3qId3S7Rdk6c~4NlVCzX7pq6-7z6iBhqvkVKbXjqiYsJxJxBO8GNlt8LvPnJQg2IZ2D~ShUFTvWN~ZT7MvMv5iz-u3wQyUPb~F8veNyFWQ7xscDYFtcHyh1~DU-FTdKLYbz61zgtcvuhYResSD24hyT0pcyM9gPUITSWXn8gGqKARocTs6I6O4VIGQ7N9MN3nV7sZPQ9ubZl2LMx0vL-TEHdY1cicLQYXpE1bXJ1Hxhg~vGUTcgKGrriJxW8fEFnbSF~bSX~DcPO1wIu3mSVfZZ3UZJdcu0aJVMoIo9RJJb3CIQ0GErU21DgUOTroUg4HnA__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/LDbqe19uxKbO4JXq/ogltr7MNvOs1Wvo6.jpg?Expires=1791262251&Key-Pair-Id=K7AVJM1114TH7&Signature=QhITJkVr~NasfXnY7RBw3sa0RCMe6rCzbfFKLjIJsYLUg9ReN8QyjZ295S5gMYu4aGK5XtJfZTrhoXV0OKMkbOb1GQzYwAe~M2di2wkDFAyrTGhCtJgftv1ysialjODGzrwnadJe5IWO5N14Vs23gXJnRLd1jooGGO9aNuRjT5JHW5~OGwFZzwtfEPfvguMcJYuncKO66fFbx2xfC77xvzbQl~5P8bO6YDcMdAvoPA95F5u~7ax4y7sNJo~H6TMblvj9vzTu0N8wAG3s0U0Dm7ANszywB6bN3BUITXgJbC3ys1oT246DLWtit5Xh433uec9PUi~jMzXQsicqA3qxDg__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/t9SXFGoRoGBoUxXP/oFOqq2GsUNWX35uv.jpg?Expires=1791262251&Key-Pair-Id=K7AVJM1114TH7&Signature=d0BNNuvRuYJHbDWXc40NfluE1Auizn-1FqEFpAyoKoZfhcjqUOBbqsBN49hYgN3CutYxCI3Egj7MiAdHckbPJo9pRyrj6prDPIxk2l0jsNX6Qv-CRqDcct7w6MLNHH7CyZcT8~Y7ROl2nb1V8BPTtVo-4VhK2mdYcyldoB~eOxvLMAOg687gUed~WrWsc0iwgxThMYejM2ZhDTVJq3Px0B6JvYju331tPg6ozVqfiLf29N5HWE7~ycj2rOzhIyrys7qbFZQCO2U1oI8MHEAltRsjSsNPhgOZnZ1MxYKE-YgMp1c2g4SjwSM8x8lJLdc16PPk3eBDZX12LGINZoeDHQ__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/sLKmklC9cfmRA4RB/6dWdj8tn2IfErEr6.jpg?Expires=1791262251&Key-Pair-Id=K7AVJM1114TH7&Signature=lKaMEEI88Iq2g2c7xA8Ouofoa0Pga9VPDmmN0Dy08ZuKO04b6y1G56QsbFRlaPEN7-xaLR7t-9i-RN3JoAGagWiMUn27a32tCtzFEkt5osoWbFJaB-moNNRLuggiQHQMEzFCsRSr9e1LYWTPMsKRrh5eOTqzOVLdeUYgsoZQLPzQBHRtLmcp-KDgL8tUKcgfaBuf6HD6wHO1Z0gDTpr0yEYQAyYkdxRjUuHV66cUv48Iartxea9ojzwzA5Xz2VKDuTrA1~-DfqF~7-~zhdSalFNqBWvmJLI5KTBhkFC5ZbRDWSMEfLiN4Y5NSnJoIexDEgJR-aP6Zu9QrOj5ZcsZBQ__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/3KP0ltyWZjoSwasx/1Bo0VSoHjt1rZq6O.jpg?Expires=1791262251&Key-Pair-Id=K7AVJM1114TH7&Signature=Ulc6APVKpYfEiosw1R8ba9QSHlEQ7Ggnfh8kxriiLbJ7uj8VsciO~CyaYNgy4v4jOBnjx3DgN9aQPj18HIQzGHsR6P7U6QQ0tzFZbrmDUg-t02hq0qBDcuwBfjekOVOF7hVYpyH5Vl3Rwqn5F9cmunywFGIjyCZZ1mdns2Z2DLXMmlRiPkNrbyOCROgTfWrCletFE~HKJdVcbX6-BZkRsv3~-PrgJFcwd-Ce4oftyOunZPk81ZukkQb96kWMkybrVFPeCyCZvtNFwTTgbLcS3Wzj4LFnhQiBcXMdPYl2scHGq6t6MO8dqpDnPVTV0gX1ebhAMIp5LJRP1rnL6nFV-g__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/fmgV34NHOMwnMXL2/CUX7y4n4B3dSln0e.jpg?Expires=1791262251&Key-Pair-Id=K7AVJM1114TH7&Signature=gqQR46cWVvKmc47zNYR4swt9An-t5sFyMI-omD8ELhkzNOSn3wJGZuhFCGANCQJDfNEDFh~oBpkFGZqvl0kT2E4Zgbd0wfGEpKE2MXZU77nKGnIv23BDqeWWemTPznBGA5xTFUtwF5yyULdG7S8X7eEpFcTTYraSXJDsT9sRDfyaW83dW3c6XO8wqQEnkcgvntUWcmssQstECbB5S7L3DhHoSOphf8v3tK~krp7m2YXDayyerJZD4ndoOvhWKt5sHhwqEZB7JDRySPJdPbb-PDmhz68z3Mm6VOQdUQMxqqwtecHmOKSpUYEEHkNu6ZZtWmTQ9~8fI4c2lWkSzjUcmQ__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/3QHIi9VP1ebN6O47/QdL8ZZwQESGOye9K.jpg?Expires=1791262251&Key-Pair-Id=K7AVJM1114TH7&Signature=WvdTX89-XvCxNTjx0hPu4Ob4CCz8BsmmNBJb0-Ij0xwZUwnr1XiJJIn0AibMG5UsqyTsifxRGCBUBJc9usp-~JfjlehTYOjyazntpgbqwB-9ZoFVr4EWcz2RmVc8UNHRRcaOAjDZS-97WF42PH5H9DbIioce1wBAi~OHcqFlQHEEJ1cuZIA9hRik3X~cqPBFeaW~23nz9e69xzNrP1in~c3OANTCI4Y1dnhEdCvG3xm4stIpwPxH2nnOcdeQicx-giV7x2C4v9OkjUq4VI5Jte9umF7kZ2V2CxYnIvNGgtVo1xdKmzrUZxjF0BrWwLg8PvDtNqHwCbqk5yvTeJ8c4Q__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/rNpJQxFBo4HbrDfx/bs6AHriWjC0mybZs.jpg?Expires=1791262251&Key-Pair-Id=K7AVJM1114TH7&Signature=Tfs5OarCsJ35AFBTmv1kuY2zca2~tWhkiiMDr4js6~OUuYOVYNdHZRBo89~rr1uA0l9um5e90HXkv8vZm5A3CevVXRg4-m0CB1Avc0MRGFko5u8CQg0b2uzN33Sp4WeaLt7msGYpg9Af-lwyrOJCGVEqft77T6l781Ak0jH0P0VPnOTlSNO6YAh-ZsdVtYL5zR-Kk~w4p5OY8BE-Wku2NSgZwmNWABduDNfmPOlTv7uUDo7a12qT8IK0R7JJ8zOXrXZfpSksgpqruPV~IMdjP1n9uhaVBR-SvH7il9ejbZBDjLmPzEwZmLbXirC54dux7XZnlNY9DoF1W52BYLkFtA__"
+   ],
+   "gallery_hosts": [
+    "cloudfront(서명, 만료)"
+   ],
+   "description_images": [],
+   "description_image_hosts": [],
+   "signed_url_ttl_s": [
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/tOkHqg98ETipPO5f/lSRHnRCzIXlVLU4Z.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/hF8VZKpHJ1cUSUB2/u1ouj1gkSkodHcNZ.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/FVQZGoxgeNN0BL0d/yYkyx7MDScxymB1u.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/egncQYO2DtsUSmGz/pQz21xonoducWYs8.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/t8DMMduNYqCsdc8Y/HeLPVnuJqL7US1m2.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/LDbqe19uxKbO4JXq/ogltr7MNvOs1Wvo6.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/t9SXFGoRoGBoUxXP/oFOqq2GsUNWX35uv.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/sLKmklC9cfmRA4RB/6dWdj8tn2IfErEr6.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/3KP0ltyWZjoSwasx/1Bo0VSoHjt1rZq6O.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/fmgV34NHOMwnMXL2/CUX7y4n4B3dSln0e.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/3QHIi9VP1ebN6O47/QdL8ZZwQESGOye9K.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/rNpJQxFBo4HbrDfx/bs6AHriWjC0mybZs.jpg",
+     "ttl_s": 297.0
+    }
+   ],
+   "release_dates_in_text": [
+    "2026年09月26日"
+   ],
+   "reissue_text_hits": [],
+   "og_image": "https://bandai-hobby.net/ogp.png?=ver2",
+   "id": "01_7145",
+   "why": "HG 1/100 매크로스",
+   "url": "https://bandai-hobby.net/item/01_7145/",
+   "fetched_at": "2026-10-06T13:45:54+09:00"
+  },
+  {
+   "title": "1/60 ウイングガンダムゼロ",
+   "fields": {
+    "価格": "3,850 円(税10%込)",
+    "発売日": "1995年10月",
+    "対象年齢": "15歳以上"
+   },
+   "pbandai_link": null,
+   "brands_series": [
+    {
+     "type": "series",
+     "key": "endlesswaltz",
+     "label": "新機動戦記ガンダムWシリーズ"
+    }
+   ],
+   "gallery": [
+    "https://bandai-hobby.net/images/153_2462_s_438c84ne2m12v48yinfm0ryegcid.jpg"
+   ],
+   "gallery_hosts": [
+    "hobby-site(정적)"
+   ],
+   "description_images": [],
+   "description_image_hosts": [],
+   "signed_url_ttl_s": [],
+   "release_dates_in_text": [
+    "1995年10月"
+   ],
+   "reissue_text_hits": [],
+   "og_image": "https://bandai-hobby.net/ogp.png?=ver2",
+   "id": "01_1547",
+   "why": "1995 구형 1/60",
+   "url": "https://bandai-hobby.net/item/01_1547/",
+   "fetched_at": "2026-10-06T13:45:58+09:00"
+  },
+  {
+   "title": "ＢＢ戦士 152羽荒斗頑駄無",
+   "fields": {
+    "価格": "550 円(税10%込)",
+    "発売日": "1995年10月01日 (日)",
+    "対象年齢": "15歳以上"
+   },
+   "pbandai_link": null,
+   "brands_series": [
+    {
+     "type": "brand",
+     "key": "sdgundamseries",
+     "label": "SDガンダムシリーズ"
+    },
+    {
+     "type": "brand",
+     "key": "bb",
+     "label": "SDガンダムBB戦士"
+    }
+   ],
+   "gallery": [
+    "https://bandai-hobby.net/images/153_104_s_ke8iao3413nlcojcc2t8n3pb55g2.jpg",
+    "https://bandai-hobby.net/images/155_104_s_nhv8o5n1xxls4qp97jbc3pe3vbgj.jpg"
+   ],
+   "gallery_hosts": [
+    "hobby-site(정적)"
+   ],
+   "description_images": [],
+   "description_image_hosts": [],
+   "signed_url_ttl_s": [],
+   "release_dates_in_text": [
+    "1995年10月01日"
+   ],
+   "reissue_text_hits": [],
+   "og_image": "https://bandai-hobby.net/ogp.png?=ver2",
+   "id": "01_52",
+   "why": "1995 BB전사 (번호 52)",
+   "url": "https://bandai-hobby.net/item/01_52/",
+   "fetched_at": "2026-10-06T13:46:03+09:00"
+  },
+  {
+   "title": "Figure-rise Standard ガンダムベース限定 ルナマリア･ホーク [ガンダムベースカラー]",
+   "fields": {
+    "価格": "4,400 円(税10%込)",
+    "発売日": "2025年10月11日 (土)",
+    "対象年齢": "15歳以上"
+   },
+   "pbandai_link": null,
+   "brands_series": [
+    {
+     "type": "brand",
+     "key": "figurerise-standard",
+     "label": "Figure-rise Standard[フィギュアライズ スタンダード]"
+    },
+    {
+     "type": "series",
+     "key": "seed-d",
+     "label": "機動戦士ガンダムSEED DESTINY"
+    }
+   ],
+   "gallery": [
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/09/erkCBCIPUTEHl6m3/eCvzyPNiwsLZOzPA.jpg?Expires=1791262264&Key-Pair-Id=K7AVJM1114TH7&Signature=msGnZ-NkrWT2vBun~hCw1nczQd3UvY9Yf7hVO~XU1qz47gpkG4fBuDNWAk2m98xxftqtoNtdOD52HnwR18TZc8s6uRZVSEnnOgdSmIbPd50woWnFdOgQ95Jr4wJ~y7s4lt9g3wKPcWNrBOaAD7FkNyk3fUb3COmJMJVySXTbVXNXb5J9hEGfeFJ12Vm1U4-OO7WiBB9fiw0G~R8r2UZPYq-IXd~XlPwI5f80NW~hkOyTcsag3B0rRsQ~Tmdu0Uxk90o3G1pH82yEx1N5TJnpXJ8WySvGW9qAvf7aPWLa49veis5ZKYzQ~8KdrP39n7MDY~YU83iAnQ7Vrm9H4Cd1mA__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/09/G3Xj2i5MBUooWQYe/0iSXxGXrFQVBeKjw.jpg?Expires=1791262264&Key-Pair-Id=K7AVJM1114TH7&Signature=WLGbXXQHYwNvwuVqkrBEvIa6XBe6f1rfex6DmLoDudc6WfCAPMgktd8-E-LbA3Nci114iD-LtiDs4tViF0rz-dI14uVbQLShaOJDYW0z3s-hlJwBUnbn3lZ8nEfDmSN8B9SvAXsx9dj33Wty2VwKjjy5R7nDOta88gdk2yJVN5VVNip6GraYhXJmLOJ8kEoGrus0Ozk2pm9rkDFdDTrRd-dkJPZEA~xAoUHkzGyw7o6m74FwIA5qppSLhYRjC6eWhz6gdb-upJ0FgssoG3g9tQtHIeWP6Y-g1hGND1afKv3yQkyme1JfT6HD9p8ibkxS9RFSl923COsLeR6r7MvaTw__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/09/nyUBEy3d6BSssnFk/fMMCWsIAre1Z6Die.jpg?Expires=1791262264&Key-Pair-Id=K7AVJM1114TH7&Signature=bMJ9yOSvP5hQunomdUY3s2KPAV5aQf18YGB7VdECJDdYnVJk-3-N9tvc7GHlOiskBEP0crEdLwazmqdbWeGtp4Nn-eyb~ea3roybWs3jCe8bhgXtecV7k7MPEayTKBv0AibHC0GRqA2il1u49H9NjKGDWy8FNWUCsIMFj31a42YG1JSz6O-PSAR2XDe0lFLr5YHK59~BwMpOYksiUH~rEyN1OqAHhv7FmH8L6VhCBRmGA9fkKASinjWlP0XgyFye0G~-KSNCK-YSPFGOJkmC12NxZvov~MzyFj83oFKXKbUsS8YWNh8VOX9wq2-17M864jdLDn8l7WPGDrluqu2HBg__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/09/KvrpwV7zvvRO5Znz/eILpZOxWmVkWX3Mh.jpg?Expires=1791262264&Key-Pair-Id=K7AVJM1114TH7&Signature=LPio4qWJNpN81Ir4VY1vPmPDyGADb5V7CoJM-seV02ma8lhwAI~aDt66U9oqYtUto6nO~SMxJn8sBlz0CQkMCYMmH9OK6XS4VdAeaAT1dUo0up89Pi8iUVS9mqlGl~srnVqiElVucXSWDAxwUPlBg6~Nvs5THNywScV~Bi~Vdce~UIer5d9RCrnDgDM5DTtyDrTeK4q4opMVRxvQRioKVkpsRsR0zuoNEv2bBTP2qRGx7IViLtm~LtS6OTAH0eMgmzyi-KPXgvhF58ZE0JTnNELunVu2-jsBLmNerYIaS6dhteWlfbbHZjcTNKmEaDJzMwQC8GZLbKE60WjqXYRbWw__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/09/ny3OxC1AMpQRbb1K/yuEIscGibcNYBrx2.jpg?Expires=1791262264&Key-Pair-Id=K7AVJM1114TH7&Signature=UUFKNP3klRJlFrl5ckfssB~v7-5NmbRHKSxO4wNOC~SmzhKmsVKB~Y9tVCYrvvg~JHuIHX4Jlzuwd-00og9-Rob7Ah1rct2KMpxkEbXBzY-GIT6fxFEnda6empziKOZadp5BfD1WNvu3PNxOZjQ4tnzGy6CKaEPRnc6kqeEwc4Mgz5gfmRfsPR5K3krBGHEvEnDnTajyOiLQiBWGD766pGzVT5XfnDZ~KShzLJBiUu~MN39hVVzJBhqjEo~i3atdbQDm7QRaM2CaMLndQAaFSY3CWS7-6dD2Gv49v~g9Qvjau5K8RLhQI8~PTPsc6fWlI5ZOncezWMUnVcalxQnlsA__"
+   ],
+   "gallery_hosts": [
+    "cloudfront(서명, 만료)"
+   ],
+   "description_images": [],
+   "description_image_hosts": [],
+   "signed_url_ttl_s": [
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/09/erkCBCIPUTEHl6m3/eCvzyPNiwsLZOzPA.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/09/G3Xj2i5MBUooWQYe/0iSXxGXrFQVBeKjw.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/09/nyUBEy3d6BSssnFk/fMMCWsIAre1Z6Die.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/09/KvrpwV7zvvRO5Znz/eILpZOxWmVkWX3Mh.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2025/09/ny3OxC1AMpQRbb1K/yuEIscGibcNYBrx2.jpg",
+     "ttl_s": 297.0
+    }
+   ],
+   "release_dates_in_text": [
+    "2025年10月11日"
+   ],
+   "reissue_text_hits": [],
+   "og_image": "https://bandai-hobby.net/ogp.png?=ver2",
+   "id": "01_6969",
+   "why": "건담베이스 한정 Figure-rise",
+   "url": "https://bandai-hobby.net/item/01_6969/",
+   "fetched_at": "2026-10-06T13:46:07+09:00"
+  },
+  {
+   "title": "MG 1/100 ガンダムベース限定 ガンダムキュリオス(トランザムモード)[メタリックグロスインジェクション]",
+   "fields": {
+    "価格": "5,830 円(税10%込)",
+    "発売日": "2026年09月19日 (土)",
+    "対象年齢": "15歳以上"
+   },
+   "pbandai_link": null,
+   "brands_series": [
+    {
+     "type": "brand",
+     "key": "mg",
+     "label": "MG [マスターグレード]"
+    },
+    {
+     "type": "series",
+     "key": "g-00",
+     "label": "機動戦士ガンダム00[ダブルオー]"
+    }
+   ],
+   "gallery": [
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/2HhjGkdESikPDdOz/t5D3BHJZRPzRYMPa.jpg?Expires=1791262183&Key-Pair-Id=K7AVJM1114TH7&Signature=O8ho3J9yZrgBrgSCmsmMpSkt7gDyDWlINURIYW4STn7ShdahNB3vncd8sajLWPmGy9-RZKb4TCOxmyCYZHvwAweezxMGIoUrjDbNC4XxFurBbC0nRQ~aPgrpgvkxQNzKFoyB0Q06EB1tm90JB-B0t~OfCsQ20~4mIhJgEpHaZj-c3QxuCYdwDCaAtHBu3l2SFKrLv0a8Jcoqhso1yMwyRDDw5BkjCZImNh9pZeqaYDVcOpf3dLMTnERM1pgHXRHuHsvT5to2RGSYWitZnrrJexy3oOfuZvYXPSDOyZnWfBrh06ybQ7LyLqjTK-LNuEzlD4b74vqS-2LTjcEykkZYKA__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/qIpxXGd7c5LY2bmb/h3aBjG8eux8RVUDx.jpg?Expires=1791262183&Key-Pair-Id=K7AVJM1114TH7&Signature=AVlRtQjehiCm7jHlj83PRlvNOy2MVJ7IKLEIFkWLVaz4KZu~fhX2lAJM9LOVDR1pnHNFvZ6FqSlH6pGGIEOZnaNfRh2ni7DGQ8FXe5CFcyIqZeNKeDoiiMsSaoMcb35BGv3DbtESkY1vgcdEwxBmC0jR9W673~Ni5kiGcOYB3n1NxTVMnm~j75ygynT4IxkFcahTsVqH4KxfHE96QQZtimPrZWRHDU7bDHViEXhlAxa8AvlUQ0l-hfU7OS3ylVjTmT2psx~prY6kLW6vsVqjGR~BAFQxjiWAi42Ht5asmH9Q3aCd951nMwlcaB9wxhr5Dk~zpLpa0tUxIXNVEwaEcA__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/10bZ5uYtHH5dUmnK/rAFo3ZATVNPEWstq.jpg?Expires=1791262183&Key-Pair-Id=K7AVJM1114TH7&Signature=PX6qbSGN~EOuoBcdOcQDDtYdhjSLtNj7pBxtztl5oXQSGY-OFVSi9w9i2Nis17YJkz0f0NIo0jIWG0KcXY4BuJu~3zvn0x0pHBiRIrqVXGEALCb6Xn~FMNsyEOeZnbzN2lhyA-Bmu380L28LddfZokWkb9jaXHN4zG-SxFUj-OGcvM7fPNglNAuV3Q0wcG9v~PbZQX9AoPKxE4iFNlQh39T1X637k3sUx-KIklk8tSar0iHBYZNLuaEwq5FwTgHlsWXtRmxvdTtQDS2VNn0d5ZBPITH4aK28doGWNqE56NppiDCMW3F3wUsAj8zcgNuC5gCLnAoVQk5Z-vP9kYz43Q__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/yZ1GhOEUyj3JRkpp/85q6kQY6szkcxXCY.jpg?Expires=1791262183&Key-Pair-Id=K7AVJM1114TH7&Signature=IX~21R7uNvep45nXDmTnlvonoaiFiSm28Nr1wgx9E1AFFljG-lENQvuKuu8XWMxlIcjECFDiEYuiVsZ6BCEwrnWxweIMvvVqa8X6OCq-n1-Pl0nXM~dtLcxX9QFlKhppLufx5Er9GhTOsF9ysqZSgJmEYJsbQ0hRc-sqjh1Ad4SgYqmHL2afpUUhq8EM0HMVNUS2BK-UTFSQin9mS2fCjprJjX1i689TDGXHgDbedvUp3nQcvsg408G2yLq~9ly-TA8ZzMt18U2A7kW9ggiQWJdVM3rAIvJMJucmHj9k5XbXVVzBiOjBATBQpyZ1z~32inTUsX51gX8if1eMKvRpIA__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/ohmyl5iZwI179Zem/6vI4kD6IdGv9Wh8y.jpg?Expires=1791262183&Key-Pair-Id=K7AVJM1114TH7&Signature=lk0rlmE8~i2VIESjNTb01qGugkFfB6bg75QPEAeH47dMaLnLTwNXMRGVs-z8djkSe2CAFaBMGU7gvbXuajk8H84PSfXnq6SmWE~7r0BmCIVXHiItq9lQDcyKRVI3gRESp2qJGYT4jVf1cOupvW1NH2-PGKgRQtmNSNVH-mjc19Ggt021455bThza7vak1NVVAYVW3~jFk~LTeMUWY38Y~4McGF37vuACjrG6d8lmFb4AFFXg27vqeJlOcTqBUKjirrk~~hoeNfnQk-CUnd3HOV4DriVItcjtMus0X6gWuy591e5H~T1QVMn2RMFApqONExZ4jJD7FyRt4FqrCES75g__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/xMhRGpyeklgR5TFL/ro0Q8igZjv8ZGOut.jpg?Expires=1791262183&Key-Pair-Id=K7AVJM1114TH7&Signature=SZpF9kfmnLTg0XDKxkS-Uluonx4E0s7niaafBUnT~IS7wpc7lXcLeX20SAGsq7xhHfNF66wHNwpm5JX6P2hNPsmb3PK4sjA4zMCccKlQHFtzqsd9OLIVUWCRvN31RpXSTvTE1PG7zUZ41xVzOYWQcVMAxLHRuXV5HaJoqrpAHIPmQQUoTSWs49Ju8ZueoVp194fhFx5tF6jlQ6UxBteteVZGV-mJObNBbclnF~~Z1-ozdfqGIx1HtHRB76-LdZWVOBL82nfP1rS7QhOZUWnU0fQEnzSOR7x12P--CKsOxX1s9mMdXsmig8PUStggiQ8mR7zd94CAthZzhYxlJV0asw__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/ezrbpHwLNUvbtixM/QkUqgPwbEQix902C.jpg?Expires=1791262183&Key-Pair-Id=K7AVJM1114TH7&Signature=kxOzs7nvxItI59I9Nkqmz--dNtqL5A~YUtaayPTjcoIMXuT~d59ofdg5F2YE55bozuAqH0OGUYLtqusWO~9d1ls7gIa82enB~R~9m7sgHyw2Le0eoqUItT5-FWPmwQAxokqngi6M8QLUEFjYnoLzX7cGMgIoiIU7e9VFyOh~uNOY0T9rWb2Tg6Mb1ZKBpwQXLQdgY5KUU9XkCk4A0APvPE1u2mnnTp~nSpEgMFzGSxWtLdgRYfMRrQsw8iVjsLFhigHhsyfSjvAU5xWoBy6yMDsSA6DFoHr7fi2EPLEBbw1sdFtkD~T3xIA6yFpK2N6CvbheOvLsj7WcXkG9a8Ag~w__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/3dGhsRucmFe039Bb/8gD2mEuJJ6m1TmrE.jpg?Expires=1791262183&Key-Pair-Id=K7AVJM1114TH7&Signature=lLbfyEUs3yXMuyHNixTxJl~SIjjfp8fGfB-M7XtZtQUSuXIc3b5YYXshX5~zIrqKOamfCZAayDB0~hNJSCae8D3z7bbDI~UxtvF8-5qdgLjk9owskhlvSH1RHD~GtrsHByR6QrJf-mkg3IL95lcxoEpv~CcffZFhv1yJjwDV~oszBTyWZXQ61kyJ7hRTzbaboqlQin9DLMvqrvmVEtuEs63D~1fBTVSm-P~oY6~Z9-V~qYLDago7tYMiK353UiV8FOf0HJZcJVdSA1beDIhl20JxjRcAsZxlJ9a4gOhflm2YZ631eRDM8suRkQ4ubmm9syfEhipuIWolg4epawU1cg__"
+   ],
+   "gallery_hosts": [
+    "cloudfront(서명, 만료)"
+   ],
+   "description_images": [],
+   "description_image_hosts": [],
+   "signed_url_ttl_s": [
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/2HhjGkdESikPDdOz/t5D3BHJZRPzRYMPa.jpg",
+     "ttl_s": 209.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/qIpxXGd7c5LY2bmb/h3aBjG8eux8RVUDx.jpg",
+     "ttl_s": 209.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/10bZ5uYtHH5dUmnK/rAFo3ZATVNPEWstq.jpg",
+     "ttl_s": 209.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/yZ1GhOEUyj3JRkpp/85q6kQY6szkcxXCY.jpg",
+     "ttl_s": 209.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/ohmyl5iZwI179Zem/6vI4kD6IdGv9Wh8y.jpg",
+     "ttl_s": 209.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/xMhRGpyeklgR5TFL/ro0Q8igZjv8ZGOut.jpg",
+     "ttl_s": 209.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/ezrbpHwLNUvbtixM/QkUqgPwbEQix902C.jpg",
+     "ttl_s": 209.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/09/3dGhsRucmFe039Bb/8gD2mEuJJ6m1TmrE.jpg",
+     "ttl_s": 209.0
+    }
+   ],
+   "release_dates_in_text": [
+    "2026年09月19日"
+   ],
+   "reissue_text_hits": [],
+   "og_image": "https://bandai-hobby.net/ogp.png?=ver2",
+   "id": "01_7414",
+   "why": "건담베이스 한정 MG",
+   "url": "https://bandai-hobby.net/item/01_7414/",
+   "fetched_at": "2026-10-06T13:46:14+09:00"
+  },
+  {
+   "title": "ベストメカコレクション 1/144 RX-78-2 ガンダム (REVIVAL Ver.)",
+   "fields": {
+    "価格": "1,320 円(税10%込)",
+    "発売日": "2024年10月12日 (土)",
+    "対象年齢": "8歳以上"
+   },
+   "pbandai_link": "https://p-bandai.jp/item/item-1000222390",
+   "brands_series": [
+    {
+     "type": "series",
+     "key": "gundam",
+     "label": "機動戦士ガンダム"
+    }
+   ],
+   "gallery": [
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000218731_1.jpg",
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000218731_2.jpg",
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000218731_3.jpg",
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000218731_4.jpg",
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000218731_5.jpg",
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000218731_6.jpg",
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000218731_7.jpg",
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000218731_8.jpg",
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000218731_9.jpg",
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000218731_10.jpg",
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000218731_11.jpg",
+    "https://bandai-a.akamaihd.net/bc/img/model/xl/1000218731_12.jpg"
+   ],
+   "gallery_hosts": [
+    "akamai(비서명)"
+   ],
+   "description_images": [],
+   "description_image_hosts": [],
+   "signed_url_ttl_s": [],
+   "release_dates_in_text": [
+    "2024年10月12日"
+   ],
+   "reissue_text_hits": [
+    "リバイバル"
+   ],
+   "og_image": "https://bandai-hobby.net/ogp.png?=ver2",
+   "id": "01_5373",
+   "why": "베스트메카콜렉션 2024",
+   "url": "https://bandai-hobby.net/item/01_5373/",
+   "fetched_at": "2026-10-06T13:46:19+09:00"
+  },
+  {
+   "title": "ＨＧ 1/144 ドートレス",
+   "fields": {
+    "価格": "1,540 円(税10%込)",
+    "発売日": "2020年10月",
+    "対象年齢": "8歳以上"
+   },
+   "pbandai_link": null,
+   "brands_series": [
+    {
+     "type": "brand",
+     "key": "hg",
+     "label": "HG［ハイグレード］"
+    },
+    {
+     "type": "brand",
+     "key": "pb_gunpla",
+     "label": "プレバンガンプラ"
+    },
+    {
+     "type": "brand",
+     "key": "pb_hg",
+     "label": "HG［ハイグレード］／プレバンガンプラ"
+    },
+    {
+     "type": "series",
+     "key": "x",
+     "label": "機動新世紀ガンダムＸ"
+    }
+   ],
+   "gallery": [
+    "https://bandai-hobby.net/images/153_3997_s_b01u1yw4v00eon7yc0brocjnd5h1.jpg",
+    "https://bandai-hobby.net/images/155_3997_s_6iktdt3bqhfao4iz2438myj25u8l.jpg",
+    "https://bandai-hobby.net/images/156_3997_s_pv5fhrgxbxwbzh9fa81mi6d0crvm.jpg",
+    "https://bandai-hobby.net/images/157_3997_s_6almyk4tbc4pmg923yygh4mk710a.jpg",
+    "https://bandai-hobby.net/images/158_3997_s_cu5j2dj7iqstjco69256ykqiwv5w.jpg",
+    "https://bandai-hobby.net/images/159_3997_s_apv9m78ivhwpfi5kl9alu4cm3n71.jpg",
+    "https://bandai-hobby.net/images/189_3997_s_s2rj9hy3n67ndragaf81zcdp1c4u.jpg",
+    "https://bandai-hobby.net/images/190_3997_s_ouocecjrp15whcl5m55068g2s5vp.jpg",
+    "https://bandai-hobby.net/images/191_3997_s_cqolvehnbhnfh7lt20hyyflauy8t.jpg",
+    "https://bandai-hobby.net/images/192_3997_s_ok7kefl8o89wffrilfes3uo0hemy.jpg"
+   ],
+   "gallery_hosts": [
+    "hobby-site(정적)"
+   ],
+   "description_images": [],
+   "description_image_hosts": [],
+   "signed_url_ttl_s": [],
+   "release_dates_in_text": [
+    "2020年10月",
+    "2020年6月"
+   ],
+   "reissue_text_hits": [],
+   "og_image": "https://bandai-hobby.net/ogp.png?=ver2",
+   "id": "01_3024",
+   "why": "2020 호비온라인 판매 (01_ 상세 있음)",
+   "url": "https://bandai-hobby.net/item/01_3024/",
+   "fetched_at": "2026-10-06T13:46:24+09:00"
+  },
+  {
+   "title": "ＰＧ 1/60 拡張ユニット アームド・アーマーＶＮ／ＢＳ",
+   "fields": {
+    "価格": "5,500 円(税10%込)",
+    "発売日": "2015年10月",
+    "対象年齢": "15歳以上"
+   },
+   "pbandai_link": null,
+   "brands_series": [
+    {
+     "type": "brand",
+     "key": "pb_pg",
+     "label": "PG［パーフェクトグレード］／プレバンガンプラ"
+    },
+    {
+     "type": "brand",
+     "key": "pb_gunpla",
+     "label": "プレバンガンプラ"
+    },
+    {
+     "type": "brand",
+     "key": "pg",
+     "label": "PG［パーフェクトグレード］"
+    },
+    {
+     "type": "series",
+     "key": "unicorn",
+     "label": "機動戦士ガンダムUC[ユニコーン]"
+    }
+   ],
+   "gallery": [
+    "https://bandai-hobby.net/images/153_3887_s_6kccahtthnessb6rxtivz4lxs35o.jpg",
+    "https://bandai-hobby.net/images/155_3887_s_3tk1tt4a0yrhla11zq82vrglszs3.jpg",
+    "https://bandai-hobby.net/images/156_3887_s_p122meykok0hbd1yds5vkl95nugw.jpg",
+    "https://bandai-hobby.net/images/157_3887_s_0wgytg3o9elbpbqrm98avl4rtawq.jpg",
+    "https://bandai-hobby.net/images/158_3887_s_q8quxypduz40px2pofvefie9dz4m.jpg",
+    "https://bandai-hobby.net/images/159_3887_s_56n2d3xqlo1vl4zihtb0r443qihq.jpg",
+    "https://bandai-hobby.net/images/189_3887_s_vxf2ngkri3o3w85b70dzdzf9xj2t.jpg",
+    "https://bandai-hobby.net/images/190_3887_s_vttp982lc1i1xji7cud340h3arfa.jpg",
+    "https://bandai-hobby.net/images/191_3887_s_zjwcr1melwy72w3en8nfu4j7sbwp.jpg",
+    "https://bandai-hobby.net/images/192_3887_s_f2w6us5iqz1k9wkftx498cf7fvhx.jpg"
+   ],
+   "gallery_hosts": [
+    "hobby-site(정적)"
+   ],
+   "description_images": [],
+   "description_image_hosts": [],
+   "signed_url_ttl_s": [],
+   "release_dates_in_text": [
+    "2015年10月",
+    "2015年9月"
+   ],
+   "reissue_text_hits": [],
+   "og_image": "https://bandai-hobby.net/ogp.png?=ver2",
+   "id": "01_2909",
+   "why": "PG (일정에서 동적 선택)",
+   "url": "https://bandai-hobby.net/item/01_2909/",
+   "fetched_at": "2026-10-06T13:46:28+09:00"
+  },
+  {
+   "title": "RG 1/144 陸戦型ガンダム",
+   "fields": {
+    "価格": "4,620 円(税10%込)",
+    "発売日": "2027年02月",
+    "対象年齢": "15歳以上"
+   },
+   "pbandai_link": null,
+   "brands_series": [
+    {
+     "type": "brand",
+     "key": "rg",
+     "label": "RG［リアルグレード］"
+    }
+   ],
+   "gallery": [
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/08/nWcaby9BmnQ0kv9B/hK9z61L1ecP1UIND.jpg?Expires=1791262290&Key-Pair-Id=K7AVJM1114TH7&Signature=KHebibjo9Xxn2BFehDboEcyRLMcTaqpl6O56PwSVfcbWzoeVA-gdmY-7LQl-4wm17gfQr8Xq-cCgIcJ~6DgC6t0ruRgA5DPshZh76FMUjSEI30wKCWZY7aWyDGgarbtxmZ7jfbW8d92IfhMZ7AqlcNl4ZPI9TH3zqv1mAoX8QFB~KyaqPv~xFm20W4IHyFtxNfHRfWBo~x8EPa-zpHqbjK-wS8x1OnLiaFGvL9XfEkjEopyDHEhA8Cio4dRkn7muGfAHNh6rjRzeUMDeuMPk2m6FsJAPaQP5X1wBNN5oVBxv6NXGXZ5DTBsCJW70ctUwcZ5LynRbnRGNkQcZZ7xsGA__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/08/KFOr9tn1vwoPOP9A/khET8q3KHFOoDoF1.jpg?Expires=1791262290&Key-Pair-Id=K7AVJM1114TH7&Signature=Uo9qs5-u0CgqZFnJHIZuffDDwcQW3xlMIz2xAhY-FGkerQSs0ltv7-1QRseFxfdp2Kxn7wV4RJbaVFLGAkwGZPYfot~5mgE6r3aAzgoCUNwYjo9A85VPvVQ17ejwim7F-syqxeYYVJFA9wx0B4KYQMMkAupQBLBJNPP-bVPhFMFFfXsC2LB4-zcOv9c3JBi2NArZvMPkiktSUBAuKR40oYXhEt9MaMNdSEZnNlY26KshLmOY5CeFbaQlzQiiZYAgPmn9xhelmBw6-kqEL1YbdXffmgpnVhVugH8c-lju4WE0Leu93~8O2-hxiZ3Xegcwq9X3QhV7-6zXEKXQTR1ECA__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/08/gbXEtgTv7iYw3xBk/DNXl7sBjsK073X3n.jpg?Expires=1791262290&Key-Pair-Id=K7AVJM1114TH7&Signature=BuiYuOFCRAyH2xEyjuiHIBgSYlnrbubNm5kSNMOqXuL5IF9Zhn6HD-XM1PEy34MyCcSc-c9R3hBw9UK-I0Yh25rNFiBXZe9vP7EiBKNL1avg0jggF20TU~B4x-sAnqL-29il4fGzz6EozTlCtXi4wCAhAtuorRcC6HDgiTdm1j4R2lgJktY36GQdEyQdiARHZFiCJTViR1DXHqDvHvlUC0pnJsVYDGleIlwbVVnzFwhh0mtv4atT2xHBJWcl0cTryQJqnTmfASSJAJUEaBDQuXHegJirr4oVh5vfczx2uAq1POlfBRU9qRgypgAZBr4YFJGWiBnNvzhb5FzlNfSSLA__",
+    "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/08/sPR8bLpRjpcPfQxX/0Roj0AW0n2rFy6I3.jpg?Expires=1791262290&Key-Pair-Id=K7AVJM1114TH7&Signature=IDAnt845BBA0h17ujsoGOlBfD5c2NB-OVCEtyMMXc-zAYHQQ9qgv-dFvDROOAAj2Aa~orNGvliS-shbg27SXrIb5NQ6tP~FXPKaZgkgiKPEOlSLNX1aVFOOyvrzK~MwQdcTZRF2B7U~B0Q-TQtubVBVPz0tZ5gnJLOW6cQUds9UxadUApKOlsf-259EknImXzeu9ghCqD7sS3ZFVR6nBGgFAVt64zEyeGW3te~pLme0cC-0w8~apu68u9XTV0iGNQ8RxoJNZThSxkrnWMLt6heqyRVMOIeCAdyLXFEJUiw49H32wgry9idOo3Huh0JnhJVLTEu3c6zZqdvWFmrDVEA__"
+   ],
+   "gallery_hosts": [
+    "cloudfront(서명, 만료)"
+   ],
+   "description_images": [],
+   "description_image_hosts": [],
+   "signed_url_ttl_s": [
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/08/nWcaby9BmnQ0kv9B/hK9z61L1ecP1UIND.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/08/KFOr9tn1vwoPOP9A/khET8q3KHFOoDoF1.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/08/gbXEtgTv7iYw3xBk/DNXl7sBjsK073X3n.jpg",
+     "ttl_s": 297.0
+    },
+    {
+     "url": "https://d3bk8pkqsprcvh.cloudfront.net/hobby/jp/product/2026/08/sPR8bLpRjpcPfQxX/0Roj0AW0n2rFy6I3.jpg",
+     "ttl_s": 297.0
+    }
+   ],
+   "release_dates_in_text": [
+    "2027年02月"
+   ],
+   "reissue_text_hits": [],
+   "og_image": "https://bandai-hobby.net/ogp.png?=ver2",
+   "id": "01_7365",
+   "why": "RG (브랜드 페이지 첫 상품)",
+   "url": "https://bandai-hobby.net/item/01_7365/",
+   "fetched_at": "2026-10-06T13:46:33+09:00"
+  }
+ ],
+ "detail_requests_used": 17,
+ "plain_detail": {
+  "status": 200,
+  "title": "HG 1/144 ガンダムエアリアル",
+  "fields": {
+   "価格": "1,760 円(税10%込)",
+   "発売日": "2022年10月01日 (土)",
+   "対象年齢": "8歳以上"
+  },
+  "gallery": 11,
+  "brands": 2,
+  "pbandai_link": "https://p-bandai.jp/item/item-1000188677"
+ },
+ "repeated_titles_across_months": {},
+ "signed_ttl_summary": {
+  "n": 71,
+  "min_s": 73.0,
+  "max_s": 300.0
+ },
+ "filters": {
+  "series": [
+   {
+    "value": "hathaway",
+    "label": "機動戦士ガンダム 閃光のハサウェイ"
+   },
+   {
+    "value": "gquuuuuux",
+    "label": "機動戦士Gundam GQuuuuuuX"
+   },
+   {
+    "value": "requiem",
+    "label": "機動戦士ガンダム 復讐のレクイエム"
+   },
+   {
+    "value": "seed-freedom",
+    "label": "機動戦士ガンダムSEED FREEDOM"
+   },
+   {
+    "value": "gundambuildmetaverse",
+    "label": "ガンダムビルドメタバース"
+   },
+   {
+    "value": "g-witch",
+    "label": "機動戦士ガンダム 水星の魔女"
+   },
+   {
+    "value": "g-doan",
+    "label": "機動戦士ガンダム ククルス・ドアンの島"
+   },
+   {
+    "value": "gundam_breaker_battlogue",
+    "label": "GUNDAM BREAKER BATTLOGUE"
+   },
+   {
+    "value": "gunplakun",
+    "label": "ガンプラくん"
+   },
+   {
+    "value": "sdgundamworld_heroes",
+    "label": "SDガンダムワールド ヒーローズ"
+   },
+   {
+    "value": "builddivers-rerise",
+    "label": "ガンダムビルドダイバーズ Re:RISE"
+   },
+   {
+    "value": "soketsuden",
+    "label": "三国創傑伝"
+   },
+   {
+    "value": "narrative",
+    "label": "機動戦士ガンダムNT[ナラティブ]"
+   },
+   {
+    "value": "builddivers",
+    "label": "ガンダムビルドダイバーズ"
+   },
+   {
+    "value": "thunderbolt",
+    "label": "機動戦士ガンダム サンダーボルト"
+   },
+   {
+    "value": "tekketsu",
+    "label": "機動戦士ガンダム 鉄血のオルフェンズ"
+   },
+   {
+    "value": "origin",
+    "label": "機動戦士ガンダム THE ORIGIN"
+   },
+   {
+    "value": "g-reco",
+    "label": "ガンダム Gのレコンギスタ"
+   },
+   {
+    "value": "buildfighters",
+    "label": "ガンダムビルドファイターズ"
+   },
+   {
+    "value": "age",
+    "label": "機動戦士ガンダムAGE"
+   },
+   {
+    "value": "unicorn",
+    "label": "機動戦士ガンダムUC[ユニコーン]"
+   },
+   {
+    "value": "g-00",
+    "label": "機動戦士ガンダム00[ダブルオー]"
+   },
+   {
+    "value": "seed-d",
+    "label": "機動戦士ガンダムSEED DESTINY"
+   },
+   {
+    "value": "seed",
+    "label": "機動戦士ガンダムSEED"
+   },
+   {
+    "value": "turn-a",
+    "label": "∀ガンダム"
+   },
+   {
+    "value": "x",
+    "label": "機動新世紀ガンダムＸ"
+   },
+   {
+    "value": "endlesswaltz",
+    "label": "新機動戦記ガンダムWシリーズ"
+   },
+   {
+    "value": "ggundam",
+    "label": "機動武闘伝Ｇガンダム"
+   },
+   {
+    "value": "v-gundam",
+    "label": "機動戦士Vガンダム"
+   },
+   {
+    "value": "g-0083",
+    "label": "機動戦士ガンダム0083 STARDUST MEMORY"
+   },
+   {
+    "value": "gundamf91",
+    "label": "機動戦士ガンダムF91"
+   },
+   {
+    "value": "g-0080",
+    "label": "機動戦士ガンダム0080 ポケットの中の戦争"
+   },
+   {
+    "value": "gundam-cca",
+    "label": "機動戦士ガンダム　逆襲のシャア"
+   },
+   {
+    "value": "gundam-zz",
+    "label": "機動戦士ガンダムＺＺ"
+   },
+   {
+    "value": "z-gundam",
+    "label": "機動戦士Ｚガンダム"
+   },
+   {
+    "value": "gundam",
+    "label": "機動戦士ガンダム"
+   },
+   {
+    "value": "sentinel",
+    "label": "ガンダム・センチネル"
+   },
+   {
+    "value": "crossbone",
+    "label": "機動戦士クロスボーン・ガンダム"
+   },
+   {
+    "value": "missinglink",
+    "label": "機動戦士ガンダム外伝 ミッシングリンク"
+   },
+   {
+    "value": "hellokitty",
+    "label": "ハローキティ"
+   },
+   {
+    "value": "pokemon",
+    "label": "ポケットモンスター"
+   },
+   {
+    "value": "plannosaurus",
+    "label": "プラノサウルス"
+   },
+   {
+    "value": "digimon",
+    "label": "デジモンシリーズ"
+   },
+   {
+    "value": "keroro",
+    "label": "ケロロ軍曹"
+   },
+   {
+    "value": "patlabor",
+    "label": "機動警察パトレイバーシリーズ"
+   },
+   {
+    "value": "macross",
+    "label": "マクロスシリーズ"
+   },
+   {
+    "value": "starwars",
+    "label": "STAR WARS"
+   },
+   {
+    "value": "yamato",
+    "label": "宇宙戦艦ヤマトシリーズ"
+   },
+   {
+    "value": "votoms",
+    "label": "装甲騎兵ボトムズ"
+   },
+   {
+    "value": "wataru",
+    "label": "ワタルシリーズ"
+   },
+   {
+    "value": "onepiece",
+    "label": "ワンピース"
+   },
+   {
+    "value": "yugioh",
+    "label": "遊☆戯☆王デュエルモンスターズ"
+   },
+   {
+    "value": "rider",
+    "label": "仮面ライダーシリーズ"
+   },
+   {
+    "value": "unkosuldays",
+    "label": "ウンコスルデイズ"
+   },
+   {
+    "value": "idolmaster-shinycolors",
+    "label": "アイドルマスター シャイニーカラーズ"
+   },
+   {
+    "value": "dxm",
+    "label": "デモンエクスマキナ タイタニックサイオン"
+   },
+   {
+    "value": "armoredcore",
+    "label": "ARMORED CORE Ⅵ FIRES OF RUBICON"
+   },
+   {
+    "value": "idolmaster",
+    "label": "アイドルマスターシリーズ"
+   },
+   {
+    "value": "samurai-trooper",
+    "label": "鎧真伝サムライトルーパー"
+   },
+   {
+    "value": "madoka-magica",
+    "label": "魔法少女まどか☆マギカ"
+   },
+   {
+    "value": "bocchi-rocks",
+    "label": "ぼっち・ざ・ろっく！"
+   },
+   {
+    "value": "fate",
+    "label": "Fate/Grand Order"
+   },
+   {
+    "value": "superrobot_og",
+    "label": "スーパーロボット大戦OG"
+   },
+   {
+    "value": "dunbine",
+    "label": "聖戦士ダンバイン"
+   },
+   {
+    "value": "evangelion",
+    "label": "エヴァンゲリオン"
+   },
+   {
+    "value": "lbx",
+    "label": "ダンボール戦機"
+   },
+   {
+    "value": "lgaim",
+    "label": "重戦機エルガイム"
+   },
+   {
+    "value": "dragonball",
+    "label": "ドラゴンボールシリーズ"
+   },
+   {
+    "value": "gaogaigar",
+    "label": "勇者王ガオガイガー"
+   },
+   {
+    "value": "umamusume",
+    "label": "ウマ娘 プリティーダービー"
+   },
+   {
+    "value": "godzilla",
+    "label": "ゴジラxコング 新たなる帝国"
+   },
+   {
+    "value": "kyoukaisenki",
+    "label": "境界戦機"
+   },
+   {
+    "value": "kaiju-no8",
+    "label": "怪獣8号"
+   },
+   {
+    "value": "kimetsu",
+    "label": "鬼滅の刃"
+   },
+   {
+    "value": "synduality",
+    "label": "SYNDUALITY(シンデュアリティ)"
+   },
+   {
+    "value": "geass",
+    "label": "コードギアスシリーズ"
+   },
+   {
+    "value": "sandland",
+    "label": "SAND LAND（サンドランド）"
+   },
+   {
+    "value": "ultraman",
+    "label": "ウルトラマン"
+   },
+   {
+    "value": "dragonar",
+    "label": "機甲戦記ドラグナー"
+   },
+   {
+    "value": "naruto",
+    "label": "NARUTO -ナルト-"
+   },
+   {
+    "value": "vifam",
+    "label": "銀河漂流バイファム"
+   },
+   {
+    "value": "girlgunlady",
+    "label": "ガールガンレディ"
+   },
+   {
+    "value": "eightysix",
+    "label": "86-エイティシックス-"
+   },
+   {
+    "value": "dccomics",
+    "label": "DCコミックス"
+   },
+   {
+    "value": "sakugan",
+    "label": "サクガン"
+   },
+   {
+    "value": "swordart-online",
+    "label": "ソードアート・オンライン"
+   },
+   {
+    "value": "gosaurar",
+    "label": "熱血最強ゴウザウラー"
+   },
+   {
+    "value": "arale",
+    "label": "Dr.スランプアラレちゃん"
+   },
+   {
+    "value": "doraemon",
+    "label": "ドラえもん"
+   },
+   {
+    "value": "fullmetal_panic",
+    "label": "フルメタル・パニック!"
+   },
+   {
+    "value": "pacificrim",
+    "label": "パシフィック・リム"
+   },
+   {
+    "value": "pikachin-kit",
+    "label": "ポチっと発明ピカちんキット"
+   },
+   {
+    "value": "dynamic_characters",
+    "label": "ダイナミックキャラクターズ"
+   },
+   {
+    "value": "toystory4",
+    "label": "トイ・ストーリー4"
+   },
+   {
+    "value": "sakura_wars",
+    "label": "サクラ大戦"
+   },
+   {
+    "value": "shinsakura_wars",
+    "label": "新サクラ大戦"
+   },
+   {
+    "value": "kakaofriends",
+    "label": "KAKAO FRIENDS"
+   },
+   {
+    "value": "g-unit",
+    "label": "新機動戦記ガンダムW デュアルストーリー G-UNIT"
+   },
+   {
+    "value": "lovelive",
+    "label": "ラブライブ！サンシャイン!!"
+   },
+   {
+    "value": "macrossd",
+    "label": "マクロスΔ（デルタ）"
+   },
+   {
+    "value": "youkai",
+    "label": "妖怪ウォッチ"
+   },
+   {
+    "value": "dory",
+    "label": "ファインディング・ドリー"
+   },
+   {
+    "value": "activeraid",
+    "label": "アクティヴレイド"
+   },
+   {
+    "value": "framerobo",
+    "label": "超次元変形 フレームロボ"
+   },
+   {
+    "value": "macross-plus",
+    "label": "マクロスプラス"
+   },
+   {
+    "value": "kamenriderdouble",
+    "label": "仮面ライダーW"
+   },
+   {
+    "value": "garupan",
+    "label": "ガールズ＆パンツァー"
+   },
+   {
+    "value": "mazingerz-infinity",
+    "label": "マジンガーZ／INFINITY"
+   },
+   {
+    "value": "vertexforce",
+    "label": "バーテックスフォース"
+   },
+   {
+    "value": "bluearchive",
+    "label": "ブルーアーカイブ"
+   },
+   {
+    "value": "theghostintheshell",
+    "label": "攻殻機動隊 THE GHOST IN THE SHELL"
+   },
+   {
+    "value": "fatestaynight",
+    "label": "Fate/stay night"
+   },
+   {
+    "value": "monsterhunterwilds",
+    "label": "モンスターハンターワイルズ"
+   },
+   {
+    "value": "mahoyo",
+    "label": "魔法使いの夜"
+   }
+  ],
+  "brand": [
+   {
+    "value": "claymonsters",
+    "label": "ドラゴンクエストねんどモンスターズ"
+   },
+   {
+    "value": "gundam-assemble",
+    "label": "ガンダムアッセンブル"
+   },
+   {
+    "value": "plakoro",
+    "label": "プラコロ"
+   },
+   {
+    "value": "hg",
+    "label": "HG［ハイグレード］"
+   },
+   {
+    "value": "rg",
+    "label": "RG［リアルグレード］"
+   },
+   {
+    "value": "mg",
+    "label": "MG [マスターグレード]"
+   },
+   {
+    "value": "mgka",
+    "label": "MG Ver.Ka［マスターグレード バージョンカトキ］"
+   },
+   {
+    "value": "mgsd",
+    "label": "MASTER GRADE SD"
+   },
+   {
+    "value": "pg",
+    "label": "PG［パーフェクトグレード］"
+   },
+   {
+    "value": "entry_grade_g",
+    "label": "ENTRY GRADE"
+   },
+   {
+    "value": "optionpartsset",
+    "label": "オプションパーツセット"
+   },
+   {
+    "value": "gundam_decal",
+    "label": "ガンダムデカール"
+   },
+   {
+    "value": "sdcs",
+    "label": "SDガンダム クロスシルエット"
+   },
+   {
+    "value": "SDEX",
+    "label": "SDEXスタンダード"
+   },
+   {
+    "value": "bb",
+    "label": "SDガンダムBB戦士"
+   },
+   {
+    "value": "re100",
+    "label": "RE/100[リボーンワンハンドレッド]"
+   },
+   {
+    "value": "fullmechanics",
+    "label": "FULL MECHANICS[フルメカニクス]"
+   },
+   {
+    "value": "mgex",
+    "label": "MGEX [マスターグレードエクストリーム]"
+   },
+   {
+    "value": "expo2025-gunpla",
+    "label": "GUNDAM NEXT FUTURE PAVILION"
+   },
+   {
+    "value": "ecoplaproject_g",
+    "label": "エコプラプロジェクト"
+   },
+   {
+    "value": "30mm",
+    "label": "30 MINUTES MISSIONS"
+   },
+   {
+    "value": "30ms",
+    "label": "30 MINUTES SISTERS"
+   },
+   {
+    "value": "30mf",
+    "label": "30 MINUTES FANTASY"
+   },
+   {
+    "value": "30mp",
+    "label": "30 MINUTES PREFERENCE"
+   },
+   {
+    "value": "hg-c",
+    "label": "ＨＧ[ハイグレード]"
+   },
+   {
+    "value": "rg-c",
+    "label": "RG［ リアルグレード ］"
+   },
+   {
+    "value": "pokepla",
+    "label": "ポケモンプラモコレクション"
+   },
+   {
+    "value": "figurerise-standard",
+    "label": "Figure-rise Standard[フィギュアライズ スタンダード]"
+   },
+   {
+    "value": "figurerise-standard-amp",
+    "label": "Figure-rise Standard Amplified[フィギュアライズ スタンダード アンプリファイド]"
+   },
+   {
+    "value": "entry_grade",
+    "label": "ENTRY GRADE"
+   },
+   {
+    "value": "customize_scenebase",
+    "label": "カスタマイズシーンベース/エフェクト/マテリアル/ウェポンズ"
+   },
+   {
+    "value": "claymodelkit",
+    "label": "クレイモデルキット"
+   },
+   {
+    "value": "mecha-colle",
+    "label": "メカコレクション"
+   },
+   {
+    "value": "hgamplifiedimgn",
+    "label": "HG Amplified IMGN"
+   },
+   {
+    "value": "besthit_chronicle",
+    "label": "BEST HIT CHRONICLE"
+   },
+   {
+    "value": "limex",
+    "label": "ライメックス"
+   },
+   {
+    "value": "actionbase",
+    "label": "アクションベース"
+   },
+   {
+    "value": "tool",
+    "label": "BANDAI SPIRITS ツール"
+   },
+   {
+    "value": "gundarium_gundam",
+    "label": "ガンダリウム合金モデル"
+   },
+   {
+    "value": "figurerise-bust",
+    "label": "Figure-riseBust[フィギュアライズバスト]"
+   },
+   {
+    "value": "megasize",
+    "label": "メガサイズモデル"
+   },
+   {
+    "value": "sdgundamseries",
+    "label": "SDガンダムシリーズ"
+   },
+   {
+    "value": "imaginary_skeleton",
+    "label": "Imaginary Skeleton"
+   },
+   {
+    "value": "exploringlab_nature",
+    "label": "Exploring Lab Nature[エクスプローリングラボネイチャー]"
+   },
+   {
+    "value": "ultimagear",
+    "label": "ULTIMAGEAR"
+   },
+   {
+    "value": "figurerise-labo",
+    "label": "Figure-riseLABO[フィギュアライズラボ]"
+   },
+   {
+    "value": "tokyo2020_official",
+    "label": "東京2020 公式ライセンス商品"
+   },
+   {
+    "value": "figurerise-mechanics",
+    "label": "Figure-rise Mechanics[フィギュアライズメカニクス]"
+   },
+   {
+    "value": "figurerise-effect",
+    "label": "Figure-rise Effect[フィギュアライズエフェクト]"
+   },
+   {
+    "value": "petit_rits",
+    "label": "ぷちりっつ"
+   },
+   {
+    "value": "keitorabusou",
+    "label": "軽トラぶそう"
+   },
+   {
+    "value": "nekobusou",
+    "label": "ねこぶそう"
+   },
+   {
+    "value": "peti",
+    "label": "ぷちゅあらいず"
+   },
+   {
+    "value": "actionbase_c",
+    "label": "アクションベース_c"
+   },
+   {
+    "value": "disney_castle",
+    "label": "キャッスルクラフトコレクション"
+   },
+   {
+    "value": "ecopla",
+    "label": "エコプラ"
+   },
+   {
+    "value": "entry_nipper_c",
+    "label": "BANDAI SPIRITS ツール"
+   },
+   {
+    "value": "gunpla40th",
+    "label": "ガンプラ40周年記念"
+   },
+   {
+    "value": "geki-drive",
+    "label": "ゲキドライヴ"
+   },
+   {
+    "value": "gfy",
+    "label": "GUNDAM FACTORY YOKOHAMA"
+   },
+   {
+    "value": "gundam_g40",
+    "label": "ガンダムG40"
+   },
+   {
+    "value": "hgce",
+    "label": "HG COSMIC ERA"
+   },
+   {
+    "value": "hguc",
+    "label": "HG UNIVERSAL CENTURY"
+   },
+   {
+    "value": "hirm",
+    "label": "Hi-Resolution Model[ハイレゾリューションモデル]"
+   },
+   {
+    "value": "parts",
+    "label": "ビルダーズパーツ"
+   },
+   {
+    "value": "pb_bb",
+    "label": "SDガンダムBB戦士／プレバンガンプラ"
+   },
+   {
+    "value": "pb_charapla",
+    "label": "プレバンキャラプラ"
+   },
+   {
+    "value": "pb_gunpla",
+    "label": "プレバンガンプラ"
+   },
+   {
+    "value": "pb_hg",
+    "label": "HG［ハイグレード］／プレバンガンプラ"
+   },
+   {
+    "value": "pb_others",
+    "label": "その他シリーズ／プレバンガンプラ"
+   },
+   {
+    "value": "pb_pg",
+    "label": "PG［パーフェクトグレード］／プレバンガンプラ"
+   },
+   {
+    "value": "pb_rg",
+    "label": "RG［リアルグレード］／プレバンガンプラ"
+   },
+   {
+    "value": "optionpartsset_c",
+    "label": "オプションパーツ　セット"
+   },
+   {
+    "value": "pb_mg",
+    "label": "MG [マスターグレード]／プレバンガンプラ"
+   },
+   {
+    "value": "petitgguy",
+    "label": "プチッガイ/ベアッガイ"
+   },
+   {
+    "value": "sdcs-c",
+    "label": "SDクロスシルエット"
+   },
+   {
+    "value": "train",
+    "label": "Bトレインショーティー"
+   }
+  ],
+  "order_form": [
+   {
+    "value": "general",
+    "label": "一般販売"
+   },
+   {
+    "value": "shop",
+    "label": "ホビーオンライン"
+   },
+   {
+    "value": "event",
+    "label": "イベント"
+   },
+   {
+    "value": "gbase",
+    "label": "ガンダムべ－ス"
+   },
+   {
+    "value": "gsidef",
+    "label": "GUNDAM SIDE-F"
+   }
+  ]
+ },
+ "filters_counts": {
+  "series": 114,
+  "brand": 77,
+  "order_form": 5
+ },
+ "brand_30ms": {
+  "status": 200,
+  "title": "30 MINUTES SISTERS｜バンダイ ホビーサイト",
+  "item_links": 12,
+  "pager": [
+   "",
+   "",
+   "1",
+   "2",
+   "3",
+   "20",
+   "",
+   ""
+  ]
+ }
+}

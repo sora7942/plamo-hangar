@@ -1,0 +1,401 @@
+{
+ "origin": "http://localhost:8000",
+ "images": 43,
+ "rows": {
+  "D": {
+   "title": "D. CloudFront 서명 URL — FRESH (방금 받음), no-referrer",
+   "policy": "no-referrer",
+   "total": 8,
+   "ok": 8,
+   "http_status": {
+    "200": 8
+   },
+   "hosts": [
+    "d3bk8pkqsprcvh.cloudfront.net"
+   ]
+  },
+  "A": {
+   "title": "A. akamai 갤러리 (01_4257 HG 에어리얼) _1.._11, no-referrer",
+   "policy": "no-referrer",
+   "total": 11,
+   "ok": 11,
+   "http_status": {
+    "200": 11
+   },
+   "hosts": [
+    "bandai-a.akamaihd.net"
+   ]
+  },
+  "B": {
+   "title": "B. akamai 갤러리, 정책 없음(Referer=http://localhost:8000/ 전송)",
+   "policy": "(default)",
+   "total": 3,
+   "ok": 3,
+   "http_status": {
+    "200": 3
+   },
+   "hosts": [
+    "bandai-a.akamaihd.net"
+   ]
+  },
+  "C": {
+   "title": "C. 호비사이트 정적 이미지 (01_4259 / 01_1547), no-referrer",
+   "policy": "no-referrer",
+   "total": 5,
+   "ok": 5,
+   "http_status": {
+    "200": 5
+   },
+   "hosts": [
+    "bandai-hobby.net"
+   ]
+  },
+  "F": {
+   "title": "F. p-bandai.com(해외) 상품 이미지, no-referrer",
+   "policy": "no-referrer",
+   "total": 4,
+   "ok": 4,
+   "http_status": {
+    "200": 4
+   },
+   "hosts": [
+    "p-bandai.com"
+   ]
+  },
+  "G": {
+   "title": "G. 갤러리 첫 장·마지막 장 (박스아트 위치 확인), no-referrer",
+   "policy": "no-referrer",
+   "total": 8,
+   "ok": 8,
+   "http_status": {
+    "200": 8
+   },
+   "hosts": [
+    "bandai-a.akamaihd.net",
+    "bandai-hobby.net"
+   ]
+  },
+  "E": {
+   "title": "E. CloudFront 서명 URL — STALE (이전에 받아 Expires 지남), no-referrer",
+   "policy": "no-referrer",
+   "total": 4,
+   "ok": 0,
+   "http_status": {
+    "net::ERR_BLOCKED_BY_ORB": 4
+   },
+   "hosts": [
+    "d3bk8pkqsprcvh.cloudfront.net"
+   ]
+  }
+ },
+ "screenshot": "spike/out-actions/screenshots/hotlink-local.png",
+ "stale_probe": {
+  "status": 403,
+  "content_type": "text/xml",
+  "body_head": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Error><Code>AccessDenied</Code><Message>Access denied</Message></Error>"
+ },
+ "detail": [
+  {
+   "label": "fresh-sched-1",
+   "row": "D",
+   "ok": true,
+   "w": 450,
+   "h": 450
+  },
+  {
+   "label": "fresh-sched-2",
+   "row": "D",
+   "ok": true,
+   "w": 450,
+   "h": 450
+  },
+  {
+   "label": "fresh-sched-3",
+   "row": "D",
+   "ok": true,
+   "w": 450,
+   "h": 450
+  },
+  {
+   "label": "fresh-sched-4",
+   "row": "D",
+   "ok": true,
+   "w": 450,
+   "h": 450
+  },
+  {
+   "label": "fresh-gallery-1",
+   "row": "D",
+   "ok": true,
+   "w": 1500,
+   "h": 1500
+  },
+  {
+   "label": "fresh-gallery-2",
+   "row": "D",
+   "ok": true,
+   "w": 1500,
+   "h": 1500
+  },
+  {
+   "label": "fresh-gallery-3",
+   "row": "D",
+   "ok": true,
+   "w": 1500,
+   "h": 1500
+  },
+  {
+   "label": "fresh-gallery-4",
+   "row": "D",
+   "ok": true,
+   "w": 1500,
+   "h": 1500
+  },
+  {
+   "label": "ak_1",
+   "row": "A",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "ak_2",
+   "row": "A",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "ak_3",
+   "row": "A",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "ak_4",
+   "row": "A",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "ak_5",
+   "row": "A",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "ak_6",
+   "row": "A",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "ak_7",
+   "row": "A",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "ak_8",
+   "row": "A",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "ak_9",
+   "row": "A",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "ak_10",
+   "row": "A",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "ak_11",
+   "row": "A",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "ak-ref_1",
+   "row": "B",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "ak-ref_2",
+   "row": "B",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "ak-ref_3",
+   "row": "B",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "static-1",
+   "row": "C",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "static-2",
+   "row": "C",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "static-3",
+   "row": "C",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "static-4",
+   "row": "C",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "static-old-1",
+   "row": "C",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "pb-global-1",
+   "row": "F",
+   "ok": true,
+   "w": 160,
+   "h": 80
+  },
+  {
+   "label": "pb-global-2",
+   "row": "F",
+   "ok": true,
+   "w": 160,
+   "h": 80
+  },
+  {
+   "label": "pb-global-3",
+   "row": "F",
+   "ok": true,
+   "w": 160,
+   "h": 80
+  },
+  {
+   "label": "pb-global-4",
+   "row": "F",
+   "ok": true,
+   "w": 600,
+   "h": 600
+  },
+  {
+   "label": "01_5373 첫장/1of12",
+   "row": "G",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "01_5373 끝장/12of12",
+   "row": "G",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "01_4259 첫장/1of11",
+   "row": "G",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "01_4259 끝장/11of11",
+   "row": "G",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "01_3024 첫장/1of10",
+   "row": "G",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "01_3024 끝장/10of10",
+   "row": "G",
+   "ok": true,
+   "w": 1200,
+   "h": 1200
+  },
+  {
+   "label": "01_2909 첫장/1of10",
+   "row": "G",
+   "ok": true,
+   "w": 560,
+   "h": 560
+  },
+  {
+   "label": "01_2909 끝장/10of10",
+   "row": "G",
+   "ok": true,
+   "w": 560,
+   "h": 560
+  },
+  {
+   "label": "stale-1",
+   "row": "E",
+   "ok": false,
+   "w": 0,
+   "h": 0
+  },
+  {
+   "label": "stale-2",
+   "row": "E",
+   "ok": false,
+   "w": 0,
+   "h": 0
+  },
+  {
+   "label": "stale-3",
+   "row": "E",
+   "ok": false,
+   "w": 0,
+   "h": 0
+  },
+  {
+   "label": "stale-4",
+   "row": "E",
+   "ok": false,
+   "w": 0,
+   "h": 0
+  }
+ ],
+ "run_at": "2026-10-06T13:49:07+09:00"
+}

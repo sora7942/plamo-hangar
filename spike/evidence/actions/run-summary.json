@@ -1,0 +1,20 @@
+{
+ "env": "actions",
+ "out": "spike/out-actions",
+ "python": "3.12.14",
+ "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+ "steps": {
+  "hobby": "ok",
+  "pbandai": "ok",
+  "joyhobby": "ok",
+  "hotlink": "ok"
+ },
+ "detail_pages_used": {
+  "hobby": 17,
+  "pbandai": 1,
+  "pbandai_global": 2,
+  "joyhobby": 5
+ },
+ "detail_total": 25,
+ "detail_total_cap": 30
+}
