@@ -39,7 +39,7 @@ UNSTABLE_URL_MARKERS = ("Expires=", "Signature=", "Key-Pair-Id=")
 # ---------------------------------------------------------------- 수집 범위·상한
 SCHEDULE_START = "2015-01"        # --bootstrap 때 일정을 거슬러 올라갈 시작 달 (--from으로 덮어씀)
 SCHEDULE_AHEAD_MONTHS = 3         # 매 실행: 이번 달 ~ +3개월
-GIRL_BRANDS = ["30ms", "30mp", "figurerise-standard", "figurerise-standard-amp"]   # 브랜드 목록으로 전체 수집
+GIRL_BRANDS = ["30ms", "30mp", "figurerise-standard", "figurerise-standard-amp", "figurerise-bust"]   # 브랜드 목록으로 전체 수집
 DETAIL_NEW_MAX = 40               # 실행당 상세: 이번에 처음 본 상품
 DETAIL_BACKLOG_MAX = 150          # 실행당 상세: 밀린 상품
 DETAIL_HARD_MAX = 400             # 어떤 옵션을 줘도 실행당 상세 합계는 이 수를 넘지 않는다
@@ -89,13 +89,14 @@ GUNPLA_TENTATIVE = {   # 건프라 라인이지만 사용자 판단이 필요해
     "gundarium_gundam": ("gunpla", None), "gfy": ("gunpla", None), "expo2025-gunpla": ("gunpla", None),
     "hgamplifiedimgn": ("gunpla", "HG"),
 }
-GIRL = {   # 걸프라 — 사용자 지정 4개
+GIRL = {   # 걸프라 — 사용자 지정 5개 (figurerise-bust는 2차 확인에서 추가)
     "30ms": ("girl", "30MS"), "30mp": ("girl", "30MP"),
     "figurerise-standard": ("girl", "Figure-rise Standard"),
     "figurerise-standard-amp": ("girl", "Figure-rise Standard Amplified"),
+    "figurerise-bust": ("girl", "Figure-rise Bust"),
 }
 EXCLUDED_CANDIDATES = {k: (None, None) for k in (   # 제외, 걸프라/건프라 후보라 확인 필요
-    "figurerise-bust", "figurerise-labo", "figurerise-mechanics", "figurerise-effect",
+    "figurerise-labo", "figurerise-mechanics", "figurerise-effect",
     "pb_charapla", "gundam-assemble", "30mm", "30mf")}
 EXCLUDED_ACCESSORY = {k: (None, None) for k in (    # 제외, 건프라 주변 악세서리·도구
     "gundam_decal", "optionpartsset", "optionpartsset_c", "parts", "actionbase", "actionbase_c",
@@ -127,6 +128,7 @@ TITLE_PREFIX_RULES: list[tuple[str, str, str]] = [
     (r"^FULL MECHANICS", "gunpla", "FULL MECHANICS"),
     (r"^30MS|^30 ?MINUTES SISTERS", "girl", "30MS"),
     (r"^30MP|^30 ?MINUTES PREFERENCE", "girl", "30MP"),
+    (r"^FIGURE-RISE ?BUST", "girl", "Figure-rise Bust"),
     (r"^FIGURE-RISE STANDARD AMPLIFIED", "girl", "Figure-rise Standard Amplified"),
     (r"^FIGURE-RISE STANDARD", "girl", "Figure-rise Standard"),
 ]

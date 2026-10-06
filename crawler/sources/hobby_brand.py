@@ -1,6 +1,6 @@
 """호비사이트 브랜드 목록 (https://bandai-hobby.net/brand/<key>/, 2쪽부터 ?p=N).
 
-걸프라 4개 브랜드(config.GIRL_BRANDS)를 전체 열거하는 데 쓴다. 카드는 일정 카드와 같은 `a.p-card` 구조이고
+걸프라 브랜드(config.GIRL_BRANDS)를 전체 열거하는 데 쓴다. 카드는 일정 카드와 같은 `a.p-card` 구조이고
 브랜드 키가 이미 알려져 있어 상세 없이도 line·grade가 확정된다. 상단 슬라이드(`a.p-slide__link`)는 카드가 아니라 제외.
 """
 from __future__ import annotations
