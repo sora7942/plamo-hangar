@@ -25,7 +25,19 @@ def _no_network(monkeypatch):
     def boom(*a, **k):
         raise AssertionError("테스트에서 실제 네트워크 요청이 시도되었습니다")
     monkeypatch.setattr(requests.adapters.HTTPAdapter, "send", boom)
-    # 환경의 키·웹훅이 테스트에 새어 들어오지 않게 비운다
+
+    # Anthropic SDK는 requests가 아니라 httpx로 나가서 위 차단에 걸리지 않는다 → 클라이언트 생성 자체를 막는다.
+    # (테스트는 가짜 client를 주입해서 쓴다.)
+    import anthropic
+
+    def no_claude(*a, **k):
+        raise AssertionError("테스트에서 실제 Claude 클라이언트를 만들려고 했습니다 (가짜 client를 주입하세요)")
+    monkeypatch.setattr(anthropic.Anthropic, "__init__", no_claude)
+    monkeypatch.setattr(anthropic.AsyncAnthropic, "__init__", no_claude)
+
+    # 환경의 키·웹훅이 테스트에 새어 들어오지 않게 비운다. `.env`도 읽지 못하게 한다 (main()·translate.main()이 load_dotenv를 부른다).
+    import dotenv
+    monkeypatch.setattr(dotenv, "load_dotenv", lambda *a, **k: False)
     for var in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "DISCORD_WEBHOOK_URL", "CLAUDE_MODEL"):
         monkeypatch.delenv(var, raising=False)
 

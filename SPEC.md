@@ -134,7 +134,7 @@ plamo-hangar/
 ```json
 {"updatedAt":"ISO","since":"수집 시작 YYYY-MM-DD",
  "sources":{"hobby_schedule":{"ok":true,"at":"ISO","items":21,"error":null},"hobby_brand":{...},"hobby_item":{...},
-            "translate":{"ok":true,"at":"ISO","items":50,"error":null,"pending":0,"skipped":null,"model":"..."},"joyhobby":{...}},
+            "translate":{"ok":true,"at":"ISO","items":50,"error":null,"pending":0,"skipped":null,"model":"...","kanaRetried":0,"kanaRejected":0},"joyhobby":{...}},
  "crawl":{"scheduleFrom":"2015-01","girlBrandsDone":["30ms"],"backlog":120,"counts":{"gunpla":0,"girl":0,"pending":0,"excluded":0}},
  "stats":{"requests":0,"byKind":{},"failures":0,"elapsedSec":0,"minGapSec":1.2},
  "unknownBrandKeys":[]}
@@ -171,6 +171,9 @@ plamo-hangar/
 ### 번역 (`translate.py`)
 - 새 카탈로그 항목만, 50개씩 Claude API. 한국 정식 명칭을 따르게 하고 JSON으로 받는다. 조이하비에서 매칭된 한국어 이름이 있으면 그걸 우선 쓴다
 - 모델명은 `config.CLAUDE_MODEL` (daily-tech-digest와 같은 방식). `ANTHROPIC_API_KEY` 없으면 건너뜀
+- **가나 검사**: 번역(`ko`)에 히라가나·가타카나가 남아 있으면(예: `[カラーC]`) **그 항목만 한 번** 다시 요청한다(앞선 번역을 `prev_ko`로 알려 줌). 그래도 남으면 `nameKo`를 비워 두고 다음 실행에서 다시 시도한다. 중점 `・`은 가나로 보지 않는다. 재요청 수와 비운 수는 `meta.sources.translate`의 `kanaRetried`·`kanaRejected`
+- **용어집**: 자주 나오는 고유명사·표기는 `config.TRANSLATE_GLOSSARY`(일본어 → 한국어 사전)에 두고 시스템 프롬프트에 그대로 넣는다. 틀린 번역이 보이면 한 줄 추가하면 되고, 값에 가나를 쓰지 않는다(테스트가 확인)
+- 수동 확인: `python -m crawler.translate --sample 20` — 실제 파이프라인과 같은 경로(가나 재요청 포함)로 fixture 제목 20개를 한 번 번역해 출력. 테스트는 실제 Claude를 호출하지 않는다(클라이언트 생성·`.env` 읽기를 `conftest`가 막음)
 
 ## 6. 사이트 — 소유자 모드와 저장
 - 설정에서 **GitHub fine-grained 토큰**(이 저장소만, Contents: Read and write)을 넣으면 소유자 모드. 토큰은 그 브라우저 localStorage에만. `GET /repos/sora7942/plamo-hangar`의 `permissions.push`로 확인

@@ -259,7 +259,7 @@ def test_translate_stage_fills_name_ko_and_feed_title_ko(tmp_path):
 
     def create(**kw):
         rows = json.loads(kw["messages"][0]["content"])
-        text = json.dumps({"items": [{"id": r["id"], "ko": f"한글 {r['ja'][:8]}"} for r in rows]}, ensure_ascii=False)
+        text = json.dumps({"items": [{"id": r["id"], "ko": f"한글 {r['id']}"} for r in rows]}, ensure_ascii=False)   # 가나 없는 번역
         return SimpleNamespace(stop_reason="end_turn", content=[SimpleNamespace(type="text", text=text)],
                                usage=SimpleNamespace(input_tokens=1, output_tokens=1))
     fake = SimpleNamespace(messages=SimpleNamespace(create=create))

@@ -198,7 +198,8 @@ def run(opts: Options, http: HttpClient, *, now: datetime | None = None, anthrop
     if "translate" in stages:
         res = translate.translate_pending(catalog, now_iso, client=anthropic_client)
         sources["translate"] = {"ok": res["ok"], "at": iso(now_kst()), "items": res["done"], "error": res["error"],
-                                "pending": res["pending"], "skipped": res["skipped"], "model": res["model"]}
+                                "pending": res["pending"], "skipped": res["skipped"], "model": res["model"],
+                                "kanaRetried": res["kanaRetried"], "kanaRejected": res["kanaRejected"]}
     elif opts.dry_run and opts.only is None:
         sources["translate"] = {"ok": True, "at": iso(now_kst()), "items": 0, "error": None, "skipped": "dry-run"}
 
