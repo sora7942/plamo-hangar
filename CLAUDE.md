@@ -31,7 +31,7 @@
 - 소스 하나가 실패해도 전체 실행은 계속하고 `meta.json`에 기록한다
 - 시간은 timezone-aware, 저장은 `+09:00` ISO 문자열. JSON은 `encoding="utf-8"`, `ensure_ascii=False`
 - 카탈로그 `kr` 이력과 피드 `added`는 한 번 들어가면 지우거나 바꾸지 않는다 (예외: `KR_CODE_OVERRIDES`로 사람이 "연결 금지"한 코드의 kr만 뺀다). 피드 항목의 `type`만 조이하비 연결 후 60일 규칙으로 고칠 수 있다
-- 조이하비 이름 매칭은 애매하면 연결하지 않는다. 연결(`MATCH_LINK_SCORE`)과 `nameKo` 교체(`MATCH_NAME_SCORE`, 더 높음)는 기준이 다르다. 교체 전 번역은 `nameKoAi`에 보존한다. 교체는 `line`이 gunpla인 항목만(걸프라는 번역 유지). 이름 끝의 ` - <작품명>` 꼬리는 항상 뗀다
+- 조이하비 이름 매칭은 애매하면 연결하지 않는다. 연결(`MATCH_LINK_SCORE`)과 `nameKo` 교체(`MATCH_NAME_SCORE`, 더 높음)는 기준이 다르다. 교체 전 번역은 `nameKoAi`에 보존한다. 교체는 `line`이 gunpla인 항목만(걸프라는 번역 유지). 이름 끝의 ` - <작품명>` 꼬리는 뗀다(단 꼬리에 변형 표시어 `JOY_VARIANT_MARKERS`가 있으면 변형 이름이라 떼지 않는다)
 - 사이트에 넣는 외부 문자열(카탈로그·피드·내 메모)은 전부 이스케이프한다 — localStorage에 GitHub 토큰이 있다
 - 사이트를 고치면 데스크톱·모바일(400px), 라이트·다크 모드에서 확인한다
 - 매칭이 애매하면 연결하지 않는다 (틀린 연결 < 연결 없음)

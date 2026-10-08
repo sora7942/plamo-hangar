@@ -119,10 +119,27 @@ def _clean_rest(raw: str) -> tuple[str | None, str]:
     return bracket, rest
 
 
+def has_variant_marker(tail: str) -> bool:
+    """꼬리에 변형 표시어(config.JOY_VARIANT_MARKERS)가 낱말로 들어 있는가. config.JOY_TAIL_EXEMPT에 있는 작품명은 제외."""
+    t = nfkc(tail)
+    if any(ex in t for ex in config.JOY_TAIL_EXEMPT):
+        return False
+    for m in config.JOY_VARIANT_MARKERS:
+        if m.isascii():
+            pat = r"(?<![A-Za-z])" + re.escape(m) + r"(?![A-Za-z])"
+        else:
+            pat = re.escape(m) + r"(?![가-힣])"
+        if re.search(pat, t, re.I):
+            return True
+    return False
+
+
 def strip_series_tail(rest: str) -> str:
-    """이름 끝의 ` - <작품명>` 꼬리를 항상 뗀다 (마지막 ` - ` 뒤). 작품명인지 변형 이름(`- 플 전용기`)인지는 구별하지 않는다."""
+    """이름 끝의 ` - <작품명>` 꼬리를 뗀다 (마지막 ` - ` 뒤 하나). 단 꼬리에 변형 표시어가 있으면(`- 플 전용기`) 변형 이름이라 떼지 않는다."""
     parts = _TAIL_SPLIT_RX.split(rest)
-    return " - ".join(parts[:-1]) if len(parts) > 1 else rest
+    if len(parts) < 2 or has_variant_marker(parts[-1]):
+        return rest
+    return " - ".join(parts[:-1])
 
 
 def parse_name(raw: str) -> JoyName:
