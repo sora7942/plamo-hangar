@@ -202,3 +202,11 @@ img{max-width:100%}
 .settings-sec h3{margin:0;font-family:var(--f-display);font-size:14px;font-weight:700;letter-spacing:.06em;color:var(--muted)}
 .row-btns{display:flex;gap:8px;flex-wrap:wrap}
 .status-ok{color:var(--st-built);font-weight:600}
+
+/* 반다이 제품 연결 (4a) */
+.credit{margin-top:6px}
+.credit a,.linkbox a{color:inherit;text-underline-offset:3px}
+.official-link{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.official-link .btn{display:inline-block;text-decoration:none}
+.linkbox{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;margin:12px 0;padding:8px 12px;font-size:14px;border-left:3px solid var(--accent);background:var(--sunken);overflow-wrap:anywhere}
+.linkbox .lk{font-size:13px;font-weight:600;color:var(--muted)}

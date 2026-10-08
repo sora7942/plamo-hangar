@@ -14,9 +14,9 @@
 ## 4a 하위 단계
 - [x] 4a-1 등급 확장 (pure.js GRADES·catalogGrade·glabel, normGrade, CSS 색)
 - [x] 4a-2 catalog.js 순수 로직 + node 테스트 (검색에 scale 힌트 포함)
-- [ ] 4a-3 로딩 연결 + 공식 사진(카드·상세·hideOfficialPhotos 설정)
+- [x] 4a-3 로딩 연결 + 공식 사진(카드·상세·hideOfficialPhotos 설정). e2e: `python tests/e2e/site_catalog_check.py` (40개 통과, 방문자 화면 공식 사진 확인)
 - [ ] 4a-4 폼/상세 "반다이 제품에서 찾기"·연결/해제·URL 붙여넣기·공식 대표 사진
 - [ ] 4a-5 e2e(mock) + 실제 데이터 검색 샘플 20개 + 방문자 화면 확인 → 보고
 
 ## 다음에 할 일
-4a-3 시작: app.js에 카탈로그 비동기 로딩, 카드·상세 공식 사진(xl→m 썸네일), hideOfficialPhotos 설정.
+4a-4 시작: 폼 '반다이 제품에서 찾기'(검색·URL 붙여넣기), 상세 연결/해제, 폼 사진 관리에 공식 사진 대표 지정(off:n), 연결 커밋 메시지(link/unlink).

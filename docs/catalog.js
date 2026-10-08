@@ -48,6 +48,14 @@ function thumbUrl(u) {
   return p.protocol + '//' + p.hostname + p.pathname.replace('/model/xl/', '/model/m/') + p.search;
 }
 
+// 공식 상품 페이지 링크. 호비사이트·P-반다이 주소만 (카탈로그가 이상한 값을 가져도 링크로 만들지 않는다)
+function pageUrl(item) {
+  var ok = function (u, host) { var p = parseUrl(u); return !!p && p.protocol === 'https:' && p.hostname === host; };
+  if (item && ok(item.url, HOBBY)) return item.url;
+  if (item && ok(item.pbUrl, 'p-bandai.jp')) return item.pbUrl;
+  return null;
+}
+
 /* ---------- 항목 정규화·색인 ---------- */
 function normalizeItem(raw) {
   if (!raw || typeof raw !== 'object' || typeof raw.id !== 'string' || !raw.id) return null;
@@ -178,7 +186,7 @@ function load(fetchFn, o) {
 
 return {
   FILES: FILES, SEARCH_LIMIT: SEARCH_LIMIT,
-  norm: norm, stripPrefix: stripPrefix, displayName: displayName, isStableImage: isStableImage, thumbUrl: thumbUrl,
+  norm: norm, stripPrefix: stripPrefix, displayName: displayName, isStableImage: isStableImage, thumbUrl: thumbUrl, pageUrl: pageUrl,
   normalizeItem: normalizeItem, build: build, search: search, parseRef: parseRef, fillPatch: fillPatch,
   officialImages: officialImages, setCatalogId: setCatalogId, cacheKey: cacheKey, load: load
 };

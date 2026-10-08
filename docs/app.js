@@ -2,7 +2,7 @@
 (function () {
 'use strict';
 
-var P = window.PlamoPure, GH = window.PlamoGitHub;
+var P = window.PlamoPure, GH = window.PlamoGitHub, C = window.PlamoCatalog;
 var REPO = 'sora7942/plamo-hangar';
 var TOKEN_KEY = 'plamo-token', UI_KEY = 'plamo-ui';
 var XLSX_SRC = { url: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
@@ -44,6 +44,26 @@ function tabKits() { return allKits().filter(function (k) { return k.list === ui
 function today() { return P.ymd(new Date()); }
 function findKit(id) { return allKits().filter(function (k) { return k.id === id; })[0]; }
 function photoSrc(path) { return P.isSafePhotoPath(path) ? (photoUrls[path] || path) : ''; }
+
+/* ---------- 카탈로그 (보유·위시를 먼저 그리고, 필요할 때 뒤에서 읽는다) ---------- */
+var cat = null, catState = 'idle', catPromise = null; // idle | loading | ready | error
+function ensureCatalog() {
+  if (catPromise) return catPromise;
+  catState = 'loading';
+  catPromise = C.load(function (u, i) { return window.fetch(u, i); }).then(function (c) { cat = c; catState = 'ready'; return c; },
+    function () { catState = 'error'; catPromise = null; return null; });
+  return catPromise;
+}
+function hasLinked() { return data.kits.some(function (k) { return k.catalogId; }); }
+function official(k) { return cat ? C.officialImages(cat, k, data.settings) : []; }
+function catItem(k) { return cat && k && k.catalogId ? (cat.byId[k.catalogId] || null) : null; }
+// 사진 항목 → 이미지 주소. 공식 사진의 카드·썸네일은 작은 이미지(/m/)를 먼저 쓰고, 안 뜨면 원본으로 (error 위임 핸들러의 data-alt)
+function imgUrl(p, thumb) { return p.kind === 'off' ? (thumb ? C.thumbUrl(p.src) : p.src) : photoSrc(thumb ? p.thumb : p.src); }
+function imgAlt(p, thumb) { return p.kind === 'off' && thumb && C.thumbUrl(p.src) !== p.src ? ' data-alt="' + esc(p.src) + '"' : ''; }
+function creditHTML(k, shown) {
+  var ci = catItem(k), u = ci && C.pageUrl(ci);
+  return '<p class="hint credit" id="d-credit"' + (shown ? '' : ' hidden') + '>사진: BANDAI SPIRITS' + (u ? ' · <a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">원본 페이지</a>' : '') + '</p>';
+}
 
 /* ---------- 데이터 읽기 ---------- */
 function loadVisitor() {
@@ -131,6 +151,7 @@ function dropPhotoUrls(p) {
 document.addEventListener('error', function (e) {
   var t = e.target;
   if (!t || t.tagName !== 'IMG' || !t.dataset || t.dataset.g == null) return;
+  if (t.dataset.alt) { var alt = t.dataset.alt; delete t.dataset.alt; t.src = alt; return; }
   if (t.dataset.g === '') { t.hidden = true; return; }
   var d = document.createElement('div'); d.className = 'ghost'; d.textContent = t.dataset.g;
   if (t.dataset.note) { var p = t.parentNode; t.replaceWith(d); var n = document.createElement('p'); n.className = 'hint'; n.textContent = '사진을 불러오지 못했어요. 방금 저장했다면 사이트 반영(1~2분) 전일 수 있어요.'; if (p && p.parentNode) p.parentNode.insertBefore(n, p.nextSibling); }
@@ -226,6 +247,8 @@ function renderAll() {
    '<div class="grid" id="grid"></div>' +
   '</div>' + (canWrite ? '' : '<footer class="foot"><button class="linkbtn" data-act="settings">소유자 설정</button></footer>');
   bindShell(); renderStats(); renderList(); renderSelbar();
+  // 연결된 프라가 있으면 첫 화면을 그린 뒤에 카탈로그를 받아 공식 사진을 붙인다
+  if (catState === 'idle' && !isSample() && hasLinked()) ensureCatalog().then(function () { if (!loading && document.getElementById('grid')) renderList(); });
 }
 
 function renderStats() {
@@ -269,9 +292,9 @@ function renderStats() {
 }
 
 function cardHTML(k) {
-  var g = gname(k.grade), on = sel && sel.has(k.id), cover = P.photoOrder(k, []).cover;
+  var g = gname(k.grade), on = sel && sel.has(k.id), cover = P.photoOrder(k, official(k)).cover;
   return '<button class="card' + (on ? ' selected' : '') + '" data-id="' + esc(k.id) + '" aria-label="' + esc(k.name) + (sel ? (on ? ' 선택됨' : ' 선택하기') : ' 자세히 보기') + '"' + (sel ? ' aria-pressed="' + !!on + '"' : '') + '>' +
-   '<div class="ph">' + (cover ? '<img src="' + esc(photoSrc(cover.thumb)) + '" alt="" loading="lazy" referrerpolicy="no-referrer" data-g="' + esc(g) + '">' : '<div class="ghost">' + esc(g) + '</div>') +
+   '<div class="ph">' + (cover ? '<img src="' + esc(imgUrl(cover, true)) + '"' + imgAlt(cover, true) + ' alt="" loading="lazy" referrerpolicy="no-referrer" data-g="' + esc(g) + '">' : '<div class="ghost">' + esc(g) + '</div>') +
    '<span class="grade g-' + gk(k.grade) + '">' + esc(P.glabel(k.grade)) + '</span>' + (k.sample ? '<span class="sample-tag">예시</span>' : '') +
    (sel ? '<span class="selbox" aria-hidden="true">' + (on ? '✓' : '') + '</span>' : '') + '</div>' +
    '<div class="meta">' + (k.series ? '<span class="series">' + esc(k.series) + '</span>' : '') + '<h3>' + esc(k.name) + '</h3>' +
@@ -285,6 +308,8 @@ var lastList = [];
 function renderList() {
   lastList = P.filterSort(allKits(), ui);
   document.getElementById('countline').textContent = lastList.length + '개 표시 중';
+  var cl = document.getElementById('countline');
+  if (catState === 'error' && hasLinked()) cl.textContent += ' · 카탈로그를 불러오지 못해 공식 사진이 빠져 있어요';
   var empty = tabKits().length ? '조건에 맞는 프라가 없어요. 검색어나 필터를 바꿔 보세요.' : (ui.tab === 'wish' ? '위시리스트가 비어 있어요. 사고 싶은 프라를 추가해 보세요.' : '아직 등록한 프라가 없어요.');
   document.getElementById('grid').innerHTML = lastList.length ? lastList.map(cardHTML).join('') : '<div class="empty" style="grid-column:1/-1">' + empty + '</div>';
 }
@@ -351,19 +376,29 @@ function openDetail(id) {
   if (own) { var d = days(k.startDate, k.doneDate); rows.push(['조립 시작', k.startDate], ['완성', k.doneDate ? k.doneDate + (d ? ' (' + d + '일 걸림)' : '') : '']); }
   if (k.tags.length) rows.push(['태그', k.tags.map(function (t) { return '#' + t; }).join(' ')]);
   var show = rows.filter(function (r) { return r[1] || (canWrite && !k.sample); });
-  var order = P.photoOrder(k, []).list, g = gname(k.grade);
-  var gallery = order.length ? '<div class="detail-photo"><img id="d-main" src="' + esc(photoSrc(order[0].src)) + '" alt="' + esc(k.name) + ' 사진" referrerpolicy="no-referrer" data-g="' + esc(g) + '" data-note="1">' +
-      (order.length > 1 ? '<span class="count" id="d-count">1 / ' + order.length + '</span>' : '') + '</div>' +
-    (order.length > 1 ? '<div class="thumbs">' + order.map(function (p, i) { return '<button type="button" class="th" data-i="' + i + '" aria-label="사진 ' + (i + 1) + '" aria-current="' + (i === 0) + '"><img src="' + esc(photoSrc(p.thumb)) + '" alt="" loading="lazy" referrerpolicy="no-referrer" data-g=""></button>'; }).join('') + '</div>' : '') : '';
-  var body = gallery +
+  var order = P.photoOrder(k, official(k)).list, g = gname(k.grade), ci = catItem(k), pu = ci && C.pageUrl(ci);
+  var gallery = order.length ? '<div class="detail-photo"><img id="d-main" src="' + esc(imgUrl(order[0], false)) + '" alt="' + esc(k.name) + ' 사진" referrerpolicy="no-referrer" data-g="' + esc(g) + '" data-note="' + (order[0].kind === 'off' ? '' : '1') + '">' +
+      (order.length > 1 ? '<span class="count" id="d-count">1 / ' + order.length + '</span>' : '') + '</div>' + creditHTML(k, order[0].kind === 'off') +
+    (order.length > 1 ? '<div class="thumbs">' + order.map(function (p, i) { return '<button type="button" class="th" data-i="' + i + '" aria-label="사진 ' + (i + 1) + '" aria-current="' + (i === 0) + '"><img src="' + esc(imgUrl(p, true)) + '"' + imgAlt(p, true) + ' alt="" loading="lazy" referrerpolicy="no-referrer" data-g=""></button>'; }).join('') + '</div>' : '') :
+    // 연결됐는데 쓸 수 있는 사진이 없을 때(서명 URL뿐인 신제품 등): 등급 글자 자리표시 + 공식 페이지 버튼
+    (k.catalogId && catState === 'ready' && !k.sample ? '<div class="detail-photo"><div class="ghost">' + esc(P.glabel(k.grade)) + '</div></div>' +
+      '<p class="hint official-link">' + (data.settings.hideOfficialPhotos ? '공식 사진 숨김 설정이 켜져 있어요. ' : '이 제품은 쓸 수 있는 공식 사진이 없어요. ') +
+      (pu ? '<a class="btn" href="' + esc(pu) + '" target="_blank" rel="noopener noreferrer">공식 사진 보기</a>' : '') + '</p>' : '');
+  var linkInfo = !k.catalogId ? '' : '<div class="linkbox"><span class="lk">반다이 제품</span>' + (ci
+      ? '<span>' + esc(ci.title) + ' <span class="hint">' + esc([ci.grade, ci.scale].filter(Boolean).join(' · ')) + '</span>' + (pu ? ' · <a href="' + esc(pu) + '" target="_blank" rel="noopener noreferrer">공식 페이지</a>' : '') + '</span>'
+      : '<span class="hint">' + (catState === 'ready' ? '카탈로그에 아직 없는 제품이에요 (' + esc(k.catalogId) + '). 다음 수집 때 채워져요.' : catState === 'error' ? '카탈로그를 불러오지 못했어요.' : '카탈로그를 불러오는 중이에요…') + '</span>') + '</div>';
+  var body = gallery + linkInfo +
     '<dl class="specs">' + show.map(function (r) { return '<dt>' + r[0] + '</dt>' + (r[1] ? '<dd' + (/가격/.test(r[0]) ? ' class="mono"' : '') + '>' + esc(r[1]) + '</dd>' : '<dd class="missing">미입력</dd>'); }).join('') + '</dl>' +
     (k.memo ? '<p class="memo">' + esc(k.memo) + '</p>' : '');
   var foot = (canWrite && !k.sample) ? '<button class="btn danger" id="del">삭제</button><div class="r">' + (own ? '' : '<button class="btn" id="move">샀어요 · 보유로 옮기기</button>') + '<button class="btn primary" id="edit">수정</button></div>' : '';
   var m = openModal(k.name, body, foot);
+  m.dataset.kit = k.id;
+  if (k.catalogId && catState !== 'ready') ensureCatalog().then(function () { if (m.isConnected && m.dataset.kit === k.id) openDetail(k.id); }); // 카탈로그가 도착하면 같은 상세를 다시 그린다
   m.addEventListener('click', function (e) {
     var t = e.target.closest('.th'); if (!t) return;
     var i = +t.dataset.i, main = m.querySelector('#d-main'); if (!main || !order[i]) return;
-    main.src = photoSrc(order[i].src);
+    main.src = imgUrl(order[i], false); main.dataset.note = order[i].kind === 'off' ? '' : '1';
+    var cr = m.querySelector('#d-credit'); if (cr) cr.hidden = order[i].kind !== 'off';
     var c = m.querySelector('#d-count'); if (c) c.textContent = (i + 1) + ' / ' + order.length;
     m.querySelectorAll('.th').forEach(function (b) { b.setAttribute('aria-current', String(b === t)); });
   });
@@ -547,7 +582,8 @@ function openSettings() {
   var hasToken = !!getToken();
   var tokenStatus = canWrite ? '<span class="status-ok">소유자 모드</span> · 이 브라우저에 토큰이 저장돼 있어요.' : hasToken ? '토큰이 저장돼 있지만 소유자로 확인되지 않았어요. 다시 연결해 보세요.' : '토큰이 없어요 (방문자 모드).';
   var body = (canWrite ? '<div class="settings-sec"><div class="field"><label for="s-name">컬렉션 이름</label><input id="s-name" value="' + esc(data.settings.name) + '"></div>' +
-     '<label class="check"><input type="checkbox" id="s-hide"' + (data.settings.hidePurchase ? ' checked' : '') + '><span>방문자 화면에서 구매일·구매처·가격 숨기기<br><span class="hint">화면에서만 숨겨요. 저장소가 공개라서 data/collection.json에는 그대로 보여요. 꼭 비공개여야 하는 정보는 적지 마세요.</span></span></label></div>' : '') +
+     '<label class="check"><input type="checkbox" id="s-hide"' + (data.settings.hidePurchase ? ' checked' : '') + '><span>방문자 화면에서 구매일·구매처·가격 숨기기<br><span class="hint">화면에서만 숨겨요. 저장소가 공개라서 data/collection.json에는 그대로 보여요. 꼭 비공개여야 하는 정보는 적지 마세요.</span></span></label>' +
+     '<label class="check"><input type="checkbox" id="s-offhide"' + (data.settings.hideOfficialPhotos ? ' checked' : '') + '><span>공식 사진 숨기기<br><span class="hint">반다이 제품과 연결된 프라에 공식 사진을 붙이지 않아요. 내가 올린 사진만 나와요.</span></span></label></div>' : '') +
    '<div class="settings-sec"><h3>GITHUB 토큰</h3><p id="s-tstatus" style="font-size:14px">' + tokenStatus + '</p>' +
      '<div class="field"><label for="s-token">fine-grained 토큰</label><input id="s-token" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="' + (canWrite ? '다른 토큰으로 바꾸려면 붙여넣기' : 'github_pat_…') + '"></div>' +
      '<p class="hint">이 저장소(' + esc(REPO) + ')만, Contents: Read and write 권한으로 만든 토큰이어야 해요. 토큰은 이 브라우저에만 저장되고 화면에 다시 보여주지 않아요. 공용 PC에서는 쓰지 마세요.</p>' +
@@ -573,8 +609,8 @@ function openSettings() {
   });
   var sv = $('s-save');
   if (sv) sv.addEventListener('click', function () {
-    var nm = $('s-name').value.trim() || '프라 격납고', hide = $('s-hide').checked;
-    commit(function (d) { d.settings.name = nm; d.settings.hidePurchase = hide; }, 'settings', {}, { okMsg: '설정을 저장했어요.' });
+    var nm = $('s-name').value.trim() || '프라 격납고', hide = $('s-hide').checked, offHide = $('s-offhide').checked;
+    commit(function (d) { d.settings.name = nm; d.settings.hidePurchase = hide; d.settings.hideOfficialPhotos = offHide; }, 'settings', {}, { okMsg: '설정을 저장했어요.' });
   });
 }
 

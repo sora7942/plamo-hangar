@@ -128,6 +128,14 @@ test('공식 사진: 안정 URL만, 서명 URL·http·남의 호스트 제외', 
   assert.deepEqual(c2.byId['bh-01_9'].images, [IMG]);
 });
 
+test('pageUrl: 호비사이트·P-반다이 https 주소만', () => {
+  assert.equal(C.pageUrl({ url: 'https://bandai-hobby.net/item/01_1/' }), 'https://bandai-hobby.net/item/01_1/');
+  assert.equal(C.pageUrl({ url: null, pbUrl: 'https://p-bandai.jp/item/item-1/' }), 'https://p-bandai.jp/item/item-1/');
+  assert.equal(C.pageUrl({ url: 'javascript:alert(1)', pbUrl: 'http://p-bandai.jp/x' }), null);
+  assert.equal(C.pageUrl({ url: 'https://bandai-hobby.net.evil.com/' }), null);
+  assert.equal(C.pageUrl(null), null);
+});
+
 test('thumbUrl: akamai xl → m, 그 밖에는 그대로', () => {
   assert.equal(C.thumbUrl(IMG), 'https://bandai-a.akamaihd.net/bc/img/model/m/1000179163_1.jpg');
   assert.equal(C.thumbUrl('https://bandai-hobby.net/images/a.jpg'), 'https://bandai-hobby.net/images/a.jpg');
