@@ -48,7 +48,7 @@
 ## 6단계 (결정 반영, 구현 중) — 순서: 6-1 → 6-7 → 6-4 → 6-3 → 6-5 → 6-2. 6-0b 몰 연동은 사용자가 이용약관 확인 후 따로 지시 (그때까지 CLAUDE.md·SPEC·README 규칙 문구는 바꾸지 않는다)
 결정: "나중에"=이 브라우저 localStorage에 기억(목록 끝에서 다시 보기), 6-4에서 BB(bb) 제외(SD=sdgundamseries·sdcs·sdex), 6-1은 `&bd=<코드>`.
 - [x] 6-1 디스코드 embed url 구별 (`discord.embed_url`, 조이하비 `&bd=BD…`, 겹치면 `#id`) — 발송 확인은 사용자가 Actions `discord_test`로
-- [ ] 6-7 한자 혼입(번역 검사 + 기존 데이터 재번역 표시 + 용어집)
+- [x] 6-7 한자 혼입: translate.stray_han·bad_translation(가나+원문에 없는 한자), 기존 nameKo/series-ko 비워 같은 실행에서 재번역(`fixups.strayHanReset`), 용어집 ヴィダール→비다르. 현재 데이터에서 걸린 것: bh-01_5469·bh-01_753 (`비达르`) 2건, 시리즈 0건
 - [ ] 6-4 2015년 이전 카탈로그 (workflow_dispatch `brand_backfill`, 번역 토큰·비용 보고)
 - [ ] 6-3 검색 별칭 docs/aliases.js (미연결 124개 눈 판정 전/후)
 - [ ] 6-5 빈 칸 채우기

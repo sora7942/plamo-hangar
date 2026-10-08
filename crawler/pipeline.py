@@ -286,6 +286,12 @@ def run(opts: Options, http: HttpClient, *, now: datetime | None = None, anthrop
     # 분류표·용어집을 고친 뒤 이전 실행에서 쌓인 항목에도 반영한다 (수집 단계 전에, --only와 무관하게)
     fixups = catalog.reclassify(now_iso)
     fixups["nameKoReplaced"] = catalog.apply_name_ko_replacements(config.NAME_KO_REPLACEMENTS)
+    # 번역에 원문에 없는 한자가 섞인 기존 결과는 비워 이번 실행에서 다시 번역한다 (가나 검사가 못 거르는 오번역)
+    reset_names = catalog.reset_stray_han()
+    reset_series = series.drop_stray_han(series_known)
+    fixups["strayHanReset"] = len(reset_names) + len(reset_series)
+    if reset_names or reset_series:
+        log.info("한자 혼입 번역을 비웠습니다(재번역 대상): 이름 %s, 시리즈 %s", reset_names, reset_series)
 
     if "joyhobby" in stages:
         ctx.arrivals = kr.Arrivals.load(data_dir)
@@ -325,6 +331,8 @@ def run(opts: Options, http: HttpClient, *, now: datetime | None = None, anthrop
         kr_items, notify_kr = kr.feed_items(ctx.arrivals, catalog, now.astimezone(config.KST).date(), now_iso)
         new_items = new_items + kr_items
     merged, added = feed.merge_feed(prev_feed, new_items, catalog)
+    feed.reset_stray_han(merged)
+    merged, _ = feed.merge_feed(merged, [], catalog)                     # 비운 titleKo는 카탈로그의 (다시 번역된) 이름으로 채운다
     fixups["feedTitleKoReplaced"] = feed.apply_title_ko_replacements(merged, config.NAME_KO_REPLACEMENTS)
 
     # 파일 쓰기 (dry-run도 파일은 쓴다. 디스코드만 보내지 않는다)

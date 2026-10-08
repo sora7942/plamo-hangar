@@ -57,6 +57,17 @@ def apply_title_ko_replacements(items: list[dict], replacements: dict[str, str])
     return changed
 
 
+def reset_stray_han(items: list[dict]) -> int:
+    """피드 titleKo(= nameKo의 복사본)에도 원문에 없는 한자가 있으면 비운다 (카탈로그가 다시 번역되면 merge_feed가 채운다)."""
+    from .translate import stray_han
+    n = 0
+    for it in items:
+        if it.get("titleKo") and it.get("source") == "bandai-hobby" and stray_han(it.get("title"), it["titleKo"]):
+            it["titleKo"] = None
+            n += 1
+    return n
+
+
 def merge_feed(prev: list[dict], new: list[dict], catalog: Catalog) -> tuple[list[dict], list[dict]]:
     """→ (합친 피드 `added` 내림차순 최대 FEED_MAX, 이번에 실제로 추가된 항목). 이미 있는 id는 무시한다."""
     # 상세로 비대상(제외)이 확인된 상품은 피드에서도 뺀다 (임시 판정으로 먼저 들어간 항목 정리)

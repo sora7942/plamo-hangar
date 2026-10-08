@@ -21,7 +21,7 @@ from pathlib import Path
 from . import config
 from .catalog import Catalog
 from .store import read_json, write_json
-from .translate import OUTPUT_SCHEMA, TranslateError, has_credentials, has_kana, make_client, parse_response
+from .translate import OUTPUT_SCHEMA, TranslateError, bad_translation, has_credentials, has_kana, make_client, parse_response, stray_han
 
 log = logging.getLogger("plamo.series")
 
@@ -30,7 +30,7 @@ _BASE_PROMPT = """너는 반다이 프라모델이 속한 작품(시리즈) 이�
 - 영문·숫자 부분(`SEED`, `DESTINY`, `Re:RISE`, `00`, `Ω` 등)은 그대로 둔다. `シリーズ`는 `시리즈`로 옮긴다.
 - 예: `機動戦士ガンダム 水星の魔女` → `기동전사 건담 수성의 마녀`, `機動戦士ガンダムSEED DESTINY` → `기동전사 건담 SEED DESTINY`,
   `機動戦士ガンダム　逆襲のシャア` → `기동전사 건담 역습의 샤아`.
-- `ko`에는 히라가나·가타카나(일본어 가나)를 한 글자도 남기지 않는다. 한글, 영문, 숫자, 기호만 쓴다.
+- `ko`에는 히라가나·가타카나(일본어 가나)를 한 글자도 남기지 않는다. 한글, 영문, 숫자, 기호만 쓴다. 원문에 없는 한자(중국어 한자 포함)도 쓰지 않는다 — `怪獣8号`는 `괴수 8호`처럼 한글로 옮긴다.
 - 입력 항목에 `prev_ko`가 있으면 앞선 번역에 일본어 가나가 남아 있었다는 뜻이다. 가나가 하나도 남지 않도록 다시 쓴다.
 - 입력 목록의 모든 항목에 대해 `{"id", "ko"}` 하나씩만 돌려준다. id는 그대로 복사한다. 설명이나 주석은 쓰지 않는다."""
 
@@ -76,6 +76,14 @@ def save(data_dir: Path, known: dict[str, dict], updated_at: str) -> bool:
         return False
     write_json(path, {"updatedAt": updated_at, "items": body})
     return True
+
+
+def drop_stray_han(known: dict[str, dict]) -> list[str]:
+    """사전에 저장된 번역 중 원문에 없는 한자가 섞인 것을 버린다(다음 번역 때 다시 번역). 버린 seriesKey 목록."""
+    bad = [k for k, e in known.items() if stray_han(e["ja"], e["ko"])]
+    for k in bad:
+        del known[k]
+    return bad
 
 
 # ---------------------------------------------------------------- 적용·대상
@@ -156,15 +164,16 @@ def translate_items(client, model: str, batch: list[dict]) -> tuple[dict[str, st
     if err:
         return {}, set(), set(), usage, err
     got = got or {}
-    ok = {k: ko for k, ko in got.items() if not has_kana(ko)}
-    bad = [b for b in batch if b["id"] in got and has_kana(got[b["id"]])]
+    ja_of = {b["id"]: b["ja"] for b in batch}
+    ok = {k: ko for k, ko in got.items() if not bad_translation(ja_of.get(k), ko)}
+    bad = [b for b in batch if b["id"] in got and bad_translation(b["ja"], got[b["id"]])]
     retried, rejected = {b["id"] for b in bad}, set()
     if bad:
         again, u, err = _request(client, model, bad, {b["id"]: got[b["id"]] for b in bad}, attempts=1)
         usage = {k: usage[k] + u[k] for k in usage}
         for b in bad:
             ko = (again or {}).get(b["id"])
-            if ko and not has_kana(ko):
+            if ko and not bad_translation(b["ja"], ko):
                 ok[b["id"]] = ko
             else:
                 rejected.add(b["id"])

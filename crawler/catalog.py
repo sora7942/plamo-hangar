@@ -243,6 +243,18 @@ class Catalog:
             log.info("재분류: 제외로 이동 %d개, line·등급 변경 %d개", to_excluded, line_changed)
         return {"toExcluded": to_excluded, "lineChanged": line_changed}
 
+    def reset_stray_han(self) -> list[str]:
+        """nameKo에 **원문(nameJa)에 없는 한자**가 섞인 항목의 nameKo를 비운다 → 같은 실행의 번역 단계(또는 다음 실행)가 다시 번역한다.
+        조이하비 한글명으로 바뀐 항목(nameKoSource)은 사람이 쓴 이름이라 건드리지 않는다. 비운 항목 id를 돌려준다."""
+        from .translate import stray_han
+        out = []
+        for it in self.items.values():
+            ko = it.get("nameKo")
+            if ko and it.get("nameKoSource") != "joyhobby" and stray_han(it.get("nameJa"), ko):
+                it["nameKo"] = None
+                out.append(it["id"])
+        return out
+
     def apply_name_ko_replacements(self, replacements: dict[str, str]) -> int:
         """저장된 nameKo에서 해당 부분 문자열만 바꾼다. 바뀐 항목 수를 돌려준다. (`updated` 등 다른 필드는 건드리지 않는다)"""
         changed = 0

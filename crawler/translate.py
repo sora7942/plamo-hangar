@@ -4,7 +4,7 @@
 - 모델은 config.CLAUDE_MODEL (환경변수 CLAUDE_MODEL로 덮어쓰기), 키는 ANTHROPIC_API_KEY (.env)
 - 키가 없으면 통째로 건너뛴다. 이미 nameKo가 있으면(3단계에서 조이하비 이름이 먼저 채워질 수 있다) 건드리지 않는다
 - 응답은 JSON 스키마로 강제(output_config.format)하고, id가 요청과 맞는 것만 받는다
-- 번역 결과에 히라가나·가타카나가 남아 있으면 그 항목만 한 번 더 요청하고, 그래도 남으면 nameKo를 비워 둔다
+- 번역 결과에 히라가나·가타카나가 남아 있거나 **원문에 없는 한자**(중국어식 `达` 같은 오번역)가 섞여 있으면 그 항목만 한 번 더 요청하고, 그래도 남으면 nameKo를 비워 둔다
   (다음 실행에서 다시 시도한다)
 - 고유명사 용어집은 config.TRANSLATE_GLOSSARY 에 두고 시스템 프롬프트에 넣는다
 - 수동 확인: python -m crawler.translate --sample 20   (fixture 제목 20개를 실제 파이프라인과 같은 경로로 번역해 출력.
@@ -28,8 +28,8 @@ log = logging.getLogger("plamo.translate")
 _BASE_PROMPT = """너는 반다이 프라모델(건프라·걸프라) 상품명을 한국어로 옮기는 번역가다.
 - 한국 반다이 정식 수입사와 국내 프라모델 매장이 쓰는 한국어 명칭을 따른다. 모르는 고유명사(기체·캐릭터·작품명)는 한국 팬 커뮤니티에서 통용되는 표기를 우선하고, 없으면 일본어 발음대로 음역한다.
 - `HG`, `RG`, `MG`, `PG`, `MGSD`, `EG`, `30MS`, `Figure-rise Standard` 같은 등급 표기와 `1/144` 같은 스케일, `Ver.` 표기, 모델 번호는 그대로 둔다. `Amplified`(アンプリファイド)는 번역하거나 음역하지 말고 영문 `Amplified` 그대로 쓴다. 대괄호 색상 기호는 알파벳 부분만 그대로 두고 일본어 부분은 한글로 옮긴다 (`[カラーC]` → `[컬러C]`).
-- `ko`에는 히라가나·가타카나(일본어 가나)를 한 글자도 남기지 않는다. 한글, 영문, 숫자, 기호만 쓴다.
-- 입력 항목에 `prev_ko`가 있으면 앞선 번역에 일본어 가나가 남아 있었다는 뜻이다. 가나가 하나도 남지 않도록 모두 한글로 다시 쓴다.
+- `ko`에는 히라가나·가타카나(일본어 가나)를 한 글자도 남기지 않는다. 한글, 영문, 숫자, 기호만 쓴다. 한자(중국어 한자 포함)도 새로 쓰지 않는다 — 원문에 있는 `89式`·`改` 같은 표기만 그대로 둘 수 있다.
+- 입력 항목에 `prev_ko`가 있으면 앞선 번역에 일본어 가나 또는 원문에 없는 한자가 남아 있었다는 뜻이다. 가나·한자가 하나도 남지 않도록 모두 한글로 다시 쓴다.
 - 입력 목록의 모든 항목에 대해 `{"id", "ko"}` 하나씩만 돌려준다. id는 그대로 복사한다. 설명이나 주석은 쓰지 않는다.
 - `grade`·`series`는 번역 힌트일 뿐이다. `ko`에 덧붙이지 않는다."""
 
@@ -63,6 +63,22 @@ _KANA_RX = re.compile("[ぁ-ゖゝ-ゟァ-ヺー-ヿㇰ-ㇿｦ-ﾟ]")
 
 def has_kana(text: str) -> bool:
     return bool(_KANA_RX.search(text or ""))
+
+
+# 한자(CJK 통합 한자 + 확장 A). 일본어 원문에도 있는 한자(`89式`·`改`)는 정상이고, **원문에 없는** 한자가 번역에 나오면
+# 모델이 중국어로 새어 나온 것이다(`ヴィダール` → `비达르`). 가나 검사가 못 거르는 오번역이라 따로 본다.
+_HAN_RX = re.compile("[㐀-䶿一-鿿]")
+
+
+def stray_han(ja: str | None, ko: str | None) -> str:
+    """번역(ko)에 있는데 원문(ja)에는 없는 한자들 (없으면 빈 문자열)."""
+    src = set(_HAN_RX.findall(ja or ""))
+    return "".join(sorted({c for c in _HAN_RX.findall(ko or "") if c not in src}))
+
+
+def bad_translation(ja: str | None, ko: str | None) -> bool:
+    """다시 번역해야 하는 결과인가: 가나가 남았거나 원문에 없는 한자가 섞였다."""
+    return has_kana(ko or "") or bool(stray_han(ja, ko))
 
 
 class TranslateError(Exception):
@@ -165,20 +181,21 @@ def translate_items(client, model: str, batch: list[dict]) -> BatchResult:
         res.error = err
         return res
     got = got or {}
-    res.ok = {i: ko for i, ko in got.items() if not has_kana(ko)}
-    bad = [it for it in batch if it["id"] in got and has_kana(got[it["id"]])]
+    ja_of = {it["id"]: it["nameJa"] for it in batch}
+    res.ok = {i: ko for i, ko in got.items() if not bad_translation(ja_of.get(i), ko)}
+    bad = [it for it in batch if it["id"] in got and bad_translation(it["nameJa"], got[it["id"]])]
     if not bad:
         return res
 
     res.retried = {it["id"] for it in bad}
-    log.info("번역에 가나가 남은 %d개를 다시 요청합니다", len(bad))
+    log.info("번역에 가나·원문에 없는 한자가 남은 %d개를 다시 요청합니다", len(bad))
     again, usage, err = _request(client, model, bad, {it["id"]: got[it["id"]] for it in bad}, attempts=1)
     res.tokens_in += usage["in"]
     res.tokens_out += usage["out"]
     res.error = err
     for it in bad:
         ko = (again or {}).get(it["id"])
-        if ko and not has_kana(ko):
+        if ko and not bad_translation(it["nameJa"], ko):
             res.ok[it["id"]] = ko
         else:
             res.rejected.add(it["id"])
