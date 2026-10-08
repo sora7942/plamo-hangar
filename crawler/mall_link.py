@@ -244,6 +244,9 @@ def link_all(state: MallState, catalog, seen: set[str], scan_complete: bool, now
             if not cur or cur["catalogId"] != target:
                 state.links[gno] = {"catalogId": target, "method": "override", "score": None, "margin": None, "nameOk": True,
                                     "nameApplied": False, "at": now_iso}
+            for other, e in list(state.links.items()):        # 한 카탈로그 항목에는 몰 상품 하나만 — 같은 항목을 가리키던 다른(자동) 연결은 푼다
+                if other != gno and e["catalogId"] == target and overrides.get(other) != target:
+                    del state.links[other]
             rep["overrides"] += 1
 
     # 카탈로그에서 사라진(제외로 옮겨진) 상품을 가리키는 연결은 버린다 → 다시 매칭 대상이 된다

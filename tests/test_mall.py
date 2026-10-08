@@ -350,3 +350,24 @@ def test_only_mall_runs_just_the_mall_stage_and_robots_blocked_paths_are_not_req
     with pytest.raises(Blocked):                      # robots.txt가 막은 경로는 열지 않는다 (파이프라인은 이 소스만 "중단"으로 기록하고 계속한다)
         mall.scan(client)
     assert not [c for c in sess.calls if "category.do" in c["url"]]
+
+
+def test_user_confirmed_overrides_exist_and_point_at_real_catalog_items():
+    cat = {i["id"]: i for f in ("catalog-gunpla.json", "catalog-girl.json") for i in json.loads((config.DATA_DIR / f).read_text(encoding="utf-8"))["items"]}
+    ov = {g: t for g, t in config.MALL_OVERRIDES.items() if t}
+    assert {"7223664", "56457", "59201", "68326863", "48650462"} <= set(ov)
+    for gno, cid in ov.items():
+        assert gno.isdigit() and cid in cat, (gno, cid)
+    assert len(set(ov.values())) == len(ov), "한 카탈로그 항목에 몰 상품 하나"
+
+
+def test_override_replaces_an_automatic_link_to_the_same_catalog_item():
+    cat = cat_of(item("bh-1", "HG 1/144 건담 레오파드"))
+    st, _ = run_link(cat, {"100": good("HG 건담 레오파드")})
+    assert st.links["100"]["method"] == "fuzzy"
+    config.MALL_OVERRIDES["200"] = "bh-1"
+    try:
+        st, rep = run_link(cat, {"100": good("HG 건담 레오파드"), "200": good("HG 건담 레오파드 다른 표기")}, st, now=LATER)
+    finally:
+        config.MALL_OVERRIDES.pop("200", None)
+    assert list(st.links) == ["200"] and st.links["200"]["method"] == "override" and cat.items["bh-1"]["mallGno"] == "200"

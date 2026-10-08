@@ -51,7 +51,7 @@ def test_series_entries_are_dropped_the_same_way():
 
 def test_config_glossary_additions_are_whole_words_and_the_titans_rule_is_not_a_particle_ban():
     g = config.TRANSLATE_GLOSSARY
-    assert g["クアンタ"] == "콴타" and g["アクシズ"] == "액시즈" and g["ティターンズ"] == "티탄즈"
+    assert g["クアンタ"] == "퀀터" and g["ズゴック"] == "즈고크" and g["バルバトス"] == "발바토스" and g["アクシズ"] == "액시즈" and g["ティターンズ"] == "티탄즈"
     assert "アクシ" not in g, "`アクシ`는 アクション까지 걸린다 — 낱말 전체(アクシズ)만"
     assert not [k for k in g if len(k) <= 2 and k not in {"シャア"}], "너무 짧은 키는 낱말 일부에 걸린다"
     assert "의" not in g["ティターンズ"]
