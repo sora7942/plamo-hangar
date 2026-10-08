@@ -202,3 +202,66 @@ test('search: scale 힌트는 같은 스케일을 앞으로 (등급을 모를 �
   const fm = C.search(cat, '건담 바르바토스', { scale: '1/100' }).results[0];
   assert.equal(fm.id, 'bh-01_6');
 });
+
+// ---------- 재판 공백 ----------
+const TODAY = '2026-10-08', SINCE = '2024-01-04';
+const gi = (over) => C.gapInfo(C.normalizeItem(raw('bh-01_50', over)), TODAY, SINCE);
+const kr = (...dates) => dates.map((date) => ({ date, type: 'restock', post: '1', code: 'BD1' }));
+
+test('monthEnd·releaseSortKey: 월만 알면 월 말일(정렬용), 윤년·12월', () => {
+  assert.equal(C.monthEnd('2022-10'), '2022-10-31');
+  assert.equal(C.monthEnd('2024-02'), '2024-02-29');
+  assert.equal(C.monthEnd('2023-02'), '2023-02-28');
+  assert.equal(C.monthEnd('2022-12'), '2022-12-31');
+  assert.equal(C.monthEnd('2022-13'), null);
+  assert.equal(C.monthEnd(null), null);
+  assert.equal(C.releaseSortKey({ release: { month: '2022-10', date: null } }), '2022-10-31');
+  assert.equal(C.releaseSortKey({ release: { month: '2022-10', date: '2022-10-01' } }), '2022-10-01');
+  assert.equal(C.releaseSortKey({ release: {} }), null);
+});
+
+test('releaseLabel: 화면에는 월만 알면 월까지만, 날짜를 지어내지 않는다', () => {
+  assert.equal(C.releaseLabel({ release: { month: '2022-10', date: null } }), '2022-10');
+  assert.equal(C.releaseLabel({ release: { month: '2022-10', date: '2022-10-15' } }), '2022-10-15');
+  assert.equal(C.releaseLabel({ release: {} }), '');
+  assert.equal(C.releaseLabel(null), '');
+});
+
+test('gapInfo: 국내 마지막 입고 · N일 전 (마지막 날짜는 가장 최근 것)', () => {
+  const g = gi({ kr: kr('2026-03-01', '2026-10-01', '2025-01-01') });
+  assert.equal(g.text, '국내 마지막 입고 2026-10-01 · 7일 전');
+  assert.equal(g.short, '마지막 입고 2026-10-01 · 7일 전');
+  assert.equal(g.group, 0); assert.equal(g.key, '2026-10-01'); assert.equal(g.days, 7); assert.equal(g.recent, true);
+  assert.equal(gi({ kr: kr('2026-10-08') }).text, '국내 마지막 입고 2026-10-08 · 오늘');
+  const old = gi({ kr: kr('2024-04-01') });
+  assert.equal(old.recent, false); assert.equal(old.days, 920);
+});
+
+test('gapInfo: 입고 기록 없음 (기준일) · 일본 발매 — 월만 알면 월까지만', () => {
+  assert.equal(gi({ release: { month: '2022-10', date: null } }).text, '국내 입고 기록 없음 (2024-01-04 이후 기준) · 일본 발매 2022-10');
+  assert.equal(gi({ release: { month: '2022-10', date: '2022-10-01' } }).text, '국내 입고 기록 없음 (2024-01-04 이후 기준) · 일본 발매 2022-10-01');
+  assert.equal(gi({ release: { month: '2022-10', date: null } }).short, '입고 기록 없음 · 일본 발매 2022-10');
+  const g = gi({ release: { month: '2022-10', date: null } });
+  assert.equal(g.group, 1); assert.equal(g.key, '2022-10-31');
+  assert.equal(C.gapInfo(C.normalizeItem(raw('bh-01_51', { release: {} })), TODAY, null).text, '국내 입고 기록 없음');
+  assert.equal(gi({ release: {} }).key, '9999-12-31');
+});
+
+test('gapInfo: 일본 발매가 미래면 "일본 발매 예정", 이번 달인데 날짜를 모르면 예정이라 단정하지 않는다', () => {
+  assert.equal(gi({ release: { month: '2026-12', date: null } }).text, '일본 발매 예정 2026-12');
+  assert.equal(gi({ release: { month: '2026-10', date: '2026-10-20' } }).text, '일본 발매 예정 2026-10-20');
+  assert.match(gi({ release: { month: '2026-10', date: null } }).text, /^국내 입고 기록 없음/);
+  assert.match(gi({ release: { month: '2026-10', date: '2026-10-08' } }).text, /^국내 입고 기록 없음/);
+});
+
+test('gapInfo: 국내 입고 예정(미래 kr.date) 문구', () => {
+  const g = gi({ kr: kr('2026-10-15') });
+  assert.equal(g.text, '국내 입고 예정 2026-10-15'); assert.equal(g.short, '입고 예정 2026-10-15');
+  assert.equal(g.group, 1);
+  const both = gi({ kr: kr('2026-03-01', '2026-10-15') });
+  assert.equal(both.text, '국내 입고 예정 2026-10-15 · 마지막 입고 2026-03-01'); assert.equal(both.group, 0); assert.equal(both.key, '2026-03-01');
+});
+
+test('gapInfo: 이상한 kr 날짜는 무시', () => {
+  assert.match(gi({ kr: [{ date: 'x' }, { date: '2026-13-45x' }, { date: null }] }).text, /^국내 입고 기록 없음/);
+});

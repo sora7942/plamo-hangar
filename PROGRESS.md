@@ -18,7 +18,11 @@
 - [x] 4a-4 폼/상세 "반다이 제품에서 찾기"·연결/해제·URL 붙여넣기·공식 대표 사진 (e2e 96개 통과, 기존 site_mock_check 186개도 통과)
 - [x] 4a-5 e2e + 실제 데이터 검색 샘플 22개 + 방문자 화면 확인 → 사용자에게 보고(대기: 사용자가 4b 진행하라고 하면 시작)
 
+## 4b 하위 단계 (재판 공백·정렬)
+- [x] 4b-1 catalog.js `gapInfo`·월 말일 정렬키·문구 + node 테스트
+- [x] 4b-2 pure.js `filterSort(kits, ui, ctx)`의 gap 정렬, GAPS.unlinked + 테스트
+- [ ] 4b-3 app.js UI: 카드·상세 재판 공백 줄, 정렬 '재판 공백 긴 순', 빈 칸 '반다이 제품 미연결' + e2e + 400px·다크
+- [ ] 4b-4 보고
+
 ## 다음에 할 일
-- 4a 끝. **사용자가 4b(재판 공백·정렬)를 지시하면 시작.** push는 사용자가 한다.
-- 4b 메모: 문구 3종 + 미래 kr.date는 "국내 입고 예정 YYYY-MM-DD", 월만 아는 발매일은 정렬에만 월 말일·화면엔 "2022-10", 기준일 `cat.since`(= meta.crawl.joyOldest, 현재 2024-01-04 = meta.since). 정렬 순서: kr 기록 있음(마지막 입고 오래된 순) → 기록 없음(일본 발매일 오래된 순) → 미연결. 빈 칸 모아보기에 '반다이 제품 미연결' (GAPS.photo는 내 사진만 보는 의미라 그대로 둠)
-- 4d 메모: 크롤러가 collection.json 읽기 전용으로 catalogId 중 카탈로그에 없는 것 상세 받기(`manual:true`, `line:"other"` 결정은 SPEC 4장), 디스코드 내 프라 우선, 엑셀 catalogId 열
+4b-3: app.js에 gapOf(kit) 만들고 cardHTML/openDetail/sortOptions/renderStats(gap select) 연결. 카드는 info.short, 상세는 info.text. 최근 30일 입고(recent)는 강조색. 정렬 'gap'은 카탈로그가 올 때 재렌더.

@@ -170,10 +170,12 @@ function findDups(name, grade, exceptId, pool) {
 var GAPS = {
   purchase: { l: '구매 정보 빈 칸', t: function (k) { return k.list === 'own' && (!k.date || !k.shop || !k.price); } },
   photo: { l: '사진 없음', t: function (k) { return !hasPhoto(k); } },
+  unlinked: { l: '반다이 제품 미연결', t: function (k) { return !k.catalogId; } },
   series: { l: '시리즈 빈 칸', t: function (k) { return !k.series; } },
   done: { l: '완성일 빈 칸', t: function (k) { return k.list === 'own' && (k.status === 'built' || k.status === 'custom') && !k.doneDate; } }
 };
-function filterSort(kits, ui) {
+// ctx.gap(kit) → {group, key} | null : 재판 공백 정렬용(연결된 카탈로그 항목이 있을 때만). null이면 맨 뒤 묶음
+function filterSort(kits, ui, ctx) {
   var q = String(ui.q || '').trim().toLowerCase();
   var list = kits.filter(function (k) {
     if (k.list !== ui.tab) return false;
@@ -188,6 +190,11 @@ function filterSort(kits, ui) {
   var byName = function (a, b) { return String(a.name).localeCompare(String(b.name), 'ko'); };
   list.sort(function (a, b) {
     if (ui.sort === 'name') return byName(a, b);
+    if (ui.sort === 'gap') {
+      var ga = ctx && ctx.gap ? ctx.gap(a) : null, gb = ctx && ctx.gap ? ctx.gap(b) : null;
+      var ra = ga ? ga.group : 2, rb = gb ? gb.group : 2;
+      return ra - rb || (ga && gb ? (ga.key < gb.key ? -1 : ga.key > gb.key ? 1 : 0) : 0) || byName(a, b);
+    }
     if (ui.sort === 'grade') return gi(a.grade) - gi(b.grade) || byName(a, b);
     if (ui.sort === 'price') return (Number(b.price) || 0) - (Number(a.price) || 0);
     if (ui.sort === 'done') return String(b.doneDate || '').localeCompare(String(a.doneDate || '')) || byName(a, b);

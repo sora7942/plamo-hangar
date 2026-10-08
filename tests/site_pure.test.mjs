@@ -271,3 +271,23 @@ test('catalogId: bh-/pb- 형식만 받고 나머지는 null, 연결 커밋 메�
   assert.equal(P.commitMessage('link', { name: '건담 에어리얼' }), 'collection: 반다이 제품 연결 건담 에어리얼');
   assert.equal(P.commitMessage('unlink', { name: '건담 에어리얼' }), 'collection: 반다이 제품 연결 해제 건담 에어리얼');
 });
+
+test('재판 공백 정렬: 국내 입고 오래된 순 → 기록 없음(일본 발매 오래된 순) → 미연결, 같으면 이름', () => {
+  const mk = (id, name, extra) => P.normKit({ id, name, list: 'own', grade: 'HG', ...extra });
+  const kits = [
+    mk('u1', '가 미연결'), mk('n2', '나 기록없음 최근발매', { catalogId: 'bh-01_2' }), mk('k2', '다 입고 최근', { catalogId: 'bh-01_3' }),
+    mk('n1', '라 기록없음 오래된발매', { catalogId: 'bh-01_1' }), mk('k1', '마 입고 오래전', { catalogId: 'bh-01_4' }), mk('x1', '바 카탈로그에 없음', { catalogId: 'bh-01_9' }),
+  ];
+  const gaps = { 'bh-01_1': { group: 1, key: '2019-05-31' }, 'bh-01_2': { group: 1, key: '2025-03-31' }, 'bh-01_3': { group: 0, key: '2026-09-29' }, 'bh-01_4': { group: 0, key: '2024-04-01' } };
+  const ctx = { gap: (k) => gaps[k.catalogId] || null };
+  const ui = { q: '', grade: 'all', status: 'all', sort: 'gap', tab: 'own', tag: 'all', gap: 'all' };
+  assert.deepEqual(P.filterSort(kits, ui, ctx).map((k) => k.id), ['k1', 'k2', 'n1', 'n2', 'u1', 'x1']);
+  assert.deepEqual(P.filterSort(kits, ui).map((k) => k.id), ['u1', 'n2', 'k2', 'n1', 'k1', 'x1'].sort((a, b) => kits.find((k) => k.id === a).name.localeCompare(kits.find((k) => k.id === b).name, 'ko')), 'ctx가 없으면 모두 미연결 취급 → 이름순');
+});
+
+test('빈 칸 모아보기: 반다이 제품 미연결', () => {
+  assert.equal(P.GAPS.unlinked.t(P.normKit({ id: 'a', name: 'a' })), true);
+  assert.equal(P.GAPS.unlinked.t(P.normKit({ id: 'a', name: 'a', catalogId: 'bh-01_1' })), false);
+  const kits = [P.normKit({ id: 'a', name: 'a' }), P.normKit({ id: 'b', name: 'b', catalogId: 'bh-01_1' })];
+  assert.deepEqual(P.filterSort(kits, { q: '', grade: 'all', status: 'all', sort: 'name', tab: 'own', tag: 'all', gap: 'unlinked' }).map((k) => k.id), ['a']);
+});

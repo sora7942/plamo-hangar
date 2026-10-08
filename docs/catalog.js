@@ -168,6 +168,43 @@ function setCatalogId(kit, id) {
   return k;
 }
 
+/* ---------- 재판 공백 ---------- */
+// 날짜는 'YYYY-MM-DD' 문자열끼리 비교한다. 월만 아는 발매일은 정렬에만 월 말일(화면에는 월까지만 — 날짜를 지어내지 않는다)
+function dayNum(s) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || '')); return m ? Math.floor(Date.UTC(+m[1], +m[2] - 1, +m[3]) / 864e5) : null; }
+function monthEnd(m) {
+  var x = /^(\d{4})-(\d{2})$/.exec(String(m || '')); if (!x || +x[2] < 1 || +x[2] > 12) return null;
+  var last = new Date(Date.UTC(+x[1], +x[2], 0)).getUTCDate();
+  return x[1] + '-' + x[2] + '-' + (last < 10 ? '0' : '') + last;
+}
+function releaseLabel(it) { var r = it && it.release || {}; return dayNum(r.date) != null ? r.date : (/^\d{4}-\d{2}$/.test(r.month || '') ? r.month : ''); }
+function releaseSortKey(it) { var r = it && it.release || {}; return dayNum(r.date) != null ? r.date : monthEnd(r.month); }
+// 일본 발매가 미래인지: 날짜를 알면 그 날, 월만 알면 그 달 1일 기준 (이번 달 발매인데 날짜만 모르면 "예정"이라 단정하지 않는다)
+function releaseIsFuture(it, today) {
+  var r = it && it.release || {}, t = dayNum(today);
+  if (dayNum(r.date) != null) return dayNum(r.date) > t;
+  return /^\d{4}-\d{2}$/.test(r.month || '') ? dayNum(r.month + '-01') > t : false;
+}
+// 연결된 카탈로그 항목 → 재판 공백 표시·정렬 정보. text는 상세용 전체 문구, short는 카드용.
+// group 0: 국내 입고 기록(오늘까지) 있음 → key=마지막 입고일(오래된 쪽이 공백 김)
+// group 1: 기록 없음/예정만 있음 → key=일본 발매일(월만이면 월 말일, 모르면 맨 뒤)
+function gapInfo(item, today, since) {
+  var t = dayNum(today);
+  var dates = (item.kr || []).map(function (e) { return e && e.date; }).filter(function (d) { return dayNum(d) != null; }).sort();
+  var past = dates.filter(function (d) { return dayNum(d) <= t; }), up = dates.filter(function (d) { return dayNum(d) > t; });
+  var last = past.length ? past[past.length - 1] : null, next = up.length ? up[0] : null;
+  var label = releaseLabel(item), n = last ? t - dayNum(last) : null;
+  var ago = n === null ? '' : (n <= 0 ? '오늘' : n + '일 전');
+  var out = { group: last ? 0 : 1, key: last || releaseSortKey(item) || '9999-12-31', last: last, next: next, days: n, recent: n !== null && n <= 30 };
+  if (next) { out.text = '국내 입고 예정 ' + next + (last ? ' · 마지막 입고 ' + last : ''); out.short = '입고 예정 ' + next; }
+  else if (last) { out.text = '국내 마지막 입고 ' + last + ' · ' + ago; out.short = '마지막 입고 ' + last + ' · ' + ago; }
+  else if (releaseIsFuture(item, today)) { out.text = out.short = '일본 발매 예정 ' + label; }
+  else {
+    out.text = '국내 입고 기록 없음' + (since ? ' (' + since + ' 이후 기준)' : '') + (label ? ' · 일본 발매 ' + label : '');
+    out.short = '입고 기록 없음' + (label ? ' · 일본 발매 ' + label : '');
+  }
+  return out;
+}
+
 /* ---------- 읽기 ---------- */
 // meta.json(작음)을 먼저 받아 updatedAt을 캐시 키(?v=)로 쓴다: 다음 수집 전까지는 브라우저 캐시를 그대로 쓴다.
 // fetchFn(url, init) → Promise<Response>. 실패하면 reject (화면은 보유·위시만 보여 주고 다시 시도 버튼을 준다)
@@ -188,6 +225,6 @@ return {
   FILES: FILES, SEARCH_LIMIT: SEARCH_LIMIT,
   norm: norm, stripPrefix: stripPrefix, displayName: displayName, isStableImage: isStableImage, thumbUrl: thumbUrl, pageUrl: pageUrl,
   normalizeItem: normalizeItem, build: build, search: search, parseRef: parseRef, fillPatch: fillPatch,
-  officialImages: officialImages, setCatalogId: setCatalogId, cacheKey: cacheKey, load: load
+  officialImages: officialImages, setCatalogId: setCatalogId, gapInfo: gapInfo, dayNum: dayNum, monthEnd: monthEnd, releaseLabel: releaseLabel, releaseSortKey: releaseSortKey, cacheKey: cacheKey, load: load
 };
 });
