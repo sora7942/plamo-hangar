@@ -55,7 +55,10 @@
 - [x] 6-2 연결 도우미: 6-2a 순수 상태 `docs/assist.js` + 6-2b 화면 `openAssist`(설정 '연결 도우미 시작' · '반다이 제품 미연결' 모아보기의 '연결 도우미로 시작', 후보 5개+검색, [연결][건너뛰기][나중에][이전], 중간 저장=커밋 1개 후 이어서, 닫을 때 확인, '나중에'는 localStorage `plamo-later`, 끝 화면에서 건너뛴/나중에 다시 보기). e2e 223개 통과
 - [ ] (보류) 6-0b 몰 연동 — spike/mall-report.md 참고
 
+## 6단계 마무리 (push 전 수정 2건)
+- [x] 6-3 보정: 후보 목록·연결 도우미·이름 채우기에 보이는 이름은 카탈로그 원래 이름 그대로(`title`, 등급·스케일 머리말만 뗌). `HGUC`·`HGCE`·`HGBD:R` 머리말은 비교용(`kn`/`jn`/`cmp`, `stripPrefix(..., loose=true)`)에서만 뗀다. 미연결 124개 판정 수치는 그대로.
+- [x] 문서 동기화: CLAUDE.md·SPEC.md·README.md에 6단계 반영(brand_backfill 입력·커서·`--brand-backfill`, 상세 받기 순서, strayHanReset·한자 검사, aliases.js, 연결 도우미, 빈 칸 채우기, 디스코드 url 구별). **몰 관련 규칙 문구(CLAUDE.md Critical 첫 항목·SPEC 2장·README 9장 이미지)는 7번 전까지 그대로.**
+
 ## 다음에 할 일
-- 6단계 1~6번 끝(로컬 커밋). **6-0b 몰 연동은 사용자가 이용약관 확인 후 따로 지시.** push는 사용자가.
+- 6단계 1~6번 + 보정·문서 끝(로컬 커밋). **6-0b 몰 연동은 사용자가 이용약관 확인 후 따로 지시.** push는 사용자가.
 - push 후 사용자 확인 거리: (1) Actions `discord_test`로 embed 3개가 따로 보이는지 (2) Actions `brand_backfill`(약 8분, 알림 없음) → 이후 매일 실행이 상세·번역을 나눠 채움(번역 약 $1.2) (3) 한자 혼입 `비达르` 2건이 다음 실행에서 재번역되는지 (4) 사이트 연결 도우미·검색 별칭.
-- 문서 동기화가 밀려 있음(7번 전까지 SPEC/README/CLAUDE.md 안 바꾸기로 해서): README 수동 실행 표에 brand_backfill, 검색 별칭·연결 도우미·빈 칸 채우기, SPEC 4장 meta.crawl.brandBackfill·hobby_backfill 단계·fixups.strayHanReset.

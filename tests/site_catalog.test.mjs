@@ -31,9 +31,10 @@ test('norm: 공백·구두점·전각 무시', () => {
 test('stripPrefix: 등급·스케일 머리말만 뗀다', () => {
   assert.equal(C.stripPrefix('HG 1/144 건담 에어리얼', 'HG', '1/144'), '건담 에어리얼');
   assert.equal(C.stripPrefix('MGSD 에어리얼', 'MGSD', null), '에어리얼');
-  assert.equal(C.stripPrefix('HGUC 1/144 건담', 'HG', '1/144'), '건담');            // HGUC·HGCE·HGBD:R 같은 등급 변형 머리말도 뗀다
-  assert.equal(C.stripPrefix('HGBD:R 1/144 네프테이트 웨폰즈', 'HG', '1/144'), '네프테이트 웨폰즈');
-  assert.equal(C.stripPrefix('HG건담', 'HG', null), 'HG건담', '공백 없이 붙은 이름은 건드리지 않는다');
+  assert.equal(C.stripPrefix('HGUC 1/144 건담', 'HG', '1/144'), 'HGUC 1/144 건담', '화면용: 등급 변형 머리말은 그대로');
+  assert.equal(C.stripPrefix('HGUC 1/144 건담', 'HG', '1/144', true), '건담', '비교용(loose): HGUC·HGCE·HGBD:R 머리말도 뗀다');
+  assert.equal(C.stripPrefix('HGBD:R 1/144 네프테이트 웨폰즈', 'HG', '1/144', true), '네프테이트 웨폰즈');
+  assert.equal(C.stripPrefix('HG건담', 'HG', null, true), 'HG건담', '공백 없이 붙은 이름은 건드리지 않는다');
   assert.equal(C.stripPrefix('FULL MECHANICS 1/100 건담', 'FULL MECHANICS', '1/100'), '건담');
   assert.equal(C.stripPrefix(null, 'HG', null), '');
 });
@@ -374,4 +375,12 @@ test('applyAuto(fillIds): 선택한 것만 빈 칸을 채우고, 그 사이 사�
   assert.deepEqual([c.grade, c.scale, c.series], ['HG', '1/144', '그 사이 적음'], '이미 적은 시리즈는 그대로, 비어 있던 칸만');
   assert.equal(a.name, '건담 에어리얼');
   assert.equal(C.applyAuto([a], acat, null, null, [a.id]).fills, 0, '다시 적용해도 바뀐 게 없다');
+});
+
+test('자동 연결 후보: 카탈로그 이름의 HGUC 같은 머리말은 비교에서만 떼고, 후보에 보이는 이름은 그대로', () => {
+  const c = C.build([{ items: [raw('bh-03_1', { nameKo: 'HGUC 1/144 돔 트로펜' }), raw('bh-03_2', { nameKo: 'HGCE 1/144 데스티니 건담' })] }], null);
+  const r = C.autoLinks([kitOf({ name: '돔 트로펜' }), kitOf({ name: 'HGCE 데스티니 건담', scale: '1/144' }), kitOf({ name: '데스티니 건담' })], c);
+  assert.deepEqual(r.map((x) => x.item.id), ['bh-03_1', 'bh-03_2', 'bh-03_2']);
+  assert.equal(r[0].item.title, 'HGUC 1/144 돔 트로펜');
+  assert.equal(C.fillPatch(c.byId['bh-03_1'], { name: '', grade: 'HG', scale: '1/144', series: '', brand: 'b' }).patch.name, 'HGUC 1/144 돔 트로펜', '이름을 채울 때도 원래 이름');
 });

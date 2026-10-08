@@ -39,7 +39,7 @@ plamo-hangar/
 │  └─ spike.yml                 # 0단계 검증용 (그대로 둠)
 ├─ docs/                        # GitHub Pages 루트 (Deploy from branch: main /docs)
 │  ├─ .nojekyll
-│  ├─ index.html (+ app.js, style.css)
+│  ├─ index.html (+ app.js, pure.js, catalog.js, aliases.js, assist.js, feed.js, github.js, style.css)
 │  ├─ data/
 │  │  ├─ collection.json        # [사이트] 내 보유·위시
 │  │  ├─ catalog-gunpla.json    # [자동]
@@ -56,12 +56,12 @@ plamo-hangar/
 │  ├─ sources/
 │  │  ├─ hobby_schedule.py      # 월별 일정 (일반·ホビーオンライン·ガンダムベース 카드)
 │  │  ├─ hobby_item.py          # 상품 상세
-│  │  ├─ hobby_brand.py         # 브랜드 목록 페이지 (걸프라 4개 브랜드 열거)
+│  │  ├─ hobby_brand.py         # 브랜드 목록 페이지 (걸프라 4개 브랜드 열거 + 2015년 이전 채우기용 OLD_BRANDS 전체 쪽수)
 │  │  └─ joyhobby.py            # 공지 게시판 목록·글 본문 파서, 판매예정일 (EUC-KR)
 │  ├─ catalog.py                # 병합·분류·밀린 상품 선택·저장
 │  ├─ match.py                  # 조이하비 상품명 ↔ 카탈로그 매칭 (rapidfuzz)
 │  ├─ kr.py                     # kr-arrivals 상태, 연결(codeMap)·재매칭, 카탈로그 kr·nameKo 교체, 조이하비 피드 항목
-│  ├─ translate.py  series.py  feed.py  discord.py
+│  ├─ translate.py  series.py  feed.py  discord.py  discord_test.py
 │  ├─ mine.py                   # collection.json 읽기 전용 도우미 (연결된 catalogId·보유/위시 — 상세 받기·디스코드 내 프라 우선)
 │  ├─ pipeline.py               # 실행 순서(일정 → 브랜드 → 상세 → 조이하비 → 번역 → 피드 → 쓰기 → 디스코드). main.py는 인자 처리만
 │  └─ store.py                  # JSON 읽기·쓰기(한 항목 한 줄), 시간 helper
@@ -165,16 +165,18 @@ plamo-hangar/
 ### meta.json
 ```json
 {"updatedAt":"ISO","since":"조이하비 기록 시작일 YYYY-MM-DD(없으면 수집 시작일)",
- "sources":{"hobby_schedule":{"ok":true,"at":"ISO","items":21,"error":null},"hobby_brand":{...},"hobby_item":{...},
+ "sources":{"hobby_schedule":{"ok":true,"at":"ISO","items":21,"error":null},"hobby_brand":{...},"hobby_item":{...},"hobby_backfill":{...},
             "translate":{"ok":true,"at":"ISO","items":50,"error":null,"pending":0,"skipped":null,"model":"...","kanaRetried":0,"kanaRejected":0},"joyhobby":{...}},
  "crawl":{"scheduleFrom":"2015-01","girlBrandsDone":["30ms"],"backlog":120,"joyNext":21,"joyDone":true,"joyOldest":"2024-01-04","counts":{"gunpla":0,"girl":0,"pending":0,"excluded":0},
-           "lastFixups":{"toExcluded":0,"lineChanged":0,"nameKoReplaced":0,"feedTitleKoReplaced":0}},
+           "brandBackfill":{"hg":{"next":144,"last":143,"done":true}},
+           "lastFixups":{"toExcluded":0,"lineChanged":0,"nameKoReplaced":0,"feedTitleKoReplaced":0,"seriesKoApplied":0,"strayHanReset":0}},
  "stats":{"requests":0,"byKind":{},"failures":0,"elapsedSec":0,"minGapSec":1.2},
  "unknownBrandKeys":[]}
 ```
 - `sources`는 단계별로 나눈다(`hobby`를 `hobby_schedule`·`hobby_brand`·`hobby_item`으로). 일부 항목만 실패하면 `ok:false`와 실패 목록이 `error`에 들어간다. `--only`로 돌리지 않은 소스는 이전 값을 유지한다
-- `crawl.lastFixups`: 이번 실행 시작에 적용한 기존 데이터 보정 결과(재분류로 제외된 수·line 변경 수·nameKo/피드 titleKo 치환 수). 매 실행 덮어쓴다
+- `crawl.lastFixups`: 이번 실행에 적용한 기존 데이터 보정 결과(재분류로 제외된 수·line 변경 수·nameKo/피드 titleKo 치환 수·`seriesKoApplied` 시리즈 한국어를 채운 항목 수·`strayHanReset` 한자가 섞인 번역을 비워 재번역하게 한 수). 매 실행 덮어쓴다
 - `crawl`: 최초 채우기 커서(5장) — `scheduleFrom`은 "이 달부터 현재까지 일정을 다 훑었다", `girlBrandsDone`은 전체 쪽수를 끝낸 걸프라 브랜드, `backlog`는 상세를 기다리는 항목 수(0이 되면 채우기 완료)
+- `crawl.brandBackfill` *(6단계)*: 2015년 이전 채우기(5장) 커서 — 브랜드 키별 `{next: 다음에 받을 쪽, last: 마지막 쪽, done}`. 중간에 멎으면 그 쪽부터 이어 하고, 전부 `done`이면 더 요청하지 않는다. `meta.sources.hobby_backfill`에 이번 실행의 성공·실패(`hg:2`처럼 실패한 쪽)가 남는다
 - `crawl.joyNext`·`joyDone`·`joyOldest` *(3단계)*: 조이하비 과거 글 커서 — `joyNext`는 1쪽부터 끊김 없이 훑은 다음 쪽, `joyDone`은 게시판 끝(마지막 쪽)까지 훑었다는 뜻, `joyOldest`는 그렇게 훑은 범위의 가장 오래된 글 날짜. `meta.sources.joyhobby`에는 글·행·코드 수, 연결 수, 이번 실행의 통계가 들어간다
 - `since` *(3단계 정의)*: 조이하비를 훑은 범위의 가장 오래된 글 날짜(`joyOldest`). "이 날짜 이후의 입고 기록은 본다"는 뜻이라 가장 오래된 **반다이** 글이 아니라 훑은 쪽의 가장 오래된 글 날짜를 쓴다. 조이하비를 아직 훑지 않았으면 수집 시작일
 - 사이트 하단에 "마지막 수집"과 실패한 소스, 재판 공백 문구에 `since`를 쓴다
@@ -194,8 +196,9 @@ plamo-hangar/
   1. **일정 카드만으로 먼저 카탈로그 항목을 만든다**(이름·가격·발매일·상품 번호·채널). 상세가 없어도 검색되도록 제목 앞 토큰으로 line·등급·스케일을 임시 판정한다(4장 `detailAt`이 null인 항목)
   2. 건프라는 일정을 `2015-01`(`--from`으로 변경)부터 이번 달까지 **최신 달부터 거슬러** 훑는다. 한 번에 끝나는 양(약 140개월)이고, 중간에 실패하면 거기서 멈추고 `meta.crawl.scheduleFrom` 커서를 남겨 다음 실행이 이어서 한다
   3. 걸프라 4개 브랜드는 브랜드 목록을 전체 쪽수로 훑는다(브랜드 키가 목록에서 이미 알려져 line·등급이 바로 확정된다). 끝난 브랜드는 `meta.crawl.girlBrandsDone`에 기록
-  4. **상세는 실행마다 새 상품 최대 40 + 밀린 상품 최대 150**만 받는다(`--max-new`, `--max-backlog`; 합계 400 초과 불가). 밀린 상품은 임시 판정이 된 것 먼저, 발매일 최신순이다. 새 상품이 40개를 넘으면 남은 것도 밀린 슬롯에서 같은 순서로 경쟁한다(그래서 첫 실행도 190개를 받는다). 상세가 오면 브랜드 키로 line이 확정되고, 대상이 아니면 `catalog-pending.json`의 제외 목록으로 간다. `meta.crawl.backlog`가 0이 되면 채우기 끝 — 하루 1회 예약 실행만으로는 며칠 걸리므로 수동 실행(`workflow_dispatch`)을 여러 번 돌려 앞당긴다
+  4. **상세는 실행마다 새 상품 최대 40 + 밀린 상품 최대 150**만 받는다(`--max-new`, `--max-backlog`; 합계 400 초과 불가). 먼저 사이트에서 연결한 미등록 상품(`manual`, 위 한도와 별개로 최대 `MANUAL_DETAIL_MAX`=20)을 받고, 밀린 상품은 **발매월 최신순**(같은 달이면 line이 정해진 임시 항목 먼저)이다 — 과거 상품이 많이 들어와도 최근 상품의 상세가 먼저 채워진다. 새 상품이 40개를 넘으면 남은 것도 밀린 슬롯에서 같은 순서로 경쟁한다(그래서 첫 실행도 190개를 받는다). 상세가 오면 브랜드 키로 line이 확정되고, 대상이 아니면 `catalog-pending.json`의 제외 목록으로 간다. `meta.crawl.backlog`가 0이 되면 채우기 끝 — 하루 1회 예약 실행만으로는 며칠 걸리므로 수동 실행(`workflow_dispatch`)을 여러 번 돌려 앞당긴다
   5. 최초 채우기 중에는 디스코드 알림이 없다. 그 이전 상품(2015-01 이전)은 사용자가 연결하려 할 때 상세 URL을 붙여넣어 추가할 수 있게 한다(6장)
+  6. **2015년 이전 상품 채우기** *(6단계, `--brand-backfill` / workflow 입력 `brand_backfill`)*: `hobby_backfill` 단계(기본 실행·`--bootstrap`에는 들어가지 않는 옵션 단계)가 `config.OLD_BRANDS`(`hg`·`hguc`·`hgce`·`hg-c`·`mg`·`mgka`·`rg`·`mgsd`·`sdgundamseries`·`sdcs`·`sdex`; BB전사 `bb`는 제외)의 목록을 **전체 쪽수로** 훑어 카드만으로 항목을 만든다(약 366쪽 ≈ 8분, 쪽당 10개, 실행당 `BRAND_BACKFILL_PAGES_PER_RUN`=450쪽 상한, `hg`가 143쪽이라 쪽수 상한은 `BRAND_BACKFILL_MAX_PAGES`=300). 카드로 이름·가격·발매일·등급이 정해져 상세 없이도 검색·연결되고, 상세는 연결할 때(위 manual 경로)나 밀린 상품 처리로 받는다. 새 항목은 피드·알림에 넣지 않는다(과거 상품). 이미 있는 항목·제외 목록의 상품은 건드리지 않는다. 새 `nameKo` 번역(약 2,000건)은 실행당 `TRANSLATE_MAX_PER_RUN`=600건씩 최신순으로 나눠 채워진다
 - **조이하비 특이점 (3단계 확인, 2026-10)**
   - **EUC-KR**: 응답 헤더가 `text/html; Charset=euc-kr`이다. `http.decode_body`가 Content-Type → `<meta charset>` → UTF-8 순으로 문자 집합을 정한다(`euc-kr`은 상위 집합 `cp949`로 읽음). 호비사이트(UTF-8)는 그대로. fixture는 Playwright 저장본이 아니라 **응답 원본 바이트**(`tests/fixtures/joyhobby-raw-*.html`)
   - **고정 공지 7개(`Notice=true`)가 모든 쪽 맨 위에 반복**된다 → 버리고 일반 행만 쓴다. 쪽당 일반 글은 20개
@@ -224,6 +227,7 @@ plamo-hangar/
 - **nameKo 후처리**: `config.NAME_KO_REPLACEMENTS`(예: `앰플리파이드 → Amplified`)를 매 실행 시작과 번역 직후에 `nameKo`(와 피드의 `titleKo`)에 부분 문자열 치환으로 적용한다. 용어집을 고친 뒤 이미 저장된 번역을 맞추는 용도이고, 해당 글자 외에는 `updated` 포함 아무것도 바꾸지 않는다
 - 수동 확인: `python -m crawler.translate --sample 20` — 실제 파이프라인과 같은 경로(가나 재요청 포함)로 fixture 제목 20개를 한 번 번역해 출력. 테스트는 실제 Claude를 호출하지 않는다(클라이언트 생성·`.env` 읽기를 `conftest`가 막음)
 - **시리즈 번역** *(4단계, `series.py`)*: 고유 `seriesKey`(현재 74개)만 Claude API로 한 번 번역한다(`translate` 단계 안에서, 새 시리즈가 없으면 호출하지 않음). 한국 정식 제목을 따르고 영문·숫자 표기(`SEED DESTINY`, `Re:RISE`)는 그대로 두며, 같은 용어집·가나 검사(남으면 그 항목만 한 번 재요청, 그래도 남으면 저장하지 않고 다음 실행에 재시도)를 쓴다. 키가 없거나 dry-run이어도 사전에 있는 시리즈는 항상 항목에 채운다. 수동 확인: `python -m crawler.series --sample 10`(번역해 출력만, 파일은 쓰지 않음)
+- **한자 혼입 검사** *(6단계)*: 가나 검사가 못 거르는 오번역 — 번역(`ko`)에 **원문(`ja`)에 없는 한자**가 있으면(`ヴィダール` → `비达르`) 가나가 남은 경우와 똑같이 그 항목만 한 번 재요청하고, 그래도 남으면 저장하지 않는다(`translate.stray_han`·`bad_translation`, 시리즈 번역도 같다). `89式`·`改`처럼 원문에도 있는 한자는 정상이다. **기존 데이터도** 매 실행 시작에 `nameKo`(조이하비 한글명으로 바뀐 항목 제외)·피드 `titleKo`·`series-ko.json`에서 같은 검사에 걸린 값을 비워(`fixups.strayHanReset`) 같은 실행의 번역 단계가 다시 번역한다. 용어집에는 `ヴィダール→비다르`를 넣었다
 
 ## 6. 사이트 — 소유자 모드와 저장
 - 설정에서 **GitHub fine-grained 토큰**(이 저장소만, Contents: Read and write)을 넣으면 소유자 모드. 토큰은 그 브라우저 localStorage에만. `GET /repos/sora7942/plamo-hangar`의 `permissions.push`로 확인
@@ -249,6 +253,9 @@ plamo-hangar/
 - 엑셀 백업·가져오기에 `catalogId` 열(`반다이 제품 ID`) 추가. 열이 없는 예전 백업도 그대로 가져오고, 형식이 맞지 않는 값은 버린다. 사진은 백업에 넣지 않는다
 - **자동 연결 후보** *(4단계 구현)*: 설정 → "자동 연결 후보 보기". 아직 연결 안 된 프라 중 정규화한 이름(등급·스케일 머리말 무시)·등급·스케일이 모두 같은 카탈로그 제품이 **정확히 1개**일 때만 제안한다(등급 `기타`·후보 2개 이상은 제외, 카탈로그에 스케일이 없으면 `논스케일`끼리). 체크한 것만 한 커밋으로 연결하고 빈 칸(시리즈 등)만 채운다. 같은 화면에서 "시리즈를 한국어로 바꾸기": 연결된 프라 중 시리즈 칸이 카탈로그의 일본어 `series`와 **정확히 같은** 것만 제안한다(직접 적은 값은 건드리지 않음)
 - **리뷰 찾아보기** *(4단계 구현)*: 상세에 `<등급> <이름> 리뷰` 유튜브·네이버 블로그 검색 링크(새 탭, noopener)
+- **빈 칸 채우기** *(6단계)*: 자동 연결 후보 화면의 세 번째 구역. 이미 연결된 프라 중 등급(`기타`)·스케일(`논스케일`)·시리즈(빈 칸)가 비어 있고 카탈로그에는 값이 생긴 것을 "기타 → HG" 식 미리보기와 함께 제안한다. `fillPatch`의 "빈 칸만" 규칙 그대로라 직접 적은 값은 건드리지 않고, 이름·브랜드는 제안하지 않는다. 커밋 메시지에 `빈 칸 N개 채움`이 들어간다
+- **연결 도우미** *(6단계, `assist.js` + app.js `openAssist`)*: 설정의 "연결 도우미 시작" 또는 "빈 칸 모아보기 → 반다이 제품 미연결"의 "연결 도우미로 시작"(지금 보이는 필터·순서 그대로). 미연결 프라를 하나씩 보여주고 상위 후보 5개 + 검색창을 준다. **[연결]**은 대기열에 모을 뿐 바로 저장하지 않고, **[건너뛰기]**는 이번 도우미에서만 넘기며, **[나중에]**는 이 브라우저(`localStorage` `plamo-later`)에 기억해 다음부터 목록 맨 끝으로 미룬다(끝 화면에서 "나중에 미룬 N개 보기"). **[이전]**은 방금 동작을 취소한다. **중간 저장**·끝의 저장은 커밋 1개(`collection: 반다이 제품 N개 연결 (연결 도우미)`, 빈 칸만 채우고 이름은 그대로)이고 저장 뒤 이어서 계속한다. 저장하지 않은 연결이 있는데 닫으려 하면 확인한다
+- **검색 별칭** *(6단계, `docs/aliases.js`)*: 사이트 쪽 사전(크롤러·config와 무관). ① 철자·기호 변형 묶음(발바토스↔바르바토스, 캠퍼↔켐퍼, 퀀터↔콴타, 하이뉴↔Hi-ν, 뉴↔ν …, 양방향) ② 줄임말(`퍼건`→퍼스트 건담/RX-78-2) ③ 꼬리말(`클리어`·`코팅`·`무등급`·`크로스 컨트라스트 컬러`·`철혈 코팅`) — 필수가 아니라 **가산**이라 변형이 카탈로그에 있으면 그쪽이 앞에 오고 없으면 기본형이 후보 ④ 일반어(`건담`·`한정`·`세트`·`컬러` …) — 이 말만 맞은 후보와, 등급·스케일 낱말만 맞은 후보는 버린다(검색어가 전부 일반어면 그대로). 비교용 이름은 `HG`·`1/144`뿐 아니라 `HGUC`·`HGCE`·`HGBD:R` 같은 등급 변형 머리말도 뗀 것이고, **화면에 보이는 이름(후보 목록·연결 도우미·이름 채우기)은 카탈로그 원래 이름 그대로**다. 틀린 후보가 자주 나오면 `aliases.js`에 한 줄 추가한다
 
 ## 7. 디스코드 알림
 - 매 실행 1회, 이번에 새로 들어온 피드 항목을 묶어 보낸다
@@ -256,22 +263,24 @@ plamo-hangar/
   - **①(내 프라 우선) 구현됨(4단계)**: 크롤러가 `collection.json`을 **읽기만** 해서(`mine.py`) 보유·위시의 `catalogId`와 같은 **국내 입고(kr-restock·kr-new)**를 맨 앞에 놓고 `[내 프라]` 제목·`내 프라(보유·위시)` 설명·강조 색(`config.MINE_COLOR`)으로 보낸다. 첫 메시지에 `내 프라가 국내에 입고됐어요! (N건)`을 붙이고, 한도를 넘어도 내 프라가 먼저 살아남는다. 신제품·P-반다이는 내 프라여도 우선 대상이 아니다. 나머지는 ②~④ 순서(`config.FEED_TYPES` 우선순위)
 - 조이하비 항목은 **글 날짜가 최근 `KR_NOTIFY_DAYS`(3)일 이내**인 것만 알린다. 피드 노출 기간(`KR_FEED_DAYS`, 30일)과 별개다 — 배포 직후 예약 실행이 최근 한 달 글을 한꺼번에 알리지 않게 한다
 - 임베드: 제목 링크, 종류, 시기, 안정 이미지가 있으면 썸네일. 메시지당 10개, 실행당 3메시지, 넘치면 "외 N건 — 사이트에서 보기"
+  - **임베드의 `url`은 항목마다 달라야 한다** *(6단계)*: 디스코드는 `url`이 같은 임베드를 한 카드로 합쳐 첫 번째만 보여 준다. 조이하비는 한 글에 여러 상품이 들어 있어 `url`이 모두 같으므로 `discord.embed_url`이 BD 코드를 붙여 구별한다(`…&bd=BD1234567` — 조이하비는 모르는 파라미터를 무시하고 같은 글이 열린다). 그래도 겹치면 `#<id>`를 붙인다. 피드의 `url`은 그대로다
 - 최초 채우기(`--bootstrap`) 중이거나 이전 feed가 비었거나 이전 카탈로그가 비어 있었으면(첫 실행) 보내지 않는다. `--dry-run`은 이 규칙으로 건너뛰는 경우에도 형식 확인용으로 보낼 내용을 출력한다
 - `DISCORD_WEBHOOK_URL`이 없거나 `--dry-run`이면 콘솔 출력만. 발송 실패는 경고만
 
 ## 8. 실행 옵션
 - `python main.py` / `--dry-run` / `--only hobby,joyhobby` / `--bootstrap`
-  - `--only`: `hobby`(= `hobby_schedule`+`hobby_brand`+`hobby_item`), `joyhobby`, `translate`
+  - `--only`: `hobby`(= `hobby_schedule`+`hobby_brand`+`hobby_item`), `joyhobby`, `translate`, `hobby_backfill`(옵션 단계 — 기본 실행에는 들어가지 않는다)
   - `--bootstrap [--from YYYY-MM]`: 최초 채우기(5장). `--from`은 확인용으로 범위를 줄일 때(기본 `2015-01`)
   - `--max-new N` / `--max-backlog N`: 실행당 상세 상한(기본 40 / 150). `--max-details`는 폐지
   - `--joy-pages N`: `--bootstrap` 때 조이하비 과거 목록을 훑을 쪽 수(기본 25). 조이하비 과거 글만 채우려면 `--bootstrap --only joyhobby`
+  - `--brand-backfill` *(6단계)*: 2015년 이전 상품 채우기(5장)만 실행(`--only hobby_backfill`과 같다). 커서(`meta.crawl.brandBackfill`)로 이어 하고 알림 없음. `--bootstrap`·`--only`·`--discord-test`와는 함께 쓸 수 없다
   - `--data-dir DIR`: `docs/data` 대신 다른 폴더에 읽고 쓴다(로컬에서 부분 채우기를 저장소와 섞지 않으려고)
   - `--no-discord`: 발송만 끈다. `--dry-run`은 파일은 쓰고 디스코드는 보내지 않으며 **보낼 내용을 항상 출력**하고, API 비용이 드는 번역은 `--only translate`로 명시할 때만 돌린다
   - `--discord-test` *(5단계)*: 수집 없이 테스트 알림 **1메시지**만 보낸다. `feed.json` 최근 3개(내 프라 연결 항목이 있으면 그중 1개 포함)를 실제 알림과 같은 형식으로 묶고 맨 앞에 `[테스트] 프라 격납고 알림 확인용`을 붙인다. `docs/data`는 바꾸지 않고(커밋도 없음) 웹훅은 `DISCORD_WEBHOOK_URL`(Actions Secret)만 쓴다 — 없으면 "웹훅 없음"만 출력하고 성공 종료, 발송 실패는 종료 코드 1. `--dry-run`을 같이 주면 내용만 출력. 수집 옵션과는 함께 쓸 수 없다
 - 로컬 미리보기: `python -m http.server -d docs 8000`
 
 ## 9. GitHub Actions (`crawl.yml`)
-- 트리거: `schedule: cron "10 22 * * *"` (KST 07:10), `workflow_dispatch`(입력: `bootstrap`, `max_backlog`(기본 150), `joy_backfill`(조이하비 과거 글만: `--bootstrap --only joyhobby`), `joy_pages`(기본 25), `discord_test`(기본 꺼짐: 수집·커밋 없이 테스트 알림 1건만 — 8장 `--discord-test`))
+- 트리거: `schedule: cron "10 22 * * *"` (KST 07:10), `workflow_dispatch`(입력: `bootstrap`, `max_backlog`(기본 150), `joy_backfill`(조이하비 과거 글만: `--bootstrap --only joyhobby`), `joy_pages`(기본 25), `brand_backfill`(기본 꺼짐: 2015년 이전 상품 채우기만 — 8장 `--brand-backfill`, 약 8분), `discord_test`(기본 꺼짐: 수집·커밋 없이 테스트 알림 1건만 — 8장 `--discord-test`))
 - `concurrency: { group: crawl }`, 권한 `contents: write`
 - 단계: checkout → Python 3.12 + pip 캐시 → `python main.py` → 요청 로그 artifact(7일) → `git pull --rebase --autostash` → **허용 목록 7개만 add**(`catalog-gunpla/girl/pending.json`, `feed.json`, `kr-arrivals.json`, `series-ko.json`, `meta.json`; 그 밖의 경로가 staged면 실패해 `collection.json`·`photos/`를 지킨다) → 변경이 있으면 커밋(`data: crawl YYYY-MM-DD`) → push(충돌 시 `pull --rebase` 후 최대 3회). `timeout-minutes: 45`
 - 조이하비 과거 글 채우기: 수동 실행에서 `joy_backfill`을 켠다(한 번에 끝남, 약 320요청 ≈ 6.5분 — 후보 글의 2/3가 BD 행이 없는 글이라 대부분이 "봤음"용 요청이다). 호비사이트 채우기와 독립이다
@@ -310,3 +319,5 @@ plamo-hangar/
    - 사이트 로딩: `collection.json`만으로 먼저 그리고, 연결된 프라가 있을 때(또는 찾기·신제품 탭을 열 때) `meta.json` → `catalog-gunpla/girl.json?v=<meta.updatedAt>`을 뒤에서 받는다. `kr-arrivals`·`pending`은 읽지 않는다(pending은 4d에서 URL 붙여넣기 확인용으로만 검토)
 5. 마무리 — 실제 알림 1회(사용자 요청 시), README, 이전 아티팩트 정리 여부 확인
    - **상태 (2026-10-08)**: 5a 디스코드 테스트 발송(`--discord-test`, 수동 실행 입력 `discord_test`) **코드·테스트 완료**, 5b README **완료**. 남은 것: push 후 Actions 수동 실행(`discord_test` 켜기)으로 실제 알림 1건 확인(사용자가 요청할 때만), 다음 날 예약 실행 확인(11장 5단계), 이전 Claude 아티팩트 정리 여부 확인
+6. 다듬기 *(2026-10)* — 6-1 디스코드 임베드 `url` 구별, 6-7 번역 한자 혼입 검사, 6-4 2015년 이전 카탈로그(`brand_backfill`)·상세 받기 순서, 6-3 검색 별칭, 6-5 빈 칸 채우기, 6-2 연결 도우미
+   - **상태**: 위 항목 코드·테스트 완료. 남은 것: push 후 Actions `discord_test`로 임베드가 따로 보이는지 확인, `brand_backfill` 한 번 실행(이후 매일 실행이 상세·번역을 나눠 채움), 한자 혼입 2건(`비达르`) 재번역 확인. **6-0b 반다이남코코리아몰 연동**(조사: `spike/mall-report.md`)은 사용자가 이용약관을 확인한 뒤 따로 지시한다

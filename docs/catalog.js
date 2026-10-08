@@ -18,14 +18,15 @@ var AKAMAI = 'bandai-a.akamaihd.net', HOBBY = 'bandai-hobby.net';
 // 검색용: NFKC(전각·반각 통일) + 소문자 + 글자·숫자만 남긴다 ("건담 에어리얼"="건담에어리얼", "ＨＧ"="hg")
 function norm(s) { return String(s == null ? '' : s).normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ''); }
 
-// "HG 1/144 건담 에어리얼" → "건담 에어리얼" (내 프라 이름은 보통 등급·스케일 없이 적는다)
-function stripPrefix(name, grade, scale) {
+// "HG 1/144 건담 에어리얼" → "건담 에어리얼" (내 프라 이름은 보통 등급·스케일 없이 적는다).
+// loose=true(비교용)면 HGUC·HGCE·HGBD:R 같은 등급 변형 머리말도 뗀다. 화면에 보이는 이름(displayName)은 loose 없이 — 카탈로그 원래 이름을 그대로 보여 준다.
+function stripPrefix(name, grade, scale, loose) {
   var s = String(name == null ? '' : name).trim();
   if (grade) {
     var g = String(grade);
     if (s.slice(0, g.length).toLowerCase() === g.toLowerCase() && /^\s/.test(s.slice(g.length) + ' ')) s = s.slice(g.length).trim();
   }
-  if (grade) {                                           // HGCE·HGUC·HGBD:R 같은 등급 변형 머리말 (등급 글자로 시작하는 영문 낱말)
+  if (grade && loose) {                                  // HGCE·HGUC·HGBD:R 같은 등급 변형 머리말 (등급 글자로 시작하는 영문 낱말)
     var g2 = String(grade).replace(/[^A-Za-z]/g, ''), m = g2 && new RegExp('^' + g2 + '[A-Za-z]{1,4}(?::[A-Za-z])?(?=\\s)', 'i').exec(s);
     if (m) s = s.slice(m[0].length).trim();
   }
@@ -77,8 +78,9 @@ function normalizeItem(raw) {
     manual: raw.manual === true
   };
   it.title = displayName(it);
-  it.kn = norm(stripPrefix(it.nameKo, it.rawGrade, it.scale));
-  it.jn = norm(stripPrefix(it.nameJa, it.rawGrade, it.scale));
+  it.kn = norm(stripPrefix(it.nameKo, it.rawGrade, it.scale, true));       // 비교용 이름 (변형 머리말도 뗀 것)
+  it.jn = norm(stripPrefix(it.nameJa, it.rawGrade, it.scale, true));
+  it.cmp = norm(stripPrefix(it.nameKo || it.nameJa, it.rawGrade, it.scale, true));   // 자동 연결 후보 비교 키
   it.seriesText = it.seriesKo || it.series;   // 화면·채우기에는 한국어(seriesKo)를 먼저 쓴다
   it.sn = norm(it.seriesKo) + norm(it.series);
   it.meta = norm(it.rawGrade) + '|' + norm(it.scale);                  // 등급·스케일은 낱말이 맞아도 '이름이 맞았다'로 치지 않는다
@@ -244,15 +246,15 @@ function autoLinks(kits, cat) {
   if (!cat) return [];
   var index = {};
   cat.items.forEach(function (it) {
-    if (it.grade === '기타' || !it.title) return;
-    var k = linkKey(it.title, it.grade, it.scale);
+    if (it.grade === '기타' || !it.cmp) return;
+    var k = linkKey(it.cmp, it.grade, it.scale);
     (index[k] = index[k] || []).push(it);
   });
   var out = [];
   (kits || []).forEach(function (kit) {
     if (kit.catalogId) return;
     var g = P.gname(kit.grade); if (g === '기타') return;
-    var c = index[linkKey(stripPrefix(kit.name, kit.grade, kit.scale), g, kit.scale)];
+    var c = index[linkKey(stripPrefix(kit.name, kit.grade, kit.scale, true), g, kit.scale)];
     if (c && c.length === 1) out.push({ kit: kit, item: c[0], filled: fillPatch(c[0], kit).filled });
   });
   return out;

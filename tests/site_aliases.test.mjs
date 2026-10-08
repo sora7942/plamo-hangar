@@ -87,9 +87,12 @@ test('등급·스케일 낱말은 "이름이 맞았다"로 치지 않는다 (MG 
   assert.equal(ids('1/100 에어리얼')[0], 'bh-12');
 });
 
-test('stripPrefix: 등급 변형 머리말(HGUC·HGCE·HGBD:R)도 뗀다 → 짧은 이름이 접두 일치로 앞선다', () => {
-  assert.equal(C.stripPrefix('HGUC 1/144 켐퍼 [스페셜 코팅]', 'HG', '1/144'), '켐퍼 [스페셜 코팅]');
-  assert.equal(cat.byId['bh-7'].title, '켐퍼 [스페셜 코팅]');
+test('등급 변형 머리말(HGUC·HGCE·HGBD:R)은 비교할 때만 뗀다 — 화면에 보이는 이름은 카탈로그 원래 이름 그대로', () => {
+  assert.equal(C.stripPrefix('HGUC 1/144 켐퍼 [스페셜 코팅]', 'HG', '1/144', true), '켐퍼 [스페셜 코팅]');
+  assert.equal(cat.byId['bh-7'].title, 'HGUC 1/144 켐퍼 [스페셜 코팅]', '후보 목록·연결 도우미·채울 이름은 원래 이름');
+  assert.equal(cat.byId['bh-7'].kn, C.norm('켐퍼 [스페셜 코팅]'), '비교용 이름은 머리말 없이');
+  assert.equal(ids('켐퍼 스페셜', { grade: 'HG' })[0], 'bh-7', '머리말을 떼고 비교하니 "켐퍼"가 접두 일치');
+  assert.equal(C.search(cat, '켐퍼', { grade: 'HG' }).results.find((x) => x.id === 'bh-7').title, 'HGUC 1/144 켐퍼 [스페셜 코팅]');
 });
 
 test('성능: 카탈로그 3천 개에서 검색 한 번이 10ms 안쪽', () => {
