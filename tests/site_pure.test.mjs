@@ -263,3 +263,11 @@ test('엑셀 가져오기 등급 매핑: 긴 이름 먼저, BB는 BB로 유지',
   assert.equal(P.normGrade('RE100', ''), 'RE/100');
   assert.equal(P.normGrade('', '이름만'), '기타');
 });
+
+test('catalogId: bh-/pb- 형식만 받고 나머지는 null, 연결 커밋 메시지', () => {
+  assert.equal(P.normKit({ id: 'k1', name: 'a', catalogId: 'bh-01_4257' }).catalogId, 'bh-01_4257');
+  assert.equal(P.normKit({ id: 'k1', name: 'a', catalogId: 'pb-item-1000179163' }).catalogId, 'pb-item-1000179163');
+  for (const bad of ['', '01_4257', 'x-1', 'bh-', 'bh-<script>', 'bh-' + 'a'.repeat(70), 5, {}]) assert.equal(P.normKit({ id: 'k1', name: 'a', catalogId: bad }).catalogId, null, String(bad));
+  assert.equal(P.commitMessage('link', { name: '건담 에어리얼' }), 'collection: 반다이 제품 연결 건담 에어리얼');
+  assert.equal(P.commitMessage('unlink', { name: '건담 에어리얼' }), 'collection: 반다이 제품 연결 해제 건담 에어리얼');
+});

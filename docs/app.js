@@ -54,6 +54,7 @@ function ensureCatalog() {
     function () { catState = 'error'; catPromise = null; return null; });
   return catPromise;
 }
+function scaleChoices(cur) { var a = SCALES.slice(); if (cur && a.indexOf(cur) < 0) a.splice(a.length - 1, 0, cur); return a; } // 카탈로그의 1/72 등도 잃지 않게
 function hasLinked() { return data.kits.some(function (k) { return k.catalogId; }); }
 function official(k) { return cat ? C.officialImages(cat, k, data.settings) : []; }
 function catItem(k) { return cat && k && k.catalogId ? (cat.byId[k.catalogId] || null) : null; }
@@ -367,6 +368,93 @@ document.addEventListener('keydown', function (e) {
   closeModal();
 });
 
+/* ---------- 반다이 제품 찾기 (추가·수정 폼과 상세의 연결 창이 함께 쓴다) ---------- */
+function relText(it) { return it.release.date || it.release.month || ''; } // 월만 아는 발매일은 월까지만 보인다 (날짜를 지어내지 않음)
+function usedBy(id, exceptId) { return data.kits.filter(function (x) { return x.catalogId === id && x.id !== exceptId; }); }
+function pickerHTML(o) {
+  return '<div class="picker" id="pk"><div class="pk-row"><input id="pk-q" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="한국어·일본어 이름, 또는 호비사이트 상품 주소" aria-label="반다이 제품 찾기" value="' + esc(o.query || '') + '">' +
+    '<select id="pk-grade" aria-label="등급 필터">' + opt('all', '모든 등급', o.grade || 'all') + GRADES.filter(function (g) { return g !== '기타'; }).map(function (g) { return opt(g, g, o.grade); }).join('') + '</select></div>' +
+    '<p class="hint" id="pk-status" role="status"></p><ul class="pk-results" id="pk-results"></ul></div>';
+}
+function pickRow(it, exceptId) {
+  var im = it.images[0], used = usedBy(it.id, exceptId);
+  return '<li class="pk-item" data-id="' + esc(it.id) + '"><div class="pk-thumb">' + (im ? '<img src="' + esc(C.thumbUrl(im)) + '"' + (C.thumbUrl(im) !== im ? ' data-alt="' + esc(im) + '"' : '') + ' alt="" loading="lazy" referrerpolicy="no-referrer" data-g="' + esc(P.glabel(it.grade)) + '">' : '<div class="ghost">' + esc(P.glabel(it.grade)) + '</div>') + '</div>' +
+    '<div class="pk-body"><b>' + esc(it.title) + '</b><span class="hint">' + esc([it.grade, it.scale, relText(it), it.series].filter(Boolean).join(' · ')) + '</span>' +
+    (used.length ? '<span class="hint pk-used">이미 ' + esc(used.slice(0, 2).map(function (x) { return '"' + x.name + '"'; }).join(', ')) + (used.length > 2 ? ' 외 ' + (used.length - 2) + '개' : '') + '에 연결돼 있어요</span>' : '') + '</div>' +
+    '<button type="button" class="btn" data-pick="' + esc(it.id) + '">선택</button></li>';
+}
+// root 안의 #pk-* 를 묶는다. o.onPick({id, item|null}) · o.getScale() · o.exceptId. 반환: {paint}
+function bindPicker(root, o) {
+  var q = root.querySelector('#pk-q'), g = root.querySelector('#pk-grade'), st = root.querySelector('#pk-status'), ul = root.querySelector('#pk-results'), timer, picked = null;
+  function status(msg, retry) {
+    st.textContent = msg;
+    if (retry) { var b = document.createElement('button'); b.type = 'button'; b.className = 'linkbtn'; b.textContent = '다시 시도'; b.addEventListener('click', function () { start(); }); st.appendChild(b); }
+  }
+  function paint() {
+    ul.innerHTML = '';
+    if (catState !== 'ready') { if (catState === 'error') status('카탈로그를 불러오지 못했어요. ', true); else status('카탈로그를 불러오는 중이에요…'); return; }
+    var text = q.value.trim();
+    if (!text) { status('이름을 입력하면 반다이 제품 ' + cat.items.length.toLocaleString('ko-KR') + '개 중에서 찾아요. 호비사이트 상품 주소를 붙여넣어도 돼요.'); return; }
+    var ref = C.parseRef(text);
+    if (ref) {
+      var hit = cat.byId[ref.id];
+      if (hit) { status('주소로 찾은 제품이에요.'); ul.innerHTML = pickRow(hit, o.exceptId); }
+      else if (ref.kind === 'hobby') {
+        status('이 제품은 아직 카탈로그에 없어요.');
+        ul.innerHTML = '<li class="pk-item pk-ref" data-id="' + esc(ref.id) + '"><div class="pk-body"><b>' + esc(ref.id) + '</b><span class="hint">연결만 저장해 두면 다음 수집 때 이름·등급·사진이 채워져요. 이름은 직접 적어 주세요.</span></div>' +
+          '<button type="button" class="btn" data-pick-ref="' + esc(ref.id) + '">이 주소로 연결</button></li>';
+      } else status('P-반다이 한정 상품은 카탈로그에 있는 것만 연결할 수 있어요. 이름으로 찾아 보세요.');
+      return;
+    }
+    var r = C.search(cat, text, { grade: g.value, scale: o.getScale && o.getScale() });
+    if (!r.results.length) { status('찾지 못했어요.' + (g.value !== 'all' ? ' 등급을 "모든 등급"으로 바꿔 보세요.' : ' 카탈로그는 수집이 진행 중이라 일부 제품이 아직 없을 수 있어요. 호비사이트 상품 주소를 붙여넣으면 연결만 해 둘 수 있어요.')); return; }
+    status(r.partial ? '정확히 같은 이름은 없어요. 비슷한 후보예요.' : (r.total > r.results.length ? r.total + '개 중 ' + r.results.length + '개를 보여 줘요. 더 구체적으로 적어 보세요.' : r.total + '개를 찾았어요.'));
+    ul.innerHTML = r.results.map(function (it) { return pickRow(it, o.exceptId); }).join('');
+    if (picked) { var cur = ul.querySelector('[data-id="' + CSS.escape(picked) + '"]'); if (cur) cur.classList.add('picked'); }
+  }
+  function start() { if (catState === 'error') catPromise = null; paint(); ensureCatalog().then(paint); }
+  q.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(paint, 120); });
+  g.addEventListener('change', paint);
+  q.addEventListener('keydown', function (e) { if (e.key === 'Enter') e.preventDefault(); }); // 폼 제출·저장 방지
+  ul.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-pick],[data-pick-ref]'); if (!b) return;
+    var id = b.dataset.pick || b.dataset.pickRef;
+    picked = id; ul.querySelectorAll('.pk-item').forEach(function (li) { li.classList.toggle('picked', li.dataset.id === id); });
+    o.onPick({ id: id, item: b.dataset.pick ? (cat.byId[id] || null) : null });
+  });
+  start();
+  return { paint: paint };
+}
+
+function openLink(k) {
+  var chosen = null, rename;
+  var body = '<p class="hint" style="font-size:14px">"' + esc(k.name) + '"에 연결할 반다이 제품을 골라요. 이름·등급·스케일·시리즈는 비어 있는 칸만 채우고, 이미 적은 값은 그대로 둬요.</p>' +
+    pickerHTML({ query: k.name, grade: gname(k.grade) === '기타' ? 'all' : gname(k.grade) }) +
+    '<label class="check"><input type="checkbox" id="pk-rename"><span>이름도 카탈로그 이름으로 바꾸기</span></label><p class="hint" id="pk-sum">제품을 고르면 채워질 항목을 알려 드려요.</p>';
+  var foot = '<span class="hint" style="align-self:center">저장하면 저장소에 커밋이 하나 생겨요.</span><div class="r"><button class="btn" data-close>취소</button><button class="btn primary" id="pk-go" disabled>연결</button></div>';
+  var m = openModal('반다이 제품 연결', body, foot);
+  var go = m.querySelector('#pk-go'); rename = m.querySelector('#pk-rename');
+  function summary() {
+    var s = m.querySelector('#pk-sum');
+    if (!chosen) return;
+    if (!chosen.item) { s.textContent = '연결만 저장해요. 이름·등급·사진은 다음 수집 때 채워져요.'; return; }
+    var r = C.fillPatch(chosen.item, k, { replaceName: rename.checked });
+    s.textContent = '"' + chosen.item.title + '"에 연결해요. ' + (r.filled.length ? '채워지는 항목: ' + r.filled.join(', ') : '채울 빈 칸은 없어요.');
+  }
+  rename.addEventListener('change', summary);
+  bindPicker(m, { exceptId: k.id, getScale: function () { return k.scale === '논스케일' ? null : k.scale; }, onPick: function (sel) { chosen = sel; go.disabled = false; summary(); } });
+  go.addEventListener('click', function () {
+    if (!chosen) return;
+    var pick = chosen, repl = rename.checked;
+    commit(function (d) {
+      var x = d.kits.filter(function (y) { return y.id === k.id; })[0]; if (!x) return;
+      if (pick.item) Object.assign(x, C.fillPatch(pick.item, x, { replaceName: repl }).patch);
+      if (x.catalogId !== pick.id && x.cover && x.cover.indexOf('off:') === 0) x.cover = null;
+      x.catalogId = pick.id;
+    }, 'link', { name: k.name }, { okMsg: '"' + k.name + '"을(를) 반다이 제품에 연결했어요.' });
+  });
+}
+
 function openDetail(id) {
   var k = findKit(id); if (!k) return;
   var own = k.list === 'own', rows = [['목록', own ? '보유' : '위시리스트'], ['등급', gname(k.grade)], ['스케일', k.scale], ['시리즈', k.series], ['브랜드', k.brand]];
@@ -390,7 +478,8 @@ function openDetail(id) {
   var body = gallery + linkInfo +
     '<dl class="specs">' + show.map(function (r) { return '<dt>' + r[0] + '</dt>' + (r[1] ? '<dd' + (/가격/.test(r[0]) ? ' class="mono"' : '') + '>' + esc(r[1]) + '</dd>' : '<dd class="missing">미입력</dd>'); }).join('') + '</dl>' +
     (k.memo ? '<p class="memo">' + esc(k.memo) + '</p>' : '');
-  var foot = (canWrite && !k.sample) ? '<button class="btn danger" id="del">삭제</button><div class="r">' + (own ? '' : '<button class="btn" id="move">샀어요 · 보유로 옮기기</button>') + '<button class="btn primary" id="edit">수정</button></div>' : '';
+  var foot = (canWrite && !k.sample) ? '<button class="btn danger" id="del">삭제</button><div class="r">' + '<button class="btn" id="relink">' + (k.catalogId ? '제품 연결 변경' : '반다이 제품 연결') + '</button>' + (k.catalogId ? '<button class="btn" id="unlink">연결 해제</button>' : '') +
+    (own ? '' : '<button class="btn" id="move">샀어요 · 보유로 옮기기</button>') + '<button class="btn primary" id="edit">수정</button></div>' : '';
   var m = openModal(k.name, body, foot);
   m.dataset.kit = k.id;
   if (k.catalogId && catState !== 'ready') ensureCatalog().then(function () { if (m.isConnected && m.dataset.kit === k.id) openDetail(k.id); }); // 카탈로그가 도착하면 같은 상세를 다시 그린다
@@ -404,6 +493,12 @@ function openDetail(id) {
   });
   if (foot) {
     m.querySelector('#edit').addEventListener('click', function () { openForm(k); });
+    m.querySelector('#relink').addEventListener('click', function () { openLink(k); });
+    var unl = m.querySelector('#unlink');
+    if (unl) unl.addEventListener('click', function () {
+      commit(function (d) { var x = d.kits.filter(function (y) { return y.id === k.id; })[0]; if (!x) return; x.catalogId = null; if (x.cover && x.cover.indexOf('off:') === 0) x.cover = null; },
+        'unlink', { name: k.name }, { okMsg: '"' + k.name + '"의 반다이 제품 연결을 해제했어요. 채워 둔 값은 그대로예요.' });
+    });
     var mv = m.querySelector('#move'); if (mv) mv.addEventListener('click', function () { openForm(k, { moveToOwn: true }); });
     var del = m.querySelector('#del');
     del.addEventListener('click', function () {
@@ -435,12 +530,15 @@ function openForm(k, o) {
   var dupOk = false;
   var work = { photos: (k.photos || []).map(P.clone), cover: k.cover || null }; // 사진 편집 중 상태 (저장 전)
   var pend = {}, savedFlag = false; // 이번 폼에서 새로 만든 사진 파일 {photoId: {full, thumb, src, thumb}}
+  var link = k.catalogId ? { id: k.catalogId, item: null } : null; // 반다이 제품 연결 (저장 전 상태)
+  if (link && catState === 'idle') ensureCatalog();
   var body = '<form class="form' + (list === 'wish' ? ' is-wish' : '') + '" id="kit-form" novalidate>' +
+   '<div class="field full pk-field"><span class="lbl">반다이 제품 연결</span><div id="pk-linked"></div><div id="pk-open-wrap"><button type="button" class="btn" id="pk-open" aria-expanded="false">반다이 제품에서 찾기</button></div><div id="pk-box" hidden></div></div>' +
    '<div class="field full"><label for="f-name">이름 *</label><input id="f-name" required value="' + esc(k.name) + '" placeholder="예: 건담 에어리얼"><div class="warn" id="dup" hidden></div></div>' +
    '<div class="field"><label for="f-list">목록</label><select id="f-list">' + opt('own', '보유', list) + opt('wish', '위시리스트', list) + '</select></div>' +
    '<div class="field own-only"><label for="k-status">상태</label><select id="k-status">' + STATUSES.map(function (s) { return opt(s.k, s.l, status); }).join('') + '</select></div>' +
    '<div class="field"><label for="f-grade">등급</label><select id="f-grade">' + GRADES.map(function (g) { return opt(g, g, gname(k.grade)); }).join('') + '</select></div>' +
-   '<div class="field"><label for="f-scale">스케일</label><select id="f-scale">' + SCALES.map(function (s) { return opt(s, s, SCALES.indexOf(k.scale) >= 0 ? k.scale : '논스케일'); }).join('') + '</select></div>' +
+   '<div class="field"><label for="f-scale">스케일</label><select id="f-scale">' + scaleChoices(k.scale).map(function (s) { return opt(s, s, scaleChoices(k.scale).indexOf(k.scale) >= 0 ? k.scale : '논스케일'); }).join('') + '</select></div>' +
    '<div class="field"><label for="f-series">시리즈·작품</label><input id="f-series" value="' + esc(k.series) + '" placeholder="예: 수성의 마녀"></div>' +
    '<div class="field"><label for="f-brand">브랜드</label><input id="f-brand" value="' + esc(k.brand) + '"></div>' +
    '<p class="sect own-only">구매 정보 · 비워 두고 나중에 채워도 돼요</p>' +
@@ -453,7 +551,7 @@ function openForm(k, o) {
    '<p class="sect">태그 · 사진 · 메모</p>' +
    '<div class="field full"><label for="f-tags">태그 (쉼표로 구분)</label><input id="f-tags" value="' + esc(k.tags.join(', ')) + '" placeholder="예: P-반다이, 클리어">' + suggHTML() + '</div>' +
    '<div class="field full"><label for="f-photo">사진 (여러 장)</label><div class="pm" id="pm"></div>' +
-     '<input id="f-photo" type="file" accept="image/*" multiple><p class="hint" id="pm-status">고른 사진은 긴 변 1600px WebP로 줄여 저장소에 올려요. "대표"로 지정한 사진이 목록 카드와 상세 맨 앞에 나와요.</p></div>' +
+     '<input id="f-photo" type="file" accept="image/*" multiple><p class="hint" id="pm-status">고른 사진은 긴 변 1600px WebP로 줄여 저장소에 올려요. "대표"로 지정한 사진(내 사진·공식 사진 모두 가능)이 목록 카드와 상세 맨 앞에 나와요.</p><p class="hint" id="pm-off-note"></p></div>' +
    '<div class="field full"><label for="f-memo">메모</label><textarea id="f-memo" placeholder="파츠 분실, 데칼, 도색 계획 등">' + esc(k.memo) + '</textarea></div>' +
    '</form>';
   var foot = '<span class="hint" style="align-self:center">저장하면 저장소에 커밋이 하나 생겨요.</span><div class="r"><button class="btn" data-close>취소</button><button class="btn primary" id="save">' + (isNew ? '추가' : '저장') + '</button></div>';
@@ -480,24 +578,94 @@ function openForm(k, o) {
   if (isNew && k.name) checkDup();
   bindTagSugg(m, $('f-tags'));
 
+  /* 반다이 제품 연결 (저장을 눌러야 반영) */
+  function linkItem() { return link ? (link.item || (cat && cat.byId[link.id]) || null) : null; }
+  function offList() { var it = linkItem(); return it && !data.settings.hideOfficialPhotos ? it.images : []; }
+  function coverFor() { // 공식 사진이 줄어 범위를 벗어났거나 연결이 없으면 대표를 푼다. 카탈로그를 아직 못 읽었으면 그대로 둔다
+    var c = work.cover; if (!c || c.indexOf('off:') !== 0) return c;
+    if (!link) return null;
+    var it = linkItem(); return it && +c.slice(4) >= it.images.length ? null : c;
+  }
+  function paintLinked() {
+    var it = linkItem(), box = $('pk-linked');
+    if (!link) { box.innerHTML = '<p class="hint">연결 안 됨 — 연결하면 비어 있는 등급·스케일·시리즈를 채우고 공식 사진이 붙어요.</p>'; return; }
+    box.innerHTML = '<div class="linkbox"><span class="lk">연결됨</span><span>' + (it ? esc(it.title) + ' <span class="hint">' + esc([it.grade, it.scale].filter(Boolean).join(' · ')) + '</span>' : '<span class="hint">' + esc(link.id) + (catState === 'ready' ? ' (카탈로그 반영 대기)' : '') + '</span>') +
+      '</span><button type="button" class="linkbtn" id="pk-unlink">연결 해제</button></div>';
+  }
+  function setScaleSel(v) {
+    var sel = $('f-scale');
+    if (!Array.prototype.some.call(sel.options, function (o) { return o.value === v; })) { var op = document.createElement('option'); op.value = v; op.textContent = v; sel.insertBefore(op, sel.lastElementChild); }
+    sel.value = v;
+  }
+  function applyPick(sel) {
+    var cur = { name: $('f-name').value.trim(), grade: $('f-grade').value, scale: $('f-scale').value, series: $('f-series').value.trim(), brand: $('f-brand').value.trim() };
+    if ((!link || link.id !== sel.id) && work.cover && work.cover.indexOf('off:') === 0) work.cover = null;
+    link = sel;
+    var note;
+    if (sel.item) {
+      var rn = $('pk-rename'), r = C.fillPatch(sel.item, cur, { fillAll: isNew, replaceName: !!(rn && rn.checked) }), p = r.patch;
+      if (p.name != null) $('f-name').value = p.name;
+      if (p.grade != null) $('f-grade').value = p.grade;
+      if (p.scale != null) setScaleSel(p.scale);
+      if (p.series != null) $('f-series').value = p.series;
+      if (p.brand != null) $('f-brand').value = p.brand;
+      note = r.filled.length ? '연결했어요. 채운 항목: ' + r.filled.join(', ') + '.' : '연결했어요. 채울 빈 칸은 없었어요.';
+    } else note = '연결만 저장돼요. 이름·등급은 직접 적어 주세요. 다음 수집 때 카탈로그 내용이 채워져요.';
+    $('pk-note').textContent = note + ' 저장을 눌러야 반영돼요.';
+    paintLinked(); paintPhotos(); checkDup();
+  }
+  var pkBuilt = false;
+  function togglePicker(open) {
+    var box = $('pk-box'), btn = $('pk-open');
+    if (open == null) open = box.hidden;
+    box.hidden = !open; btn.setAttribute('aria-expanded', String(open)); btn.textContent = open ? '찾기 닫기' : '반다이 제품에서 찾기';
+    if (open && !pkBuilt) {
+      pkBuilt = true;
+      var gv = $('f-grade').value;
+      box.innerHTML = pickerHTML({ query: $('f-name').value.trim(), grade: gv === '기타' ? 'all' : gv }) +
+        (isNew ? '' : '<label class="check"><input type="checkbox" id="pk-rename"><span>고를 때 이름도 카탈로그 이름으로 바꾸기</span></label>') + '<p class="hint" id="pk-note"></p>';
+      bindPicker(box, { exceptId: isNew ? null : k.id, getScale: function () { var s = $('f-scale').value; return s === '논스케일' ? null : s; }, onPick: applyPick });
+    }
+    if (open) { var qi = $('pk-q'); if (qi) qi.focus(); }
+  }
+  $('pk-open').addEventListener('click', function () { togglePicker(); });
+  $('pk-linked').addEventListener('click', function (e) {
+    if (!e.target.closest('#pk-unlink')) return;
+    link = null; if (work.cover && work.cover.indexOf('off:') === 0) work.cover = null;
+    paintLinked(); paintPhotos();
+    toast('연결을 풀었어요. 채워 둔 값은 그대로예요. 저장을 눌러야 반영돼요.');
+  });
+  paintLinked();
+  if (link && catState !== 'ready') ensureCatalog().then(function () { if (m.isConnected) { paintLinked(); paintPhotos(); } });
+  if (isNew && !k.name) togglePicker(true);
+
   /* 사진 관리: 추가·순서·대표·삭제는 저장 누를 때 한 커밋으로 */
   var pm = $('pm'), status$ = $('pm-status'), fileIn = $('f-photo');
   function paintPhotos() {
-    var oc = P.photoOrder(work, []).cover, ck = oc ? oc.key : null, n = work.photos.length;
-    pm.innerHTML = n ? work.photos.map(function (p, i) {
+    var offs = offList(), oc = P.photoOrder(work, offs).cover, ck = oc ? oc.key : null, n = work.photos.length;
+    var mine = work.photos.map(function (p, i) {
       var isC = ck === 'my:' + p.id;
-      return '<div class="pm-item" data-pid="' + esc(p.id) + '"><div class="pm-img"><img src="' + esc(photoSrc(p.thumb)) + '" alt="사진 ' + (i + 1) + '" referrerpolicy="no-referrer" data-g="">' + (isC ? '<span class="pm-badge">대표</span>' : '') + '</div>' +
+      return '<div class="pm-item" data-pid="' + esc(p.id) + '" data-key="my:' + esc(p.id) + '"><div class="pm-img"><img src="' + esc(photoSrc(p.thumb)) + '" alt="사진 ' + (i + 1) + '" referrerpolicy="no-referrer" data-g="">' + (isC ? '<span class="pm-badge">대표</span>' : '') + '</div>' +
         '<div class="pm-btns"><button type="button" data-pm="up" aria-label="앞으로 옮기기"' + (i ? '' : ' disabled') + '>←</button><button type="button" data-pm="down" aria-label="뒤로 옮기기"' + (i < n - 1 ? '' : ' disabled') + '>→</button>' +
         '<button type="button" data-pm="cover" aria-pressed="' + isC + '" aria-label="대표 사진으로 지정">대표</button><button type="button" class="del" data-pm="del" aria-label="사진 삭제">삭제</button></div></div>';
-    }).join('') : '<div class="pm-empty">사진 없음</div>';
+    }).join('');
+    var official = offs.map(function (u, i) {
+      var isC = ck === 'off:' + i, t = C.thumbUrl(u);
+      return '<div class="pm-item pm-official" data-key="off:' + i + '"><div class="pm-img"><img src="' + esc(t) + '"' + (t !== u ? ' data-alt="' + esc(u) + '"' : '') + ' alt="공식 사진 ' + (i + 1) + '" loading="lazy" referrerpolicy="no-referrer" data-g="">' +
+        '<span class="pm-tag">공식</span>' + (isC ? '<span class="pm-badge">대표</span>' : '') + '</div>' +
+        '<div class="pm-btns"><button type="button" data-pm="cover" aria-pressed="' + isC + '" aria-label="공식 사진 ' + (i + 1) + '을 대표 사진으로 지정">대표</button></div></div>';
+    }).join('');
+    pm.innerHTML = (mine || official) ? mine + official : '<div class="pm-empty">사진 없음</div>';
+    var offNote = $('pm-off-note');
+    if (offNote) offNote.textContent = link && !offs.length ? (data.settings.hideOfficialPhotos ? '공식 사진 숨기기가 켜져 있어서 공식 사진은 나오지 않아요.' : linkItem() ? '이 제품은 쓸 수 있는 공식 사진이 없어요.' : '') : '';
   }
   paintPhotos();
   pm.addEventListener('click', function (e) {
     var b = e.target.closest('[data-pm]'); if (!b) return;
-    var pid = b.closest('.pm-item').dataset.pid, a = b.dataset.pm;
+    var pid = b.closest('.pm-item').dataset.pid, a = b.dataset.pm; // 공식 사진 항목은 pid 없이 data-key(off:n)만 있다
     if (a === 'up') work = P.movePhoto(work, pid, -1);
     else if (a === 'down') work = P.movePhoto(work, pid, 1);
-    else if (a === 'cover') work = P.setCover(work, 'my:' + pid);
+    else if (a === 'cover') work = P.setCover(work, b.closest('.pm-item').dataset.key);
     else if (a === 'del') { work = P.removePhoto(work, pid); if (pend[pid]) { dropPhotoUrls(pend[pid]); delete pend[pid]; } }
     paintPhotos();
   });
@@ -523,7 +691,7 @@ function openForm(k, o) {
     var rec = Object.assign({}, isNew ? {} : k, { id: kitId, created: isNew ? new Date().toISOString() : (k.created || ''), list: lst, name: name, grade: v('f-grade'), scale: v('f-scale'), series: v('f-series'), brand: v('f-brand'),
       status: own ? v('k-status') : 'unbuilt', date: own ? v('f-date') : '', shop: own ? v('f-shop') : '', price: Number(v('f-price').replace(/[^0-9]/g, '')) || 0,
       startDate: own ? v('f-start') : '', doneDate: own ? v('f-done') : '', tags: splitTags(v('f-tags')), memo: $('f-memo').value.trim(),
-      photos: work.photos, cover: work.cover, catalogId: k.catalogId || null });
+      photos: work.photos, cover: coverFor(), catalogId: link ? link.id : null });
     var files = {}; work.photos.forEach(function (p) { var pd = pend[p.id]; if (pd) { files['docs/' + p.src] = pd.full; files['docs/' + p.thumb] = pd.thumbBlob; } });
     var kind = move ? 'move' : isNew ? 'add' : 'edit';
     savedFlag = true;

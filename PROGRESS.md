@@ -15,8 +15,10 @@
 - [x] 4a-1 등급 확장 (pure.js GRADES·catalogGrade·glabel, normGrade, CSS 색)
 - [x] 4a-2 catalog.js 순수 로직 + node 테스트 (검색에 scale 힌트 포함)
 - [x] 4a-3 로딩 연결 + 공식 사진(카드·상세·hideOfficialPhotos 설정). e2e: `python tests/e2e/site_catalog_check.py` (40개 통과, 방문자 화면 공식 사진 확인)
-- [ ] 4a-4 폼/상세 "반다이 제품에서 찾기"·연결/해제·URL 붙여넣기·공식 대표 사진
-- [ ] 4a-5 e2e(mock) + 실제 데이터 검색 샘플 20개 + 방문자 화면 확인 → 보고
+- [x] 4a-4 폼/상세 "반다이 제품에서 찾기"·연결/해제·URL 붙여넣기·공식 대표 사진 (e2e 96개 통과, 기존 site_mock_check 186개도 통과)
+- [x] 4a-5 e2e + 실제 데이터 검색 샘플 22개 + 방문자 화면 확인 → 사용자에게 보고(대기: 사용자가 4b 진행하라고 하면 시작)
 
 ## 다음에 할 일
-4a-4 시작: 폼 '반다이 제품에서 찾기'(검색·URL 붙여넣기), 상세 연결/해제, 폼 사진 관리에 공식 사진 대표 지정(off:n), 연결 커밋 메시지(link/unlink).
+- 4a 끝. **사용자가 4b(재판 공백·정렬)를 지시하면 시작.** push는 사용자가 한다.
+- 4b 메모: 문구 3종 + 미래 kr.date는 "국내 입고 예정 YYYY-MM-DD", 월만 아는 발매일은 정렬에만 월 말일·화면엔 "2022-10", 기준일 `cat.since`(= meta.crawl.joyOldest, 현재 2024-01-04 = meta.since). 정렬 순서: kr 기록 있음(마지막 입고 오래된 순) → 기록 없음(일본 발매일 오래된 순) → 미연결. 빈 칸 모아보기에 '반다이 제품 미연결' (GAPS.photo는 내 사진만 보는 의미라 그대로 둠)
+- 4d 메모: 크롤러가 collection.json 읽기 전용으로 catalogId 중 카탈로그에 없는 것 상세 받기(`manual:true`, `line:"other"` 결정은 SPEC 4장), 디스코드 내 프라 우선, 엑셀 catalogId 열

@@ -63,6 +63,8 @@
 - Pages 반영은 커밋 후 1~2분 걸린다. 소유자 모드는 GitHub API로 직접 읽어 지연을 피한다
 - GitHub contents API는 파일당 1MB 넘으면 내용 대신 download_url을 준다 → collection.json이 커지면 blob API로 읽는다
 - 외부 이미지는 `referrerpolicy="no-referrer"`가 있어야 뜨는 경우가 많다
+- 공식 이미지 카드·썸네일은 akamai `/bc/img/model/xl/…`(약 187KB) 대신 `/bc/img/model/m/…`(약 12KB, 2026-10-08 확인)을 쓰고, 안 뜨면 xl로 되돌린다(`catalog.js` `thumbUrl` + `data-alt`). `bandai-hobby.net/images`는 작은 사이즈 경로를 모르므로 그대로 쓴다
+- 사이트 확인 e2e: `python tests/e2e/site_mock_check.py`(빈 컬렉션 전제, 가짜 GitHub), `python tests/e2e/site_catalog_check.py`(카탈로그 연결·공식 사진·방문자 화면, 실제 이미지 호스트 사용 — 일반 Chrome UA). `loading="lazy"`라서 화면에 들어와야 이미지 요청이 나가니 스크롤해서 확인한다
 - `bandai-hobby.net/images`는 UA에 `HeadlessChrome`이 있으면 이미지 대신 HTML을 줘서 `ERR_BLOCKED_BY_ORB`로 막힌다 → Playwright 확인은 일반 Chrome UA로 (akamai는 무관, 일반 브라우저 방문자도 무관)
 - GitHub Actions cron은 UTC 기준이고 몇 분씩 늦게 돈다
 - Windows에서 `conda run`은 한글 출력을 깨뜨린다. `conda activate` 후 실행하거나 `conda run --no-capture-output`

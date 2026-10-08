@@ -43,6 +43,10 @@ def section(title):
 
 
 # ---------- 로컬 서버 (docs/ 만) ----------
+# 이 확인은 "빈 컬렉션에서 시작"을 전제로 한다. 저장소의 실제 collection.json(사용자 데이터)은 쓰지 않고 빈 컬렉션을 제공한다.
+EMPTY_COLL = '{"version":3,"settings":{"name":"프라 격납고","hidePurchase":true,"hideOfficialPhotos":false},\n"kits":[]}\n'
+
+
 class Handler(SimpleHTTPRequestHandler):
     extensions_map = {**SimpleHTTPRequestHandler.extensions_map, ".js": "text/javascript", ".css": "text/css",
                       ".webp": "image/webp", ".svg": "image/svg+xml", ".json": "application/json"}
@@ -53,6 +57,17 @@ class Handler(SimpleHTTPRequestHandler):
     def end_headers(self):
         self.send_header("Cache-Control", "no-store")
         super().end_headers()
+
+    def do_GET(self):
+        if self.path.split("?")[0] == "/data/collection.json":
+            body = EMPTY_COLL.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+        super().do_GET()
 
 
 def start_server():
@@ -83,7 +98,7 @@ def png_file(name, w, h, seed=0):
 # ---------- 컨텍스트·페이지 ----------
 def new_context(browser, *, w=1280, h=900, scheme="light", fake=None, snapshot=None, token=True):
     ctx = browser.new_context(viewport={"width": w, "height": h}, color_scheme=scheme, accept_downloads=True, locale="ko-KR")
-    opts = {"token": TOKEN, "seed": {COLL: (DOCS / "data" / "collection.json").read_text(encoding="utf-8"), FEED: '{"n":1}', "docs/data/meta.json": "{}"}}
+    opts = {"token": TOKEN, "seed": {COLL: EMPTY_COLL, FEED: '{"n":1}', "docs/data/meta.json": "{}"}}
     if snapshot:
         opts["restore"] = snapshot
     opts.update(fake or {})

@@ -20,6 +20,7 @@ var MAX_PHOTOS = 20;
 var ID_RE = /^[A-Za-z0-9_-]+$/;
 var PHOTO_RE = /^photos\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+(_t)?\.webp$/;
 var COVER_RE = /^(my:[A-Za-z0-9_-]+|off:\d+)$/;
+var CATALOG_ID_RE = /^(bh|pb)-[A-Za-z0-9_-]{1,60}$/;
 var DEFAULT_SETTINGS = { name: '프라 격납고', hidePurchase: true, hideOfficialPhotos: false };
 
 /* ---------- 작은 도구 ---------- */
@@ -75,7 +76,7 @@ function normKit(k) {
   k.startDate = k.startDate || ''; k.doneDate = k.doneDate || '';
   k.photos = cleanPhotos(k.photos);
   k.cover = typeof k.cover === 'string' && COVER_RE.test(k.cover) ? k.cover : null;
-  k.catalogId = typeof k.catalogId === 'string' && k.catalogId ? k.catalogId : null;
+  k.catalogId = typeof k.catalogId === 'string' && CATALOG_ID_RE.test(k.catalogId) ? k.catalogId : null;
   delete k.photo; // v2의 data URI 사진은 가져오기 때 파일로 바뀐다 (parseV2Json)
   return k;
 }
@@ -337,6 +338,7 @@ function commitMessage(kind, o) {
   o = o || {};
   var base = {
     add: '추가 ' + clip(o.name, 40), edit: '수정 ' + clip(o.name, 40), move: '보유로 이동 ' + clip(o.name, 40), delete: '삭제 ' + clip(o.name, 40),
+    link: '반다이 제품 연결 ' + clip(o.name, 40), unlink: '반다이 제품 연결 해제 ' + clip(o.name, 40),
     'bulk-edit': (o.n || 0) + '개 일괄 수정', 'bulk-delete': (o.n || 0) + '개 일괄 삭제', 'import': (o.n || 0) + '개 가져오기', settings: '설정'
   }[kind] || '변경';
   var ph = [];
