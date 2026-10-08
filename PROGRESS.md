@@ -34,11 +34,12 @@
 - [x] 4d-2 사이트 UI: 설정 '자동 연결 후보 보기'(연결 + 시리즈 한국어, 커밋 1개), 상세 리뷰 링크, 상세 linkbox에 시리즈, e2e
 - [x] 4d-3 크롤러 seriesKo: crawler/series.py (고유 seriesKey만 번역, docs/data/series-ko.json 사전 + config.SERIES_KO_OVERRIDES), 카탈로그 항목에 seriesKo, crawl.yml 허용 목록, 테스트(Claude 호출 차단), --sample 10개
 - [x] 4d-4 크롤러 미등록 catalogId: collection.json 읽기만 → 카탈로그에 없는 bh- id 상세 받기 (manual:true, 제외 브랜드면 line:"other" → catalog-gunpla.json, 재분류 건너뜀, 제외 목록 id 되살림, pb-는 안내만)
-- [ ] 4d-5 디스코드 '내 프라 우선' (collection.json 읽기만, 국내 입고 항목, 강조 색, 맨 앞)
-- [ ] 4d-6 SPEC·CLAUDE.md 갱신 + 보고(번역 샘플 10개 포함)
+- [x] 4d-5 디스코드 '내 프라 우선' (collection.json 읽기만, 국내 입고 항목, 강조 색, 맨 앞)
+- [x] 4d-6 SPEC·CLAUDE.md 갱신 + 보고(번역 샘플 10개 포함)
 
 ## 4d-3 메모 (보고에 사용)
 번역 샘플 10개(실제 API, 2026-10-08, 파일 쓰지 않음): SDガンダムワールド ヒーローズ→SD건담 월드 히어로즈 / ガンダムビルドダイバーズ Re:RISE→건담 빌드 다이버즈 Re:RISE / 機動戦士ガンダムSEED FREEDOM→기동전사 건담 SEED FREEDOM / スーパーロボット大戦OG→슈퍼로봇대전 OG / ケロロ軍曹→케로로 중사 / ドラゴンボールシリーズ→드래곤볼 시리즈 / コードギアスシリーズ→코드 기아스 시리즈 / 怪獣8号→괴수 8호 / ブルーアーカイブ→블루 아카이브 / 機動戦士ガンダム0080 ポケットの中の戦争→기동전사 건담 0080 포켓 속의 전쟁. 고유 시리즈 74개(토큰 in/out 약 1.5k/0.3k는 10개 기준 → 전체 한 번에 약 10k).
 
 ## 다음에 할 일
-4d-5 디스코드 '내 프라 우선': discord.plan_messages(items, mine=None) — mine({catalogId:[own/wish]}, crawler/mine.py owned_map)에 해당하는 국내 입고(kr-*) 항목을 맨 앞·강조 색(0xF1C40F)·'내 프라 · 보유/위시' 설명으로. pipeline _notify에서 mine.owned_map(data_dir) 읽기. dry-run 출력(describe)에도 표시. 이후 4d-6: SPEC(4장 seriesKo·series-ko.json·manual/other 구현 완료, 7장 내 프라 우선 구현, 12장 4단계 상태)·CLAUDE.md 갱신 + 보고.
+- 4단계(4a~4d) 코드·테스트 끝. 사용자가 push한 뒤: (1) Actions 수동 실행으로 seriesKo 번역(ANTHROPIC_API_KEY Secret 필요, 고유 시리즈 74개 한 번) (2) 사이트 설정 '자동 연결 후보 보기'로 실제 확인(현재 후보 5개) (3) 사이트에서 URL 붙여넣기로 연결한 미등록 catalogId가 다음 실행에서 채워지는지 (4) 국내 입고 알림에서 '내 프라' 표시 확인 — 실제 디스코드 발송은 사용자가 요청할 때만.
+- 5단계(마무리): 실제 알림 1회(사용자 요청 시), README, 이전 아티팩트 정리 여부 확인. 신제품·입고 탭 배지는 사용자 결정으로 하지 않음.

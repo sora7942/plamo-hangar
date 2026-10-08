@@ -47,6 +47,7 @@ plamo-hangar/
 │  │  ├─ catalog-pending.json   # [자동] 아직 line을 모르는 항목 + 제외 목록 (4장)
 │  │  ├─ feed.json              # [자동]
 │  │  ├─ kr-arrivals.json       # [자동] 조이하비 원본 행 + 글 상태 + BD 코드 ↔ catalogId (4장)
+│  │  ├─ series-ko.json         # [자동] seriesKey → 한국어 시리즈 사전 (4장, 4단계)
 │  │  └─ meta.json              # [자동]
 │  └─ photos/<kitId>/<photoId>.webp, <photoId>_t.webp   # [사이트] 내 사진
 ├─ crawler/
@@ -60,7 +61,8 @@ plamo-hangar/
 │  ├─ catalog.py                # 병합·분류·밀린 상품 선택·저장
 │  ├─ match.py                  # 조이하비 상품명 ↔ 카탈로그 매칭 (rapidfuzz)
 │  ├─ kr.py                     # kr-arrivals 상태, 연결(codeMap)·재매칭, 카탈로그 kr·nameKo 교체, 조이하비 피드 항목
-│  ├─ translate.py  feed.py  discord.py
+│  ├─ translate.py  series.py  feed.py  discord.py
+│  ├─ mine.py                   # collection.json 읽기 전용 도우미 (연결된 catalogId·보유/위시 — 상세 받기·디스코드 내 프라 우선)
 │  ├─ pipeline.py               # 실행 순서(일정 → 브랜드 → 상세 → 조이하비 → 번역 → 피드 → 쓰기 → 디스코드). main.py는 인자 처리만
 │  └─ store.py                  # JSON 읽기·쓰기(한 항목 한 줄), 시간 helper
 ├─ spike/                       # 0단계 결과 (보존)
@@ -121,9 +123,18 @@ plamo-hangar/
   - **기존 항목 재분류**: 매 실행 시작(수집 전, `--only`와 무관)에 이전 실행이 저장한 항목을 분류표로 다시 분류한다. 브랜드 키가 있는 항목이 제외 브랜드면 제외 목록으로 옮기고(`brand:<키들>`), line·등급이 달라졌으면 고친다. 그래서 분류표만 고치면 다음 실행에 기존 데이터까지 반영된다. 결과는 `meta.crawl.lastFixups`. **한계**: 제외 → 포함 방향은 되살리지 못한다(제외 목록에는 id와 사유뿐이라 항목 데이터가 없다). 그 경우는 일정·브랜드 목록을 다시 훑어야 한다
   - **상세 전 임시 판정**: 일정 카드에는 브랜드 키가 없어 제목 앞 토큰(`HG`·`RG`·`MG`·`30MS`… 전각은 NFKC로 정규화)으로 line을 임시로 정한다. 임시 판정이 안 되는 카드는 `line=null`로 `catalog-pending.json`에 보류하고, P-반다이 카드(상세 없음)는 제목으로도 판정이 안 되면 제외한다
 - `catalog-pending.json`: `{"updatedAt","items":[line=null 항목],"excluded":{"<id>":"<사유>"}}`. 사유는 `brand:<키들>`·`no-brand-key`·`title-no-match`·`detail-404`. 제외된 id는 일정에 다시 나와도 항목을 만들지 않고 상세도 다시 받지 않는다
-- `manual` / `line:"other"` *(4단계 결정, 크롤러 구현은 4d)*: 사이트에서 호비사이트 상품 URL을 붙여넣어 `catalogId`만 저장한 상품을 크롤러가 상세로 받을 때, 브랜드 키가 건프라·걸프라면 해당 파일에 정상 등록한다. 제외 브랜드이거나 사전에 없는 브랜드면 `catalog-gunpla.json`에 `line:"other"`, `manual:true`로 등록한다(건프라 필터·피드 필터에 섞이지 않는다). `manual`이면 기존 항목 재분류를 건너뛰고, 제외 목록에 있던 id도 같은 방식으로 되살린다
+- `manual` / `line:"other"` *(4단계, 구현됨)*: 사이트에서 호비사이트 상품 URL을 붙여넣어 `catalogId`만 저장한 상품을 크롤러가 상세로 받을 때, 브랜드 키가 건프라·걸프라면 해당 파일에 정상 등록한다. 제외 브랜드이거나 사전에 없는 브랜드면 `catalog-gunpla.json`에 `line:"other"`, `manual:true`로 등록한다(건프라 필터·피드 필터에 섞이지 않는다). `manual`이면 기존 항목 재분류를 건너뛰고, 제외 목록에 있던 id도 같은 방식으로 되살린다
+- `seriesKo` *(4단계)*: 시리즈(`seriesKey`)가 있는 항목에 붙는 한국어 시리즈명(`series`는 호비사이트의 일본어 원문 그대로). 사전(`series-ko.json`)·`config.SERIES_KO_OVERRIDES`로 채우고, 번역 당시의 일본어와 `series`가 달라지면 지운 뒤 다시 번역한다. 사이트는 연결·채우기·검색에 `seriesKo`를 먼저 쓴다
+- `manual`·`line:"other"` 항목은 `catalog-gunpla.json`에 들어가지만 신제품 피드·조이하비 매칭·번역 외의 자동 처리에는 섞이지 않는다. 사이트에서 URL을 붙여넣어 `catalogId`만 저장한 상품은 다음 실행의 `hobby_item` 단계가 **먼저**(실행당 `MANUAL_DETAIL_MAX`=20개, 새·밀린 상품 상한과 별개) 상세를 받는다. 404면 `detail-404`로 제외하고, 일시 오류면 저장하지 않고 다음 실행에 다시 시도하며(되살렸던 제외 사유는 원래대로), `pb-`(P-반다이) id는 상세를 요청하지 않아 카탈로그에 있어야만 쓸 수 있다. 결과는 `meta.sources.hobby_item.manual`(`requested`·`added`·`other`·`unsupported`·`failed`)
 - `nameKo`: 번역 실패·키 없음이면 `null`. 사이트 검색은 nameKo·nameJa 모두 대상
   - `nameKoSource: "joyhobby"` *(3단계)*: 매칭 점수가 **연결 기준보다 높은 별도 기준**(`MATCH_NAME_SCORE`)을 넘었거나 사람이 연결을 확인(`KR_CODE_OVERRIDES`)한 항목은 `nameKo`를 조이하비 한글명(대괄호 코드·영문 괄호·`(프라모델)`·작품 꼬리 정리, `<등급> <스케일> <이름>` 꼴)으로 바꾸고 이 표식을 붙인다. 바꾸기 전 번역은 `nameKoAi`에 보존한다(번역 전이었으면 `null`). 이후 번역은 이 항목을 건드리지 않는다. 연결 금지(override)가 걸리면 `nameKo`를 `nameKoAi`로 되돌리고 두 필드를 지운다. **이름 교체는 `line`이 `gunpla`인 항목만** — 걸프라(`girl`)는 연결·`kr`·피드는 그대로 하되 `nameKo`는 번역을 유지하고, 이미 바뀐 걸프라 항목은 다음 실행에 `nameKoAi`로 되돌린다(`nameReverted`)
+
+### series-ko.json (크롤러가 씀) *(4단계)*
+```json
+{"updatedAt":"ISO","items":{"seed-d":{"ja":"機動戦士ガンダムSEED DESTINY","ko":"기동전사 건담 SEED DESTINY"}}}
+```
+- seriesKey별로 한 번만 번역한 결과. `ja`는 번역 당시의 일본어라서, 호비사이트가 시리즈 이름을 바꾸면 그 시리즈만 다시 번역한다. 바뀐 게 없으면 파일도 `updatedAt`도 그대로 둔다
+- 사람이 고치는 표는 `config.SERIES_KO_OVERRIDES`({seriesKey: 한국어}) — 사전·번역보다 우선하고 API를 부르지 않는다. 사이트는 이 파일을 읽지 않는다(카탈로그 항목의 `seriesKo`를 쓴다)
 
 ### kr-arrivals.json (크롤러가 씀) *(3단계)*
 ```json
@@ -212,6 +223,7 @@ plamo-hangar/
 - **영문 그대로 두는 말**: 용어집 값이 영문이면 영문 그대로 쓴다(예: `アンプリファイド → Amplified`). 시스템 프롬프트에도 `Amplified`는 번역·음역하지 말라는 규칙이 있다
 - **nameKo 후처리**: `config.NAME_KO_REPLACEMENTS`(예: `앰플리파이드 → Amplified`)를 매 실행 시작과 번역 직후에 `nameKo`(와 피드의 `titleKo`)에 부분 문자열 치환으로 적용한다. 용어집을 고친 뒤 이미 저장된 번역을 맞추는 용도이고, 해당 글자 외에는 `updated` 포함 아무것도 바꾸지 않는다
 - 수동 확인: `python -m crawler.translate --sample 20` — 실제 파이프라인과 같은 경로(가나 재요청 포함)로 fixture 제목 20개를 한 번 번역해 출력. 테스트는 실제 Claude를 호출하지 않는다(클라이언트 생성·`.env` 읽기를 `conftest`가 막음)
+- **시리즈 번역** *(4단계, `series.py`)*: 고유 `seriesKey`(현재 74개)만 Claude API로 한 번 번역한다(`translate` 단계 안에서, 새 시리즈가 없으면 호출하지 않음). 한국 정식 제목을 따르고 영문·숫자 표기(`SEED DESTINY`, `Re:RISE`)는 그대로 두며, 같은 용어집·가나 검사(남으면 그 항목만 한 번 재요청, 그래도 남으면 저장하지 않고 다음 실행에 재시도)를 쓴다. 키가 없거나 dry-run이어도 사전에 있는 시리즈는 항상 항목에 채운다. 수동 확인: `python -m crawler.series --sample 10`(번역해 출력만, 파일은 쓰지 않음)
 
 ## 6. 사이트 — 소유자 모드와 저장
 - 설정에서 **GitHub fine-grained 토큰**(이 저장소만, Contents: Read and write)을 넣으면 소유자 모드. 토큰은 그 브라우저 localStorage에만. `GET /repos/sora7942/plamo-hangar`의 `permissions.push`로 확인
@@ -234,12 +246,14 @@ plamo-hangar/
   - 정렬 "재판 공백 긴 순" (기록 없음은 일본 발매일 기준으로 맨 뒤 묶음), 빈 칸 모아보기에 "반다이 제품 미연결"
 - **사진 보기**: 상세 갤러리. 공식 사진에는 "사진: BANDAI SPIRITS" + 원본 페이지 링크
 - **리뷰 찾아보기**: 유튜브·네이버 블로그 검색 링크 (`<등급> <한국어 이름> 리뷰`)
-- 엑셀 백업·가져오기에 `catalogId` 열 추가. 사진은 백업에 넣지 않는다
+- 엑셀 백업·가져오기에 `catalogId` 열(`반다이 제품 ID`) 추가. 열이 없는 예전 백업도 그대로 가져오고, 형식이 맞지 않는 값은 버린다. 사진은 백업에 넣지 않는다
+- **자동 연결 후보** *(4단계 구현)*: 설정 → "자동 연결 후보 보기". 아직 연결 안 된 프라 중 정규화한 이름(등급·스케일 머리말 무시)·등급·스케일이 모두 같은 카탈로그 제품이 **정확히 1개**일 때만 제안한다(등급 `기타`·후보 2개 이상은 제외, 카탈로그에 스케일이 없으면 `논스케일`끼리). 체크한 것만 한 커밋으로 연결하고 빈 칸(시리즈 등)만 채운다. 같은 화면에서 "시리즈를 한국어로 바꾸기": 연결된 프라 중 시리즈 칸이 카탈로그의 일본어 `series`와 **정확히 같은** 것만 제안한다(직접 적은 값은 건드리지 않음)
+- **리뷰 찾아보기** *(4단계 구현)*: 상세에 `<등급> <이름> 리뷰` 유튜브·네이버 블로그 검색 링크(새 탭, noopener)
 
 ## 7. 디스코드 알림
 - 매 실행 1회, 이번에 새로 들어온 피드 항목을 묶어 보낸다
 - 순서: ① 내 보유·위시와 연결된 국내 입고 (따로 맨 앞, 강조 색) ② 국내 재입고·신규 ③ P-반다이 한정 신규 ④ 신제품 발매 일정
-  - **①(내 프라 우선)은 4단계(카탈로그 연결 기능)에서 구현한다.** 3단계까지는 ②~④ 순서만 적용된다(`config.FEED_TYPES` 우선순위)
+  - **①(내 프라 우선) 구현됨(4단계)**: 크롤러가 `collection.json`을 **읽기만** 해서(`mine.py`) 보유·위시의 `catalogId`와 같은 **국내 입고(kr-restock·kr-new)**를 맨 앞에 놓고 `[내 프라]` 제목·`내 프라(보유·위시)` 설명·강조 색(`config.MINE_COLOR`)으로 보낸다. 첫 메시지에 `내 프라가 국내에 입고됐어요! (N건)`을 붙이고, 한도를 넘어도 내 프라가 먼저 살아남는다. 신제품·P-반다이는 내 프라여도 우선 대상이 아니다. 나머지는 ②~④ 순서(`config.FEED_TYPES` 우선순위)
 - 조이하비 항목은 **글 날짜가 최근 `KR_NOTIFY_DAYS`(3)일 이내**인 것만 알린다. 피드 노출 기간(`KR_FEED_DAYS`, 30일)과 별개다 — 배포 직후 예약 실행이 최근 한 달 글을 한꺼번에 알리지 않게 한다
 - 임베드: 제목 링크, 종류, 시기, 안정 이미지가 있으면 썸네일. 메시지당 10개, 실행당 3메시지, 넘치면 "외 N건 — 사이트에서 보기"
 - 최초 채우기(`--bootstrap`) 중이거나 이전 feed가 비었거나 이전 카탈로그가 비어 있었으면(첫 실행) 보내지 않는다. `--dry-run`은 이 규칙으로 건너뛰는 경우에도 형식 확인용으로 보낼 내용을 출력한다
@@ -258,7 +272,7 @@ plamo-hangar/
 ## 9. GitHub Actions (`crawl.yml`)
 - 트리거: `schedule: cron "10 22 * * *"` (KST 07:10), `workflow_dispatch`(입력: `bootstrap`, `max_backlog`(기본 150), `joy_backfill`(조이하비 과거 글만: `--bootstrap --only joyhobby`), `joy_pages`(기본 25))
 - `concurrency: { group: crawl }`, 권한 `contents: write`
-- 단계: checkout → Python 3.12 + pip 캐시 → `python main.py` → 요청 로그 artifact(7일) → `git pull --rebase --autostash` → **허용 목록 6개만 add**(`catalog-gunpla/girl/pending.json`, `feed.json`, `kr-arrivals.json`, `meta.json`; 그 밖의 경로가 staged면 실패해 `collection.json`·`photos/`를 지킨다) → 변경이 있으면 커밋(`data: crawl YYYY-MM-DD`) → push(충돌 시 `pull --rebase` 후 최대 3회). `timeout-minutes: 45`
+- 단계: checkout → Python 3.12 + pip 캐시 → `python main.py` → 요청 로그 artifact(7일) → `git pull --rebase --autostash` → **허용 목록 7개만 add**(`catalog-gunpla/girl/pending.json`, `feed.json`, `kr-arrivals.json`, `series-ko.json`, `meta.json`; 그 밖의 경로가 staged면 실패해 `collection.json`·`photos/`를 지킨다) → 변경이 있으면 커밋(`data: crawl YYYY-MM-DD`) → push(충돌 시 `pull --rebase` 후 최대 3회). `timeout-minutes: 45`
 - 조이하비 과거 글 채우기: 수동 실행에서 `joy_backfill`을 켠다(한 번에 끝남, 약 320요청 ≈ 6.5분 — 후보 글의 2/3가 BD 행이 없는 글이라 대부분이 "봤음"용 요청이다). 호비사이트 채우기와 독립이다
 - 최초 채우기: 수동 실행에서 `bootstrap`을 켜고, `meta.crawl.backlog`가 0이 될 때까지 몇 번 반복한다(실행당 상세 최대 190개 + 일정·브랜드 수백 요청, 요청 간 1.2초 → 한 번에 10분 안팎)
 - (Playwright가 필요해진 소스가 있을 때만) Chromium 설치 단계 추가
@@ -291,6 +305,6 @@ plamo-hangar/
 3. 국내 입고 — 조이하비 수집·과거 글 채우기·매칭·`kr` 이력
    - **상태 (2026-10-08): 코드·테스트(299개)·로컬 실제 실행 완료.** 로컬 실행 결과는 커밋하지 않았다(데이터는 Actions만 쓴다) — 과거 글 채우기는 push 후 수동 실행 `joy_backfill`(`joy_pages` 25). 로컬 첫 실행 `--bootstrap --dry-run --only joyhobby`(319요청, 6.5분): 후보 글 298개 중 BD 행 있음 99·없음 193·사이트 버그 6, 행 2,382, 코드 1,260개 중 **161개 연결**(등급을 아는 919개 중 17.5% — 카탈로그 상세 backlog 2,144가 줄면 매 실행 재매칭으로 오른다), `kr` 329건, `nameKo` 교체 157건. 남은 것: 연결 결과 사용자 확인(`crawler/out/joy-links.txt`), 커밋·push 후 Actions 수동 실행(`joy_backfill`)과 다음 날 예약 실행 확인. "내 프라 우선" 알림은 4단계
 4. 사이트 연결 — 카탈로그 검색·연결, 공식 사진 갤러리·자리표시, 재판 공백, 신제품·입고 탭, 리뷰 링크
-   - **진행 (PROGRESS.md 참고)**: 4a(카탈로그 로딩·검색·연결·공식 사진) 완료. 4b 재판 공백·정렬 → 4c 신제품·입고 탭 → 4d 자동 연결·리뷰·엑셀 `catalogId`·크롤러(내 프라 우선 알림, 미등록 `catalogId` 상세) 순서
+   - **상태 (2026-10-08): 코드·테스트 완료.** 4a 카탈로그 로딩·검색·연결·공식 사진, 4b 재판 공백·정렬, 4c 신제품·입고 탭, 4d 자동 연결·시리즈 한국어·리뷰 링크·엑셀 `catalogId`·크롤러(내 프라 우선 알림, 미등록 `catalogId` 상세, `seriesKo`). 남은 것: push 후 Actions 수동 실행으로 `seriesKo` 번역(API 키 필요)·미등록 `catalogId` 상세 확인, 사이트에서 실제 연결·알림 확인
    - 사이트 로딩: `collection.json`만으로 먼저 그리고, 연결된 프라가 있을 때(또는 찾기·신제품 탭을 열 때) `meta.json` → `catalog-gunpla/girl.json?v=<meta.updatedAt>`을 뒤에서 받는다. `kr-arrivals`·`pending`은 읽지 않는다(pending은 4d에서 URL 붙여넣기 확인용으로만 검토)
 5. 마무리 — 실제 알림 1회(사용자 요청 시), README, 이전 아티팩트 정리 여부 확인
