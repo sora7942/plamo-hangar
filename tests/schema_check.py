@@ -51,6 +51,20 @@ def check_catalog_item(it: dict, line: str | None) -> list[str]:
     errs += check_release(it.get("release"), w)
     if not isinstance(it.get("kr"), list):
         errs.append(f"{w}: kr")
+    else:
+        seen_kr = set()
+        for k in it["kr"]:
+            key = (k.get("post"), k.get("code"))
+            if key in seen_kr:
+                errs.append(f"{w}: kr (post, code) 중복 {key}")
+            seen_kr.add(key)
+            if not (re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(k.get("date", ""))) and k.get("type") in ("restock", "new")
+                    and k.get("source") == "joyhobby" and re.fullmatch(r"\d+", str(k.get("post", "")))
+                    and re.fullmatch(r"BD\d{7}", str(k.get("code", ""))) and (k.get("priceKrw") is None or isinstance(k["priceKrw"], int))
+                    and ISO_KST.match(str(k.get("seenAt", "")))):
+                errs.append(f"{w}: kr 항목 형식 {k!r}")
+    if "nameKoSource" in it and (it["nameKoSource"] != "joyhobby" or "nameKoAi" not in it or not _opt_str(it["nameKoAi"])):
+        errs.append(f"{w}: nameKoSource/nameKoAi")
     imgs = it.get("images")
     if not isinstance(imgs, list):
         errs.append(f"{w}: images")
@@ -112,6 +126,36 @@ def check_feed(doc: dict) -> list[str]:
     return errs
 
 
+def check_arrivals(doc: dict) -> list[str]:
+    errs = []
+    if not ISO_KST.match(str(doc.get("updatedAt", ""))):
+        errs.append("arrivals updatedAt 형식")
+    posts, rows, cmap = doc.get("posts"), doc.get("rows"), doc.get("codeMap")
+    if not (isinstance(posts, dict) and isinstance(rows, list) and isinstance(cmap, dict)):
+        return errs + ["arrivals posts/rows/codeMap 형식"]
+    for pid, p in posts.items():
+        if not (re.fullmatch(r"\d+", pid) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(p.get("date", "")))
+                and p.get("state") in ("pending", "done", "no-bd", "gone", "broken", "error") and isinstance(p.get("title"), str)):
+            errs.append(f"post {pid}: 형식 {p!r}")
+        if p.get("state") in ("done", "no-bd") and not (p.get("sale") is None or re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(p["sale"]))):
+            errs.append(f"post {pid}: sale 형식")
+    seen = set()
+    for r in rows:
+        key = (r.get("post"), r.get("code"))
+        if key in seen:
+            errs.append(f"row (post, code) 중복 {key}")
+        seen.add(key)
+        post = posts.get(r.get("post"))
+        if not (post is not None and re.fullmatch(r"BD\d{7}", str(r.get("code", ""))) and isinstance(r.get("name"), str)
+                and (r.get("price") is None or isinstance(r["price"], int)) and r.get("postDate") == post["date"]):
+            errs.append(f"row 형식 {r!r}")
+    for code, e in cmap.items():
+        if not (re.fullmatch(r"BD\d{7}", code) and isinstance(e.get("catalogId"), str) and e.get("method") in ("fuzzy", "override")
+                and isinstance(e.get("nameApplied"), bool)):
+            errs.append(f"codeMap {code}: 형식 {e!r}")
+    return errs
+
+
 def check_meta(doc: dict) -> list[str]:
     errs = []
     if not ISO_KST.match(str(doc.get("updatedAt", ""))):
@@ -139,6 +183,8 @@ def check_dir(d: Path) -> list[str]:
             errs += [f"{name}: {e}" for e in check_catalog_file(json.loads(p.read_text(encoding="utf-8")), line)]
         else:
             errs.append(f"{name} 없음")
+    if (d / "kr-arrivals.json").exists():
+        errs += [f"kr-arrivals.json: {e}" for e in check_arrivals(json.loads((d / "kr-arrivals.json").read_text(encoding="utf-8")))]
     for name, fn in (("feed.json", check_feed), ("meta.json", check_meta)):
         p = d / name
         errs += [f"{name}: {e}" for e in fn(json.loads(p.read_text(encoding="utf-8")))] if p.exists() else [f"{name} 없음"]

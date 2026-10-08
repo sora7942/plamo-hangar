@@ -2,7 +2,8 @@
 
     python main.py                         # 수집 → docs/data 갱신 → 디스코드 발송
     python main.py --dry-run               # 파일은 쓰되 디스코드로 보내지 않고 보낼 내용을 출력
-    python main.py --only hobby_item       # 일부 단계만 (hobby, hobby_schedule, hobby_brand, hobby_item, translate)
+    python main.py --only hobby_item       # 일부 단계만 (hobby, hobby_schedule, hobby_brand, hobby_item, joyhobby, translate)
+    python main.py --bootstrap --only joyhobby   # 조이하비 과거 글 채우기 (실행당 --joy-pages쪽, 진행 위치는 meta.crawl.joyNext)
     python main.py --bootstrap --from 2025-10 --data-dir /tmp/data   # 최초 채우기(범위를 줄여 확인용으로)
 """
 from __future__ import annotations
@@ -25,17 +26,20 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap = argparse.ArgumentParser(description="반다이 호비사이트 카탈로그·신제품 피드 수집")
     ap.add_argument("--dry-run", action="store_true", help="파일은 쓰되 디스코드로 보내지 않는다 (보낼 내용을 콘솔에 출력)")
     ap.add_argument("--no-discord", action="store_true", help="디스코드 발송을 끈다")
-    ap.add_argument("--only", help="콤마로 구분한 단계만 실행: hobby, hobby_schedule, hobby_brand, hobby_item, translate")
+    ap.add_argument("--only", help="콤마로 구분한 단계만 실행: hobby, hobby_schedule, hobby_brand, hobby_item, joyhobby, translate")
     ap.add_argument("--bootstrap", action="store_true", help="최초 채우기: 일정을 과거로, 걸프라 브랜드를 전체 쪽수로")
     ap.add_argument("--from", dest="from_month", metavar="YYYY-MM", help=f"--bootstrap 일정 시작 달 (기본 {config.SCHEDULE_START})")
     ap.add_argument("--max-new", type=int, default=config.DETAIL_NEW_MAX, help="실행당 상세: 새 상품 상한")
     ap.add_argument("--max-backlog", type=int, default=config.DETAIL_BACKLOG_MAX, help="실행당 상세: 밀린 상품 상한")
+    ap.add_argument("--joy-pages", type=int, default=None, help=f"--bootstrap 때 조이하비 과거 목록을 훑을 쪽 수 (기본 {config.JOY_BACKFILL_PAGES})")
     ap.add_argument("--data-dir", type=Path, default=None, help=f"데이터 폴더 (기본 {config.DATA_DIR})")
     args = ap.parse_args(argv)
     if args.from_month and not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", args.from_month):
         ap.error("--from은 YYYY-MM 형식이어야 합니다")
     if args.max_new < 0 or args.max_backlog < 0:
         ap.error("--max-new/--max-backlog는 0 이상이어야 합니다")
+    if args.joy_pages is not None and args.joy_pages < 1:
+        ap.error("--joy-pages는 1 이상이어야 합니다")
     return args
 
 
@@ -55,6 +59,7 @@ def _write_step_summary(result: dict) -> None:
         f"- 카탈로그 {cr['counts']}, 밀린 상품(상세 대기) {cr['backlog']}",
         f"- 이번에 새로 발견 {result['newItems']}건 / 피드 추가 {result['feedAdded']}건 / 상세 {result['details']}",
         f"- 일정 커서 {cr.get('scheduleFrom')}, 걸프라 브랜드 완료 {cr.get('girlBrandsDone')}",
+        f"- 조이하비 커서 다음 쪽 {cr.get('joyNext')}, 끝까지 훑음 {bool(cr.get('joyDone'))}, 기록 시작 {cr.get('joyOldest')}",
         "", "| 소스 | 결과 | 항목 | 오류 |", "|---|---|---|---|",
     ]
     for name, s in meta["sources"].items():
@@ -79,8 +84,8 @@ def main(argv: list[str] | None = None) -> int:
         dry_run=args.dry_run, no_discord=args.no_discord,
         only={s.strip() for s in args.only.split(",") if s.strip()} if args.only else None,
         bootstrap=args.bootstrap, from_month=args.from_month,
-        max_new=args.max_new, max_backlog=args.max_backlog,
-        data_dir=args.data_dir or config.DATA_DIR,
+        max_new=args.max_new, max_backlog=args.max_backlog, joy_pages=args.joy_pages,
+        data_dir=args.data_dir or config.DATA_DIR, report_dir=config.REQUEST_LOG.parent,
     )
     opts.stages()                                                  # 잘못된 --only는 여기서 바로 실패
     http = HttpClient(log_path=config.REQUEST_LOG)

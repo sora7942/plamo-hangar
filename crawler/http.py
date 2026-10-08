@@ -25,6 +25,32 @@ from .store import now_kst
 log = logging.getLogger("plamo.http")
 
 
+_CHARSET_HEADER_RX = re.compile(r"charset\s*=\s*[\"']?([\w.:-]+)", re.I)
+_CHARSET_META_RX = re.compile(rb"<meta[^>]+charset\s*=\s*[\"']?\s*([\w.:-]+)", re.I)
+_CHARSET_ALIASES = {"euc-kr": "cp949", "euckr": "cp949", "ks_c_5601-1987": "cp949", "ksc5601": "cp949"}   # cp949가 euc-kr의 상위 집합
+
+
+def decode_body(content: bytes, content_type: str | None = None) -> str:
+    """응답 바이트 → 문자열. 문자 집합은 Content-Type 헤더 → HTML `<meta charset>` → UTF-8 순으로 정한다.
+
+    조이하비는 EUC-KR이라 UTF-8로 읽으면 한글이 전부 깨진다(r.text는 charset이 없으면 latin-1로 읽어 이것도 깨진다).
+    알 수 없는 이름이면 UTF-8. 디코딩 오류는 치환 문자로 두고 멈추지 않는다.
+    """
+    name = None
+    m = _CHARSET_HEADER_RX.search(content_type or "")
+    if m:
+        name = m.group(1)
+    else:
+        m = _CHARSET_META_RX.search(content[:4096])
+        if m:
+            name = m.group(1).decode("ascii", "ignore")
+    name = _CHARSET_ALIASES.get((name or "utf-8").lower(), (name or "utf-8"))
+    try:
+        return content.decode(name, "replace")
+    except LookupError:
+        return content.decode("utf-8", "replace")
+
+
 class Blocked(Exception):
     """robots.txt 차단 또는 상세 상한 초과로 요청하지 않음."""
 
@@ -173,7 +199,8 @@ class HttpClient:
             self.stats.failures += 1
             self._log("GET", kind, "ERR", url, note=type(e).__name__)
             return Fetched(url=url, error=type(e).__name__)
-        text = r.content.decode("utf-8", "replace")   # r.text는 charset이 없으면 latin-1로 깨진다
+        headers = getattr(r, "headers", None) or {}
+        text = decode_body(r.content, headers.get("Content-Type"))
         self._log("GET", kind, r.status_code, url, r.url, len(r.history))
         return Fetched(url=url, status=r.status_code, text=text, final_url=r.url, redirects=len(r.history))
 

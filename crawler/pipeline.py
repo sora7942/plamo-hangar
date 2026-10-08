@@ -1,4 +1,4 @@
-"""실행 파이프라인 — 이전 상태 로드 → 일정 → 걸프라 브랜드 → 상세 → 번역 → 피드 → 파일 쓰기 → 디스코드.
+"""실행 파이프라인 — 이전 상태 로드 → 일정 → 걸프라 브랜드 → 상세 → 조이하비 국내 입고 → 번역 → 피드 → 파일 쓰기 → 디스코드.
 
 소스(단계)는 각각 격리한다: 한 단계가 실패해도 나머지는 계속하고, 실패는 meta.sources에 남긴다.
 `main.py`는 인자 처리만 하고 이 모듈의 run()을 부른다 (테스트는 가짜 HttpClient로 run()을 직접 부른다).
@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import copy
+import json
 import logging
 import os
 from dataclasses import dataclass, field
@@ -14,16 +15,17 @@ from pathlib import Path
 
 import requests
 
-from . import config, discord, feed, translate
+from . import config, discord, feed, kr, translate
 from .catalog import Catalog
 from .http import Blocked, HttpClient, SourceAborted
-from .sources import hobby_brand, hobby_item, hobby_schedule
+from .sources import hobby_brand, hobby_item, hobby_schedule, joyhobby
 from .store import iso, now_kst, read_json, write_json
 
 log = logging.getLogger("plamo.pipeline")
 
 HOBBY_STAGES = ("hobby_schedule", "hobby_brand", "hobby_item")
-ALL_STAGES = (*HOBBY_STAGES, "translate")
+SOURCE_STAGES = (*HOBBY_STAGES, "joyhobby")            # 수집 단계 (translate 앞)
+ALL_STAGES = (*SOURCE_STAGES, "translate")
 
 
 @dataclass
@@ -35,7 +37,9 @@ class Options:
     from_month: str | None = None           # --bootstrap 때 일정을 거슬러 올라갈 시작 달 (YYYY-MM)
     max_new: int = config.DETAIL_NEW_MAX
     max_backlog: int = config.DETAIL_BACKLOG_MAX
+    joy_pages: int | None = None            # --bootstrap 때 조이하비 과거 쪽 수 (None이면 config.JOY_BACKFILL_PAGES)
     data_dir: Path = field(default_factory=lambda: config.DATA_DIR)
+    report_dir: Path | None = None          # 조이하비 전체 보고서(joy-report.json)를 쓸 폴더. None이면 쓰지 않는다
 
     def stages(self) -> set[str]:
         if self.only is None:
@@ -61,6 +65,8 @@ class _Ctx:
         self.new_ids: list[str] = []              # 이번 실행에서 처음 발견한 항목 (발견 순서)
         self.unknown_keys: set[str] = set()
         self.detail_counts = {"new": 0, "backlog": 0, "excluded": 0, "failed": 0}
+        self.arrivals = kr.Arrivals()
+        self.joy_scan: dict = {}                  # 조이하비 단계의 이번 실행 통계
 
     def add_card(self, card: dict, brand_key: str | None = None) -> None:
         item, is_new = self.catalog.upsert_card(card, self.now_iso, brand_key)
@@ -154,7 +160,72 @@ def stage_item(ctx: _Ctx) -> tuple[int, list[str]]:
     return ctx.detail_counts["new"] + ctx.detail_counts["backlog"] + ctx.detail_counts["excluded"], failed
 
 
-STAGE_FUNCS = {"hobby_schedule": stage_schedule, "hobby_brand": stage_brand, "hobby_item": stage_item}
+def stage_joyhobby(ctx: _Ctx) -> tuple[int, list[str]]:
+    """조이하비 공지 게시판 → 반다이 입고 글의 원본 행. → (본문을 읽은 글 수, 실패한 목록/글).
+
+    매 실행 1~JOY_DAILY_PAGES쪽을 훑어 새 글을 찾는다. --bootstrap이면 거기에 더해 과거 쪽을 JOY_BACKFILL_PAGES(또는 --joy-pages)만큼
+    `meta.crawl.joyNext`(연속으로 훑은 다음 쪽)부터 이어서 훑는다. 게시판 끝(마지막 쪽)에 닿으면 joyDone.
+    연결·kr·피드는 이 단계가 끝난 뒤 run()이 한다."""
+    arr, crawl = ctx.arrivals, ctx.crawl
+    failed: list[str] = []
+    cursor = crawl.get("joyNext") or 1
+    pages = list(range(1, config.JOY_DAILY_PAGES + 1))
+    if ctx.opts.bootstrap and not crawl.get("joyDone"):
+        start = max(cursor, config.JOY_DAILY_PAGES + 1)
+        pages += list(range(start, start + (ctx.opts.joy_pages or config.JOY_BACKFILL_PAGES)))
+    seen_ids: set[str] = set()
+    scanned = new_posts = 0
+    for page in pages:
+        if page > config.JOY_BOARD_MAX_PAGE:
+            break
+        rows = joyhobby.fetch_board_page(ctx.http, page)
+        if rows is None:
+            failed.append(f"list:{page}")
+            break
+        fresh = [r for r in rows if r["id"] not in seen_ids]
+        seen_ids.update(r["id"] for r in rows)
+        if not fresh and page > 1:                   # 게시판 끝을 넘은 쪽은 마지막 행만 되풀이한다
+            if page == cursor:
+                crawl["joyDone"] = True
+            break
+        scanned += 1
+        new_posts += sum(arr.note_board_row(r) for r in fresh)
+        if page == cursor:                           # 1쪽부터 끊김 없이 훑은 범위만 커서와 "기록 시작일"에 반영한다
+            cursor += 1
+            crawl["joyNext"] = cursor
+            dates = [r["date"] for r in rows if r["date"]]
+            if dates:
+                crawl["joyOldest"] = min([*dates, crawl["joyOldest"]] if crawl.get("joyOldest") else dates)
+        if len(rows) < config.JOY_BOARD_PAGE_SIZE:   # 마지막 쪽
+            if page == cursor - 1:
+                crawl["joyDone"] = True
+            break
+
+    todo = arr.pending(config.JOY_POSTS_PER_RUN_MAX)
+    ctx.http.detail_limit = ctx.http.stats.by_kind["detail"] + len(todo)     # 안전장치: 계획한 수 이상은 요청하지 않는다
+    fetched = broken = 0
+    try:
+        for pid in todo:
+            parsed, status, site_bug = joyhobby.fetch_post(ctx.http, pid)
+            if parsed is None:
+                arr.record_failure(pid, status, site_bug=site_bug)
+                if site_bug:                         # 글 하나의 사이트 버그이지 차단·장애가 아니다: 연속 실패로 세지 않고 다음 글로
+                    ctx.http.reset_breaker()
+                    broken += 1
+                else:
+                    failed.append(f"post:{pid}")
+                continue
+            arr.record_post(pid, parsed)
+            fetched += 1
+    finally:
+        ctx.http.detail_limit = None
+        ctx.joy_scan = {"pagesScanned": scanned, "newPosts": new_posts, "postsFetched": fetched, "postsBroken": broken,
+                        "pendingLeft": len(arr.pending(10**9))}      # 중간에 멎어도 지금까지의 통계를 남긴다
+    return fetched, failed
+
+
+STAGE_FUNCS = {"hobby_schedule": stage_schedule, "hobby_brand": stage_brand, "hobby_item": stage_item,
+               "joyhobby": stage_joyhobby}
 
 
 def _run_stage(ctx: _Ctx, name: str) -> dict:
@@ -197,9 +268,17 @@ def run(opts: Options, http: HttpClient, *, now: datetime | None = None, anthrop
     fixups = catalog.reclassify(now_iso)
     fixups["nameKoReplaced"] = catalog.apply_name_ko_replacements(config.NAME_KO_REPLACEMENTS)
 
-    for name in HOBBY_STAGES:
+    if "joyhobby" in stages:
+        ctx.arrivals = kr.Arrivals.load(data_dir)
+    for name in SOURCE_STAGES:
         if name in stages:
             sources[name] = _run_stage(ctx, name)
+    if "joyhobby" in stages:       # 수집이 중간에 멎었어도 지금까지 모은 행으로 (다시) 연결한다
+        joy_rep = kr.link_all(ctx.arrivals, catalog, now_iso)
+        ctx.arrivals.save(data_dir, now_iso)
+        sources["joyhobby"].update({**ctx.arrivals.stats(), **ctx.joy_scan, "newLinks": len(joy_rep["newLinks"]),
+                                    "nameChanged": joy_rep["nameChanged"], "krAdded": joy_rep["krAdded"]})
+        _report_joy(out, ctx, joy_rep, opts.report_dir, catalog)
 
     if "translate" in stages:
         res = translate.translate_pending(catalog, now_iso, client=anthropic_client)
@@ -213,6 +292,11 @@ def run(opts: Options, http: HttpClient, *, now: datetime | None = None, anthrop
     # 피드: 이번에 처음 발견한 항목 + 이전 피드
     prev_snapshot = copy.deepcopy(prev_feed)               # merge_feed가 빈 칸(titleKo·image)을 제자리에서 보충하므로 비교용 복사
     new_items = feed.new_feed_items(catalog, ctx.new_ids, now, now_iso)
+    notify_kr: set[str] = set()
+    if "joyhobby" in stages:
+        kr.refresh_feed(prev_feed, ctx.arrivals, catalog)            # 나중에 연결된 입고 항목의 catalogId·image·type 보충 (added는 그대로)
+        kr_items, notify_kr = kr.feed_items(ctx.arrivals, catalog, now.astimezone(config.KST).date(), now_iso)
+        new_items = new_items + kr_items
     merged, added = feed.merge_feed(prev_feed, new_items, catalog)
     fixups["feedTitleKoReplaced"] = feed.apply_title_ko_replacements(merged, config.NAME_KO_REPLACEMENTS)
 
@@ -227,7 +311,7 @@ def run(opts: Options, http: HttpClient, *, now: datetime | None = None, anthrop
     stats["minGapSec"] = round(http.stats.min_gap, 2) if http.stats.min_gap is not None else None
     meta = {
         "updatedAt": now_iso,
-        "since": prev_meta.get("since") or now.date().isoformat(),
+        "since": crawl.get("joyOldest") or prev_meta.get("since") or now.date().isoformat(),   # 조이하비 기록 시작일(훑은 가장 오래된 글 날짜)이 있으면 그것
         "sources": {**(prev_meta.get("sources") or {}), **sources},
         "crawl": crawl,
         "stats": stats,
@@ -235,9 +319,49 @@ def run(opts: Options, http: HttpClient, *, now: datetime | None = None, anthrop
     }
     write_json(data_dir / config.META_FILE, meta)
 
-    notified = _notify(opts, added, prev_feed_empty=not prev_feed, prev_catalog_empty=catalog.was_empty, post=post, out=out)
+    # 조이하비 항목은 글 날짜가 KR_NOTIFY_DAYS일 이내인 것만 알린다 (피드 노출은 KR_FEED_DAYS일)
+    to_notify = [a for a in added if not a["id"].startswith("jh-") or a["id"] in notify_kr]
+    notified = _notify(opts, to_notify, prev_feed_empty=not prev_feed, prev_catalog_empty=catalog.was_empty, post=post, out=out)
     return {"meta": meta, "catalog": counts, "newItems": len(ctx.new_ids), "feedAdded": len(added),
             "details": ctx.detail_counts, "notified": notified}
+
+
+def _links_table(arr: kr.Arrivals, catalog) -> str:
+    """현재 codeMap 전체를 사람이 검토하기 쉬운 표로. 점수 낮은 순 — 틀린 연결은 위쪽에서 찾는다."""
+    latest = arr.latest_rows()
+    lines = ["점수 | 차이 | 방법 | 이름교체 | 상품코드 | 조이하비 상품명 | 카탈로그 id | 카탈로그 이름(교체 전) → (교체 후)"]
+    for code, e in sorted(arr.code_map.items(), key=lambda kv: (kv[1]["score"] is not None, kv[1]["score"] or 0, kv[0])):
+        item = catalog.items.get(e["catalogId"], {})
+        before = item.get("nameKoAi") if item.get("nameKoSource") == "joyhobby" else item.get("nameKo")
+        after = item.get("nameKo")
+        lines.append(f"{e['score']} | {e['margin']} | {e['method']} | {'예' if e.get('nameApplied') else '-'} | {code} | "
+                     f"{(latest.get(code) or {}).get('name', '?')} | {e['catalogId']} | {before} → {after}")
+    return "\n".join(lines) + "\n"
+
+
+def _report_joy(out, ctx: _Ctx, rep: dict, report_dir: Path | None, catalog, show: int = 25) -> None:
+    """조이하비 단계 요약(콘솔) + 전체 보고서(joy-report.json: 새로 한 일이 있을 때만) + 연결표(joy-links.txt: 매번)."""
+    arr, st = ctx.arrivals, ctx.arrivals.stats()
+    pct = f"{100 * st['linkedCodes'] / st['codes']:.0f}%" if st["codes"] else "-"
+    out(f"[조이하비] 글 {st['posts']}개 {st['postStates']} · 행 {st['rows']} · 코드 {st['codes']}개 중 연결 {st['linkedCodes']} ({pct}) "
+        f"· 이번 실행: 목록 {ctx.joy_scan.get('pagesScanned', 0)}쪽, 새 글 {ctx.joy_scan.get('newPosts', 0)}, "
+        f"본문 {ctx.joy_scan.get('postsFetched', 0)}건, 새 연결 {len(rep['newLinks'])}, nameKo 교체 {rep['nameChanged']}, kr 추가 {rep['krAdded']}")
+    if rep["newLinks"]:
+        out(f"[조이하비] codeMap 신규 연결 {len(rep['newLinks'])}건" + (f" (앞 {show}건)" if len(rep["newLinks"]) > show else ""))
+        for n in rep["newLinks"][:show]:
+            out(f"  {n['code']} 점수 {n['score']} 차이 {n['margin']}{' [이름교체]' if n['nameOk'] else ''}  {n['joy'][:46]}  ↔  {n['catalogId']} {n['catalogNameKo']}")
+    no_bd = sorted(((pid, p) for pid, p in arr.posts.items() if p["state"] == "no-bd"), key=lambda kv: -int(kv[0]))
+    if no_bd:
+        out(f"[조이하비] 후보였지만 BD 행 없음 {len(no_bd)}건" + (f" (앞 {show}건)" if len(no_bd) > show else ""))
+        for pid, p in no_bd[:show]:
+            out(f"  {pid} {p['date']} {p['title']}")
+    if report_dir is not None:
+        Path(report_dir).mkdir(parents=True, exist_ok=True)
+        (Path(report_dir) / "joy-links.txt").write_text(_links_table(arr, catalog), encoding="utf-8")
+        if rep["newLinks"] or rep["nameChanged"] or rep["krAdded"] or ctx.joy_scan.get("postsFetched"):     # 아무 일도 없던 실행이 이전 보고서를 덮어쓰지 않게
+            report = {"at": iso(ctx.now), "stats": st, "scan": ctx.joy_scan, "crawl": {k: v for k, v in ctx.crawl.items() if k.startswith("joy")},
+                      "link": rep, "noBdPosts": [{"post": pid, **p} for pid, p in no_bd]}
+            (Path(report_dir) / "joy-report.json").write_text(json.dumps(report, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
 def _notify(opts: Options, added: list[dict], *, prev_feed_empty: bool, prev_catalog_empty: bool, post, out) -> int:

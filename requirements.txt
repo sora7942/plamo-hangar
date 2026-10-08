@@ -3,3 +3,4 @@ beautifulsoup4
 anthropic
 python-dotenv
 pytest
+rapidfuzz

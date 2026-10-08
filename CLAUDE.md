@@ -13,14 +13,15 @@
 - 이후 작업 전: `conda activate plamo`
 - 수집, 알림 없이: `python main.py --dry-run`
 - 일부 소스만: `python main.py --dry-run --only joyhobby`
+- 조이하비 과거 글 채우기(한 번에 끝남): `python main.py --bootstrap --dry-run --only joyhobby` (`--joy-pages N`으로 쪽 수 조절, 진행 위치는 `meta.crawl.joyNext`). 전체 보고서는 `crawler/out/joy-report.json`
 - 최초 카탈로그 채우기: `python main.py --bootstrap` (상세는 실행당 새 40 + 밀린 150. 확인용으로 범위를 줄일 때: `--bootstrap --from 2025-10 --data-dir <임시폴더>`)
 - 사이트 미리보기: `python -m http.server -d docs 8000` → http://localhost:8000
 - 테스트: `pytest -q` (사이트 순수 함수는 `node tests/site_*.test.mjs`)
 
 ## Structure
 - 사이트가 쓰는 파일: `docs/data/collection.json`, `docs/photos/**` — 크롤러는 읽기만 한다
-- 크롤러가 쓰는 파일: `docs/data/catalog-*.json`, `feed.json`, `meta.json` — 사이트는 읽기만 한다
-- URL·대상 라인·주기·개수 제한·알림 규칙·모델명은 `crawler/config.py` 한 곳에만 둔다
+- 크롤러가 쓰는 파일: `docs/data/catalog-*.json`, `feed.json`, `kr-arrivals.json`, `meta.json` — 사이트는 읽기만 한다. **이 파일들은 Actions만 커밋한다** — 로컬 `--dry-run`/`--bootstrap` 결과는 `git restore`로 되돌리고 커밋하지 않는다
+- URL·대상 라인·주기·개수 제한·알림 규칙·모델명·매칭 임계값은 `crawler/config.py` 한 곳에만 둔다. 사람이 고치는 표(`BRAND_LINE`, `JOY_BRACKET_GRADES`, `KR_CODE_OVERRIDES` …)도 거기 있다
 - 수집기는 `crawler/sources/`에 소스별 파일로 두고 SPEC 4장 형식을 반환한다
 - 테스트용 저장 응답은 `tests/fixtures/`
 - `reference/artifact-v2.html`은 옮기기 전 원본. 고치지 않는다
@@ -29,7 +30,8 @@
 - 모든 외부 요청: robots.txt 준수, 요청 간 1.2초 이상, timeout 20초, 브라우저 형태 User-Agent (spike/common.py의 게이트를 crawler/http.py로 옮겨 재사용)
 - 소스 하나가 실패해도 전체 실행은 계속하고 `meta.json`에 기록한다
 - 시간은 timezone-aware, 저장은 `+09:00` ISO 문자열. JSON은 `encoding="utf-8"`, `ensure_ascii=False`
-- 카탈로그 `kr` 이력과 피드 `added`는 한 번 들어가면 지우거나 바꾸지 않는다
+- 카탈로그 `kr` 이력과 피드 `added`는 한 번 들어가면 지우거나 바꾸지 않는다 (예외: `KR_CODE_OVERRIDES`로 사람이 "연결 금지"한 코드의 kr만 뺀다). 피드 항목의 `type`만 조이하비 연결 후 60일 규칙으로 고칠 수 있다
+- 조이하비 이름 매칭은 애매하면 연결하지 않는다. 연결(`MATCH_LINK_SCORE`)과 `nameKo` 교체(`MATCH_NAME_SCORE`, 더 높음)는 기준이 다르다. 교체 전 번역은 `nameKoAi`에 보존한다. 교체는 `line`이 gunpla인 항목만(걸프라는 번역 유지). 이름 끝의 ` - <작품명>` 꼬리는 항상 뗀다
 - 사이트에 넣는 외부 문자열(카탈로그·피드·내 메모)은 전부 이스케이프한다 — localStorage에 GitHub 토큰이 있다
 - 사이트를 고치면 데스크톱·모바일(400px), 라이트·다크 모드에서 확인한다
 - 매칭이 애매하면 연결하지 않는다 (틀린 연결 < 연결 없음)
@@ -46,6 +48,11 @@
 
 ## Gotchas
 - 0단계 결과(`spike/report.md`)가 사이트 구조의 기준이다. 셀렉터·URL은 거기와 fixture를 따른다
+- 조이하비는 **EUC-KR**(응답 헤더 `Charset=euc-kr`)이다. `crawler/http.py`의 `decode_body`가 Content-Type → `<meta charset>` → UTF-8 순으로 읽는다. `r.text`나 UTF-8 고정 디코딩을 쓰면 한글이 깨진다. fixture도 `joyhobby-raw-*.html`은 응답 원본 바이트(`joyhobby-post-*`/`joyhobby-board-notice-p1`은 Playwright 저장본 UTF-8)
+- 조이하비 공지 목록: **고정 공지 7개(`Notice=true`)가 쪽마다 맨 위에 반복**된다(버릴 것). 쪽당 일반 글 20개, **마지막 쪽은 20쪽(2026-10)**, **21쪽부터는 마지막 행만 되풀이**해서 돌려준다(오류가 아님 — 새 글이 없거나 20개 미만인 쪽에서 멈춘다). 제목 형식이 제각각이라 `반다이`|`입고` 후보의 본문에 `BD#######` 행이 있는지로 확정한다
+- 조이하비 상품명에는 영문명(괄호)이 있지만 **카탈로그에는 영문명이 없다** → 모델번호 토큰(`MS-09F` 등)으로 보강한다. 모델번호가 양쪽에 있는데 서로 포함하지 않으면(`MSN-04` vs `MSN-04FF`) 연결하지 않는다
+- **이름 점수만으로는 틀린 연결을 못 막는다**(델타↔제타 80점, 자쿠 III↔자쿠 II 91점, 더블오라이저↔잔라이저 92점이 첫 실행에서 연결됐다). `match.guard`가 영문·숫자 덩어리와 낱말 차이를 본다. 임계값(`MATCH_LINK_SCORE`/`MATCH_NAME_SCORE`/`MATCH_TOKEN_RATIO`)을 고칠 때는 `crawler/out/joy-report.json`의 `newLinks`·`nearMiss`로 틀린 연결이 없는지 본다
+- 조이하비 글 중 **조회수가 32767을 넘은 글은 사이트 버그로 HTTP 500**(smallint 오버플로 메시지)이다. 재시도해도 소용없고 `state: broken`으로 한 번만 기록한다(차단 판정과 별개)
 - 호비사이트는 재판(再販) 정보가 없다. 일정은 최초 발매 기준이고 같은 상품이 다시 올라오지 않는다
 - 호비 2025년 이후 상품 이미지는 CloudFront 서명 URL(만료 40~299초). 안정 호스트는 `bandai-a.akamaihd.net`, `bandai-hobby.net/images/`
 - 호비 og:image는 전 상품 공통 ogp.png라 쓸 수 없다

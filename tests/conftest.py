@@ -46,13 +46,19 @@ def fixture_text(name: str) -> str:
     return (FIXTURES / name).read_text(encoding="utf-8")
 
 
+def fixture_bytes(name: str) -> bytes:
+    return (FIXTURES / name).read_bytes()
+
+
 # ---------------------------------------------------------------- 가짜 requests 세션
 class FakeResponse:
-    def __init__(self, url: str, body: str, status: int = 200, history: int = 0, final: str | None = None):
+    def __init__(self, url: str, body: str | bytes, status: int = 200, history: int = 0, final: str | None = None,
+                 headers: dict | None = None):
         self.status_code = status
-        self.content = body.encode("utf-8")
+        self.content = body if isinstance(body, bytes) else body.encode("utf-8")
         self.url = final or url
         self.history = [None] * history
+        self.headers = headers or {}
 
 
 class FakeSession:
@@ -70,6 +76,8 @@ class FakeSession:
             r = r(url)
         if r is None:
             return FakeResponse(url, "not found", self.default_status)
+        if isinstance(r, FakeResponse):
+            return r
         if isinstance(r, tuple):
             return FakeResponse(url, r[1], r[0])
         return FakeResponse(url, r)
@@ -131,3 +139,29 @@ def detail_html(title: str, brand_keys: list[str], *, price: str = "1,320 円(�
     return (f'<html><body><h1 class="p-heading__h1-product">{title}</h1>'
             f'<dl class="pg-products__detail"><dt>価格</dt><dd>{price}</dd><dt>発売日</dt><dd>{release}</dd></dl>'
             f'<ul>{links}</ul><div class="pg-products__contentLeft">{imgs}</div></body></html>')
+
+
+# ---------------------------------------------------------------- 합성 조이하비 (파이프라인 테스트용, UTF-8 문자열 — EUC-KR 디코딩은 test_http가 실제 응답 바이트로 검증한다)
+JOY_ROBOTS = "User-agent: *\nDisallow: /admin/\n"
+JOY_BOARD = "https://www.joyhobby.co.kr/mall/board_list.asp?siteid=joyhobby&BoardCode=notice"
+JOY_POST = "https://www.joyhobby.co.kr/mall/board_view.asp?SiteID=joyhobby&BoardCode=notice&B_iID={id}"
+
+
+def joy_board_html(rows: list[tuple[str, str, str]], pinned: list[tuple[str, str]] | None = None) -> str:
+    """rows: [(글번호, 'YYYY-MM-DD', 제목)], pinned: 쪽마다 반복되는 고정 공지 [(글번호, 제목)]."""
+    out = ["<html><body><table>"]
+    for pid, title in pinned or []:
+        out.append(f'<tr><td><a href="/mall/Board_View.asp?SiteID=joyhobby&amp;BoardCode=notice&amp;B_iID={pid}&amp;nowPage=1&amp;Notice=true&amp;">{title}</a></td>'
+                   f'<td>조이하비</td><td>2024-01-01</td></tr>')
+    for pid, d, title in rows:
+        out.append(f'<tr><td width="460px">  프라모델  <a href="/mall/Board_View.asp?SiteID=joyhobby&amp;BoardCode=notice&amp;B_iID={pid}&amp;nowPage=1&amp;">{title}</a></td>'
+                   f'<td>조이하비</td><td>{d}</td></tr>')
+    out.append("</table></body></html>")
+    return "".join(out)
+
+
+def joy_post_html(title: str, intro: str, items: list[tuple[str, str, str]]) -> str:
+    """items: [(상품코드, 상품명, 가격 문자열)] — 코드/이름/가격이 줄마다 하나씩 나오는 본문."""
+    body = "".join(f"<p>{c}</p><p>{n}</p><p>{p}</p>" for c, n, p in items)
+    return (f'<html><body><table><tr><td class="Board_View_top">[ 프라모델 ] {title}</td></tr>'
+            f'<tr><td><p>이 름: 조이하비</p><p>{intro}</p>{body}</td></tr></table></body></html>')

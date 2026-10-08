@@ -60,6 +60,50 @@ FEED_TYPES = {
     "new": ("신제품 발매", 0x3498DB, 3),
 }
 
+# ---------------------------------------------------------------- 조이하비 국내 입고 (SPEC 4·5장, 3단계)
+JOY_BASE = "https://www.joyhobby.co.kr"
+JOY_BOARD_URL = JOY_BASE + "/mall/board_list.asp?siteid=joyhobby&BoardCode=notice"      # 2쪽부터 &nowPage=N
+JOY_POST_URL = JOY_BASE + "/mall/board_view.asp?SiteID=joyhobby&BoardCode=notice&B_iID={id}"
+KR_ARRIVALS_FILE = "kr-arrivals.json"
+JOY_BOARD_PAGE_SIZE = 20          # 쪽당 일반 글 수. 이보다 적은 쪽이 마지막 쪽이다 (고정 공지 7개는 쪽마다 반복되므로 세지 않는다)
+JOY_DAILY_PAGES = 2               # 매 실행: 목록 1~N쪽 (새 글 확인)
+JOY_BACKFILL_PAGES = 25           # --bootstrap 실행당 과거 쪽 수 (2026-10 기준 게시판이 20쪽이라 한 번에 끝난다). 커서는 meta.crawl.joyNext
+JOY_BOARD_MAX_PAGE = 60           # 안전 상한 (21쪽부터는 마지막 행이 반복해서 나온다)
+JOY_POSTS_PER_RUN_MAX = 300       # 실행당 글 본문 요청 상한 (안전장치)
+JOY_POST_MAX_FAILURES = 3         # 글 본문이 이 횟수 실패하면 더 시도하지 않는다
+JOY_TITLE_KEYWORDS = ("반다이", "입고")      # 후보 조건: 제목에 하나라도 있으면 본문을 열어 본다. 반다이 상품코드(BD#######) 행이 있어야 기록한다
+JOY_BANDAI_CODE = r"BD\d{7}"
+JOY_RESTOCK_WORD = "재입고"
+
+KR_RESTOCK_AFTER_DAYS = 60        # 일본 발매일보다 이만큼 이상 뒤에 입고되면 restock, 아니면 new
+KR_SALE_DATE_MAX_DIFF_DAYS = 60   # 제목의 판매예정일이 글 날짜와 이보다 멀면 글 날짜를 쓴다
+KR_FEED_DAYS = 30                 # 글 날짜가 최근 N일 이내인 행만 피드에 넣는다 (과거 글은 kr 이력·원본 행에만)
+KR_NOTIFY_DAYS = 3                # 디스코드 알림은 글 날짜가 최근 N일 이내인 것만
+
+# 상품명 앞 대괄호 코드의 영문·한글 접두 → 카탈로그 등급 (위에서부터 첫 일치). None = 카탈로그 대상이 아님(매칭하지 않음).
+JOY_BRACKET_GRADES: list[tuple[str, str | None]] = [
+    (r"^30M[MF]", None), (r"^30MS", "30MS"), (r"^30MP", "30MP"),
+    (r"^HG", "HG"), (r"^MGSD", "MGSD"), (r"^MGEX", "MGEX"), (r"^MG", "MG"), (r"^PG", "PG"), (r"^RG", "RG"), (r"^EG", "EG"),
+    (r"^SDCS", "SDCS"), (r"^SDEX", "SDEX"), (r"^SD", "SD"), (r"^BB", "BB"), (r"^RE$", "RE/100"),
+    (r"^피규어라이즈스탠다드", "Figure-rise Standard"),
+]
+# 같은 계열로 보고 후보에 넣는 카탈로그 등급 (없으면 같은 등급만)
+JOY_GRADE_FAMILIES: dict[str, set[str]] = {
+    "SD": {"SD", "SDCS", "SDEX", "BB"}, "BB": {"BB", "SD"},
+    "Figure-rise Standard": {"Figure-rise Standard", "Figure-rise Standard Amplified"},
+}
+# 이름 매칭 (match.py). 점수는 0~100.
+MATCH_LINK_SCORE = 80             # 1등이 이 점수 이상이고
+MATCH_MARGIN = 10                 # 2등과 이만큼 이상 차이 나야 연결한다. 아니면 연결하지 않는다
+MATCH_NAME_SCORE = 92             # nameKo를 조이하비 한글명으로 바꾸는 더 엄격한 기준 (연결 기준과 별도)
+MATCH_MODEL_BONUS = 12            # 모델번호(MS-09F 등)가 양쪽에 있고 같으면 더하는 점수
+MATCH_MODEL_CONFLICT = 15         # 양쪽에 있는데 서로 다르면 빼는 점수
+MATCH_TOKEN_RATIO = 80             # 보호 규칙: 정확히 같은 낱말이 없을 때 4글자 이상 낱말끼리 이만큼(%) 비슷하면 철자 변형으로 본다. 짧은 낱말(3글자 이하)은 정확히 같아야 한다.
+                                   # 낮추면 르브리스/루브리스 같은 철자 변형을 더 잡지만 큐리오스/헬리오스(75%) 같은 다른 상품도 통과한다
+# 사람이 고치는 표: 조이하비 상품코드 → 카탈로그 id(강제 연결) 또는 None(연결 금지).
+# None이면 이미 굳은 연결을 풀고, 그 코드가 바꿔 놓은 nameKo를 nameKoAi로 되돌리고, 그 코드로 쌓인 kr 항목을 그 상품에서 뺀다.
+KR_CODE_OVERRIDES: dict[str, str | None] = {}
+
 # ---------------------------------------------------------------- 번역 (SPEC 5장)
 DEFAULT_MODEL = "claude-sonnet-5-5"
 CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL") or DEFAULT_MODEL

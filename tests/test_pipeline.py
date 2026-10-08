@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from conftest import ROBOTS_HTML, detail_html, make_client, schedule_html
+from conftest import JOY_BOARD, JOY_ROBOTS, ROBOTS_HTML, detail_html, joy_board_html, make_client, schedule_html
 from crawler import config
 from crawler.pipeline import Options, run
 from crawler.sources.hobby_schedule import schedule_url
@@ -14,7 +14,7 @@ HOBBY = "https://bandai-hobby.net"
 NOW = datetime(2026, 10, 6, 9, 0, tzinfo=config.KST)
 AKAMAI = "https://bandai-a.akamaihd.net/bc/img/model/xl/1000179163_1.jpg"
 SIGNED = "https://bandai-a.akamaihd.net/bc/img/model/xl/2_1.jpg?Expires=1&Signature=abc"
-DATA_FILES = {"catalog-gunpla.json", "catalog-girl.json", "catalog-pending.json", "feed.json", "meta.json"}
+DATA_FILES = {"catalog-gunpla.json", "catalog-girl.json", "catalog-pending.json", "feed.json", "meta.json", "kr-arrivals.json"}
 
 
 def c(num, title, date="2026年10月24日 (土)", **kw):
@@ -62,6 +62,9 @@ class World:
                 r[url] = (lambda u, key=key, page=page: self._brand_page(key, page))
         for num, html in self.details.items():
             r[f"{HOBBY}/item/{num}/"] = html
+        # 조이하비: 반다이 글이 없는 평범한 게시판 (joyhobby 단계의 동작은 test_joyhobby_pipeline.py가 따로 본다)
+        r["https://www.joyhobby.co.kr/robots.txt"] = JOY_ROBOTS
+        r[JOY_BOARD] = joy_board_html([("139999", "2026-10-06", "휴무 안내")])
         return r
 
 
@@ -250,8 +253,9 @@ def test_options_stages_parsing():
     assert Options(only={"hobby"}).stages() == {"hobby_schedule", "hobby_brand", "hobby_item"}
     assert Options(only={"translate"}, dry_run=True).stages() == {"translate"}
     assert "translate" in Options().stages() and "translate" not in Options(dry_run=True).stages()
+    assert Options(only={"joyhobby"}).stages() == {"joyhobby"}
     with pytest.raises(ValueError):
-        Options(only={"joyhobby"}).stages()
+        Options(only={"nonsense"}).stages()
 
 
 def test_translate_stage_fills_name_ko_and_feed_title_ko(tmp_path):
