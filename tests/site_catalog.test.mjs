@@ -335,3 +335,14 @@ test('reviewLinks: "<등급> <이름> 리뷰" 유튜브·네이버 블로그', (
   assert.equal(C.reviewLinks({ name: '"&<x>', grade: 'MG' }).youtube.includes('<'), false);
   assert.equal(C.reviewLinks(null).query, '리뷰');
 });
+
+test('line:"other"(manual) 항목: 검색·연결은 되지만 등급이 없어 자동 연결 후보에는 올라가지 않는다', () => {
+  const oc = C.build([{ items: [{ id: 'bh-77_1', url: 'https://bandai-hobby.net/item/77_1/', line: 'other', manual: true, grade: null, scale: null, series: 'ドラゴンクエスト', seriesKo: '드래곤 퀘스트',
+    nameJa: 'ドラゴンクエスト スライム', nameKo: '드래곤 퀘스트 슬라임', release: { month: '2026-10', date: null }, kr: [], images: [] }] }], null);
+  const it = oc.byId['bh-77_1'];
+  assert.equal(it.manual, true); assert.equal(it.grade, '기타'); assert.equal(it.title, '드래곤 퀘스트 슬라임');
+  assert.equal(C.search(oc, '슬라임').results[0].id, 'bh-77_1');
+  assert.equal(C.search(oc, 'ドラゴン').results[0].id, 'bh-77_1');
+  assert.deepEqual(C.autoLinks([P.normKit({ id: 'k1', name: '드래곤 퀘스트 슬라임', grade: 'HG', scale: '논스케일' })], oc), []);
+  assert.deepEqual(C.fillPatch(it, { name: '', grade: 'HG', scale: '논스케일', series: '', brand: '반다이' }, { fillAll: true }).patch, { name: '드래곤 퀘스트 슬라임', series: '드래곤 퀘스트' });
+});

@@ -33,7 +33,7 @@ def check_catalog_item(it: dict, line: str | None) -> list[str]:
     errs = []
     if not CATALOG_ID.match(w):
         errs.append(f"{w}: id 형식")
-    if it.get("line") != line:
+    if it.get("line") != line and not (line == "gunpla" and it.get("line") == "other" and it.get("manual") is True):
         errs.append(f"{w}: line {it.get('line')!r} != 파일의 {line!r}")
     if not (isinstance(it.get("brandKeys"), list) and all(isinstance(k, str) for k in it["brandKeys"])):
         errs.append(f"{w}: brandKeys")

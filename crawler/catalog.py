@@ -22,6 +22,7 @@ from .store import read_json, write_json
 log = logging.getLogger("plamo.catalog")
 
 LINES = ("gunpla", "girl")
+OTHER = "other"        # 사용자가 URL로 연결한 상품 중 건프라·걸프라 분류표 밖의 것 (`manual: true`). catalog-gunpla.json에 저장되지만 건프라 필터·피드·매칭에는 섞이지 않는다
 _RULES = [(re.compile(p), line, grade) for p, line, grade in config.TITLE_PREFIX_RULES]
 _SCALE_RX = re.compile(r"(?<![\d/])1/\d{1,4}(?!\d)")
 
@@ -99,6 +100,7 @@ class Catalog:
         self.items: dict[str, dict] = {}
         self.excluded: dict[str, str] = {}
         self.was_empty = True
+        self._revived: dict[str, str] = {}          # 사용자 연결로 제외 목록에서 되살린 id → 원래 사유 (상세를 못 받으면 되돌린다)
         self._prev_files: dict[str, dict] = {}     # 파일 이름 → 불러온 내용 (바뀐 게 없으면 updatedAt을 유지)
 
     # ------------------------------------------------------------ 입출력
@@ -124,7 +126,8 @@ class Catalog:
         by_file: dict[str, list[dict]] = {name: [] for name in [*config.CATALOG_FILES.values(), config.PENDING_FILE]}
         for it in self.items.values():
             line = it.get("line")
-            by_file[config.CATALOG_FILES[line] if line in LINES else config.PENDING_FILE].append(it)
+            name = config.CATALOG_FILES[line] if line in LINES else config.CATALOG_FILES["gunpla"] if line == OTHER else config.PENDING_FILE
+            by_file[name].append(it)
         counts = {}
         for name, items in by_file.items():
             items.sort(key=lambda i: (release_key(i.get("release")), i["id"]), reverse=True)
@@ -143,6 +146,9 @@ class Catalog:
         for it in self.items.values():
             c[it["line"] if it.get("line") in LINES else "pending"] += 1
         c["excluded"] = len(self.excluded)
+        n_other = sum(1 for it in self.items.values() if it.get("line") == OTHER)
+        if n_other:
+            c["other"] = n_other
         return c
 
     # ------------------------------------------------------------ 카드 → 항목
@@ -220,7 +226,7 @@ class Catalog:
         to_excluded = line_changed = 0
         for cid, it in list(self.items.items()):
             keys = it.get("brandKeys") or []
-            if not keys:
+            if not keys or it.get("manual"):        # 사용자가 직접 연결한 상품은 분류표가 바뀌어도 제외하지 않는다
                 continue
             line, grade, _ = classify_brand_keys(keys)
             if line is None:
@@ -258,13 +264,17 @@ class Catalog:
         if brand_keys:
             line, grade, unknown = classify_brand_keys(brand_keys)
             if line is None:
-                self._exclude(cid, "brand:" + ",".join(brand_keys))
-                return "excluded", unknown
+                if not item.get("manual"):
+                    self._exclude(cid, "brand:" + ",".join(brand_keys))
+                    return "excluded", unknown
+                line, grade = OTHER, None                  # 사용자가 연결한 상품: 제외하지 않고 'other'로 보관
         else:                                              # 구형 상품처럼 브랜드 링크가 없는 경우는 제목으로만 판정
             line, grade = classify_title(name)
             if line is None:
-                self._exclude(cid, "no-brand-key")
-                return "excluded", []
+                if not item.get("manual"):
+                    self._exclude(cid, "no-brand-key")
+                    return "excluded", []
+                line, grade = OTHER, None
         if not grade:                                      # pb_gunpla 등 등급 없는 키는 상품명 앞 토큰으로
             t_line, t_grade = classify_title(name)
             grade = t_grade if t_line == line else None
@@ -278,6 +288,7 @@ class Catalog:
             "updated": now, "detailAt": now,
         })
         item.pop("detailFails", None)
+        self._revived.pop(cid, None)
         return "ok", unknown
 
     def record_detail_failure(self, cid: str, status: int | None) -> None:
@@ -287,6 +298,49 @@ class Catalog:
         item = self.items.get(cid)
         if item is not None:
             item["detailFails"] = item.get("detailFails", 0) + 1
+
+    # ------------------------------------------------------------ 사용자가 연결한 미등록 상품 (collection.json의 catalogId)
+    def manual_wanted(self, ids: list[str], limit: int, now: str) -> tuple[list[str], list[str]]:
+        """사이트에서 연결한 catalogId 중 상세가 필요한 호비 상품. → (이번에 받을 id들, 상세를 받을 수 없는 id들).
+
+        - 카탈로그에 없으면 임시 항목(manual)을 만든다. 제외 목록에 있던 id도 되살린다 (사용자가 직접 연결한 상품이다).
+        - 임시 항목(detailAt 없음)으로만 있으면 manual로 표시해 먼저 받는다 — 제외 브랜드여도 사라지지 않게.
+        - 이미 상세가 있는 항목은 건드리지 않는다. P-반다이(`pb-`)는 상세 페이지를 요청하지 않아서 목록에 없으면 받을 수 없다.
+        """
+        todo: list[str] = []
+        unsupported: list[str] = []
+        for cid in dict.fromkeys(ids):
+            it = self.items.get(cid)
+            if not cid.startswith("bh-"):
+                if it is None:
+                    unsupported.append(cid)
+                continue
+            if it is not None and (it.get("detailAt") is not None or it.get("detailFails", 0) >= config.DETAIL_MAX_FAILURES):
+                continue
+            if len(todo) >= limit:
+                continue
+            if it is None:
+                if cid in self.excluded:
+                    self._revived[cid] = self.excluded.pop(cid)
+                self.items[cid] = self._placeholder(cid, now)
+            else:
+                it["manual"] = True
+            todo.append(cid)
+        return todo, unsupported
+
+    def _placeholder(self, cid: str, now: str) -> dict:
+        return {"id": cid, "url": config.HOBBY_ITEM_URL.format(num=cid[3:]), "line": None, "brandKeys": [], "grade": None, "scale": None,
+                "seriesKey": None, "series": None, "nameJa": "", "nameKo": None, "priceJpy": None, "channel": None, "pbUrl": None,
+                "release": None, "kr": [], "images": [], "firstSeen": now, "updated": now, "detailAt": None, "manual": True}
+
+    def drop_unresolved_manual(self, cid: str) -> None:
+        """상세를 못 받아 이름도 모르는 임시 항목은 저장하지 않는다 (다음 실행에서 다시 시도). 되살렸던 제외 사유는 돌려놓는다."""
+        it = self.items.get(cid)
+        if it is not None and it.get("manual") and it.get("detailAt") is None and not it.get("nameJa"):
+            del self.items[cid]
+        if cid in self._revived and cid not in self.items and cid not in self.excluded:
+            self.excluded[cid] = self._revived[cid]
+        self._revived.pop(cid, None)
 
     # ------------------------------------------------------------ 밀린 상품 선택
     def backlog_candidates(self) -> list[dict]:
@@ -316,6 +370,6 @@ class Catalog:
 
     # ------------------------------------------------------------ 번역 대상
     def untranslated(self, limit: int) -> list[dict]:
-        out = [i for i in self.items.values() if i.get("line") in LINES and not i.get("nameKo")]
+        out = [i for i in self.items.values() if i.get("line") in (*LINES, OTHER) and not i.get("nameKo")]
         out.sort(key=lambda i: (release_key(i.get("release")), i["id"]), reverse=True)
         return out[:limit]

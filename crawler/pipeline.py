@@ -15,7 +15,7 @@ from pathlib import Path
 
 import requests
 
-from . import config, discord, feed, kr, series, translate
+from . import config, discord, feed, kr, mine, series, translate
 from .catalog import Catalog
 from .http import Blocked, HttpClient, SourceAborted
 from .sources import hobby_brand, hobby_item, hobby_schedule, joyhobby
@@ -66,6 +66,7 @@ class _Ctx:
         self.unknown_keys: set[str] = set()
         self.detail_counts = {"new": 0, "backlog": 0, "excluded": 0, "failed": 0}
         self.arrivals = kr.Arrivals()
+        self.manual: dict = {}                    # 사용자가 연결한 미등록 상품 처리 결과 (meta.sources.hobby_item.manual)
         self.joy_scan: dict = {}                  # 조이하비 단계의 이번 실행 통계
 
     def add_card(self, card: dict, brand_key: str | None = None) -> None:
@@ -142,10 +143,27 @@ def stage_brand(ctx: _Ctx) -> tuple[int, list[str]]:
 
 
 def stage_item(ctx: _Ctx) -> tuple[int, list[str]]:
-    """상세: 새 상품 최대 max_new + 밀린 상품 최대 max_backlog."""
-    new_sel, back_sel = ctx.catalog.select_details(ctx.opts.max_new, ctx.opts.max_backlog, ctx.new_ids)
-    ctx.http.detail_limit = len(new_sel) + len(back_sel)
+    """상세: 사용자가 사이트에서 연결한 미등록 상품(먼저, 최대 MANUAL_DETAIL_MAX) + 새 상품 최대 max_new + 밀린 상품 최대 max_backlog."""
     failed: list[str] = []
+    wanted, unsupported = ctx.catalog.manual_wanted(mine.catalog_ids(ctx.opts.data_dir), config.MANUAL_DETAIL_MAX, ctx.now_iso)
+    ctx.manual = {"requested": len(wanted), "added": 0, "other": 0, "unsupported": unsupported, "failed": []}
+    new_sel, back_sel = ctx.catalog.select_details(ctx.opts.max_new, ctx.opts.max_backlog, ctx.new_ids)
+    new_sel = [i for i in new_sel if i not in wanted]
+    back_sel = [i for i in back_sel if i not in wanted]
+    ctx.http.detail_limit = len(wanted) + len(new_sel) + len(back_sel)
+    for cid in wanted:
+        detail, status = hobby_item.fetch_detail(ctx.http, cid[3:])
+        if detail is None:
+            ctx.catalog.record_detail_failure(cid, status)          # 404면 제외 목록으로, 아니면 실패 횟수만
+            ctx.catalog.drop_unresolved_manual(cid)
+            ctx.manual["failed"].append(cid)
+            if status != 404:
+                failed.append(cid)
+            continue
+        outcome, unknown = ctx.catalog.apply_detail(cid, detail, ctx.now_iso)
+        ctx.unknown_keys.update(unknown)
+        ctx.manual["added"] += 1
+        ctx.manual["other"] += ctx.catalog.items[cid].get("line") == "other"
     for kind, ids in (("new", new_sel), ("backlog", back_sel)):
         for cid in ids:
             detail, status = hobby_item.fetch_detail(ctx.http, cid[3:])
@@ -157,7 +175,7 @@ def stage_item(ctx: _Ctx) -> tuple[int, list[str]]:
             outcome, unknown = ctx.catalog.apply_detail(cid, detail, ctx.now_iso)
             ctx.unknown_keys.update(unknown)
             ctx.detail_counts["excluded" if outcome == "excluded" else kind] += 1
-    return ctx.detail_counts["new"] + ctx.detail_counts["backlog"] + ctx.detail_counts["excluded"], failed
+    return ctx.manual["added"] + ctx.detail_counts["new"] + ctx.detail_counts["backlog"] + ctx.detail_counts["excluded"], failed
 
 
 def stage_joyhobby(ctx: _Ctx) -> tuple[int, list[str]]:
@@ -274,6 +292,8 @@ def run(opts: Options, http: HttpClient, *, now: datetime | None = None, anthrop
     for name in SOURCE_STAGES:
         if name in stages:
             sources[name] = _run_stage(ctx, name)
+    if "hobby_item" in sources and ctx.manual:
+        sources["hobby_item"]["manual"] = ctx.manual
     if "joyhobby" in stages:       # 수집이 중간에 멎었어도 지금까지 모은 행으로 (다시) 연결한다
         joy_rep = kr.link_all(ctx.arrivals, catalog, now_iso)
         ctx.arrivals.save(data_dir, now_iso)

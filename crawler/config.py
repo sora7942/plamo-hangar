@@ -14,6 +14,7 @@ REQUEST_LOG = ROOT / "crawler" / "out" / "requests.log"
 CATALOG_FILES = {"gunpla": "catalog-gunpla.json", "girl": "catalog-girl.json"}
 PENDING_FILE = "catalog-pending.json"   # 아직 line을 모르는 항목 + 제외 목록
 FEED_FILE = "feed.json"
+COLLECTION_FILE = "collection.json"      # 사이트가 쓰는 내 컬렉션 — 크롤러는 읽기만 한다
 SERIES_FILE = "series-ko.json"          # seriesKey → 한국어 시리즈 사전 (크롤러만 씀, 4단계)
 META_FILE = "meta.json"
 SITE_URL = os.environ.get("SITE_URL") or "https://sora7942.github.io/plamo-hangar/"
@@ -44,6 +45,7 @@ GIRL_BRANDS = ["30ms", "30mp", "figurerise-standard", "figurerise-standard-amp"]
 DETAIL_NEW_MAX = 40               # 실행당 상세: 이번에 처음 본 상품
 DETAIL_BACKLOG_MAX = 150          # 실행당 상세: 밀린 상품
 DETAIL_HARD_MAX = 400             # 어떤 옵션을 줘도 실행당 상세 합계는 이 수를 넘지 않는다
+MANUAL_DETAIL_MAX = 20           # 실행당 상세: 사용자가 사이트에서 연결했는데 카탈로그에 없는 상품 (새·밀린 상품 상한과 별개)
 DETAIL_MAX_FAILURES = 3           # 상세가 이 횟수 실패한 항목은 더 시도하지 않는다
 BRAND_MAX_PAGES = 60              # 브랜드 목록 쪽수 안전 상한
 
