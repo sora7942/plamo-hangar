@@ -237,3 +237,29 @@ test('days / splitTags / won', () => {
   assert.deepEqual(P.splitTags('a, b;a #c'), ['a', 'b', 'c']);
   assert.equal(P.won(45000), '45,000원');
 });
+
+test('등급: 카탈로그 등급 이름 → 사이트 등급, FULL MECHANICS는 FM', () => {
+  assert.equal(P.catalogGrade('FULL MECHANICS'), 'FM');
+  assert.equal(P.catalogGrade('30MS'), '30MS');
+  assert.equal(P.catalogGrade('Figure-rise Standard Amplified'), 'Figure-rise Standard Amplified');
+  assert.equal(P.catalogGrade('SDCS'), 'SDCS');
+  assert.equal(P.catalogGrade('모르는 등급'), '기타');
+  assert.equal(P.gname('Figure-rise Standard'), 'Figure-rise Standard');
+  assert.equal(P.gk('Figure-rise Standard'), 'FigureriseStandard');
+  assert.equal(P.glabel('Figure-rise Standard Amplified'), 'FRS-A');
+  assert.equal(P.glabel('HG'), 'HG');
+});
+
+test('엑셀 가져오기 등급 매핑: 긴 이름 먼저, BB는 BB로 유지', () => {
+  assert.equal(P.normGrade('SDCS', ''), 'SDCS');
+  assert.equal(P.normGrade('', 'SDEX 건담'), 'SDEX');
+  assert.equal(P.normGrade('BB', ''), 'BB');
+  assert.equal(P.normGrade('Full Mechanics', ''), 'FM');
+  assert.equal(P.normGrade('30MS', ''), '30MS');
+  assert.equal(P.normGrade('Figure-rise Standard', ''), 'Figure-rise Standard');
+  assert.equal(P.normGrade('Figure-rise Standard Amplified', ''), 'Figure-rise Standard Amplified');
+  assert.equal(P.normGrade('MGSD', ''), 'MGSD');
+  assert.equal(P.normGrade('MG', ''), 'MG');
+  assert.equal(P.normGrade('RE100', ''), 'RE/100');
+  assert.equal(P.normGrade('', '이름만'), '기타');
+});

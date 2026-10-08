@@ -6,7 +6,11 @@
 })(typeof self !== 'undefined' ? self : this, function () {
 'use strict';
 
-var GRADES = ['HG','RG','MG','PG','EG','SD','MGEX','MGSD','RE/100','FM','30MM','기타'];
+var GRADES = ['HG','RG','MG','PG','EG','SD','SDCS','SDEX','BB','MGEX','MGSD','RE/100','FM','30MM','30MS','30MP','Figure-rise Standard','Figure-rise Standard Amplified','기타'];
+// 카탈로그(호비사이트) 등급 이름 → 사이트 등급. 목록에 없으면 '기타'
+var GRADE_ALIAS = { 'FULL MECHANICS': 'FM', 'FIGURE-RISE STANDARD (AMPLIFIED)': 'Figure-rise Standard Amplified' };
+// 카드 모서리 배지용 짧은 이름 (저장·필터에는 원래 이름을 쓴다)
+var GRADE_SHORT = { 'Figure-rise Standard': 'FRS', 'Figure-rise Standard Amplified': 'FRS-A' };
 var STATUSES = [{k:'unbuilt',l:'미개봉'},{k:'building',l:'조립 중'},{k:'built',l:'완성'},{k:'custom',l:'도색·개조'}];
 var SCALES = ['1/144','1/100','1/60','1/48','논스케일'];
 var TAG_SUGGEST = ['P-반다이','건담베이스 한정','이벤트 한정','클리어','코팅','재판'];
@@ -26,6 +30,8 @@ function esc(s) {
 }
 function gk(g) { var k = String(g || '').replace(/[^A-Za-z0-9]/g, ''); return GRADES.indexOf(g) >= 0 && k ? k : 'etc'; }
 function gname(g) { return GRADES.indexOf(g) >= 0 ? g : '기타'; }
+function glabel(g) { var n = gname(g); return GRADE_SHORT[n] || n; }
+function catalogGrade(g) { g = String(g || '').trim(); if (GRADES.indexOf(g) >= 0) return g; var a = GRADE_ALIAS[g.toUpperCase()]; return a || '기타'; }
 function won(n) { return (Number(n) || 0).toLocaleString('ko-KR') + '원'; }
 function ymd(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
 function days(a, b) {
@@ -244,8 +250,12 @@ function parseDelimited(text) {
 }
 function normGrade(g, name) {
   var s = String(g || '').toUpperCase().replace(/\s/g, '');
-  var order = ['MGEX','MGSD','RE/100','RE100','30MM','HG','RG','MG','PG','EG','SD','FM','BB'];
-  var hit = function (str) { for (var i = 0; i < order.length; i++) { if (str.indexOf(order[i]) >= 0) { var o = order[i]; return o === 'RE100' ? 'RE/100' : o === 'BB' ? 'SD' : o; } } return ''; };
+  // 긴 이름 먼저: 'SD'가 'SDCS'보다, 'MG'가 'MGSD'보다 먼저 걸리면 안 된다
+  var order = ['FIGURE-RISESTANDARDAMPLIFIED','FIGURERISESTANDARDAMPLIFIED','FIGURE-RISESTANDARD','FIGURERISESTANDARD','FULLMECHANICS','MGEX','MGSD','SDCS','SDEX',
+    'RE/100','RE100','30MM','30MS','30MP','HG','RG','MG','PG','EG','SD','FM','BB'];
+  var out = { 'RE100': 'RE/100', 'FULLMECHANICS': 'FM', 'FIGURERISESTANDARD': 'Figure-rise Standard', 'FIGURE-RISESTANDARD': 'Figure-rise Standard',
+    'FIGURERISESTANDARDAMPLIFIED': 'Figure-rise Standard Amplified', 'FIGURE-RISESTANDARDAMPLIFIED': 'Figure-rise Standard Amplified' };
+  var hit = function (str) { for (var i = 0; i < order.length; i++) { if (str.indexOf(order[i]) >= 0) { var o = order[i]; return out[o] || o; } } return ''; };
   return (s && hit(s)) || hit(String(name || '').toUpperCase()) || '기타';
 }
 function normStatus(s) {
@@ -337,7 +347,7 @@ function commitMessage(kind, o) {
 
 return {
   GRADES: GRADES, STATUSES: STATUSES, SCALES: SCALES, TAG_SUGGEST: TAG_SUGGEST, STLABEL: STLABEL, BULK_KEEP: BULK_KEEP, MAX_PHOTOS: MAX_PHOTOS, COLS: COLS, GAPS: GAPS,
-  esc: esc, gk: gk, gname: gname, won: won, ymd: ymd, days: days, splitTags: splitTags, uid: uid, makeId: makeId, clone: clone,
+  esc: esc, gk: gk, gname: gname, glabel: glabel, catalogGrade: catalogGrade, won: won, ymd: ymd, days: days, splitTags: splitTags, uid: uid, makeId: makeId, clone: clone,
   isSafePhotoPath: isSafePhotoPath, photoPaths: photoPaths,
   normKit: normKit, normalizeData: normalizeData, serialize: serialize, parseData: parseData,
   photoOrder: photoOrder, hasPhoto: hasPhoto, addPhotos: addPhotos, removePhoto: removePhoto, movePhoto: movePhoto, setCover: setCover, planPhotoFiles: planPhotoFiles,

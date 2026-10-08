@@ -272,7 +272,7 @@ function cardHTML(k) {
   var g = gname(k.grade), on = sel && sel.has(k.id), cover = P.photoOrder(k, []).cover;
   return '<button class="card' + (on ? ' selected' : '') + '" data-id="' + esc(k.id) + '" aria-label="' + esc(k.name) + (sel ? (on ? ' 선택됨' : ' 선택하기') : ' 자세히 보기') + '"' + (sel ? ' aria-pressed="' + !!on + '"' : '') + '>' +
    '<div class="ph">' + (cover ? '<img src="' + esc(photoSrc(cover.thumb)) + '" alt="" loading="lazy" referrerpolicy="no-referrer" data-g="' + esc(g) + '">' : '<div class="ghost">' + esc(g) + '</div>') +
-   '<span class="grade g-' + gk(k.grade) + '">' + esc(g) + '</span>' + (k.sample ? '<span class="sample-tag">예시</span>' : '') +
+   '<span class="grade g-' + gk(k.grade) + '">' + esc(P.glabel(k.grade)) + '</span>' + (k.sample ? '<span class="sample-tag">예시</span>' : '') +
    (sel ? '<span class="selbox" aria-hidden="true">' + (on ? '✓' : '') + '</span>' : '') + '</div>' +
    '<div class="meta">' + (k.series ? '<span class="series">' + esc(k.series) + '</span>' : '') + '<h3>' + esc(k.name) + '</h3>' +
    (k.tags.length ? '<span class="tagline">' + k.tags.slice(0, 3).map(function (t) { return '#' + esc(t); }).join(' ') + '</span>' : '') +
