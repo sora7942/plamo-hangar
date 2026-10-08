@@ -1,8 +1,8 @@
 {
-"updatedAt":"2026-10-08T10:51:44+09:00",
-"since":"2026-10-06",
-"sources":{"hobby_schedule":{"ok":true,"at":"2026-10-08T10:51:44+09:00","items":91,"error":null},"hobby_brand":{"ok":true,"at":"2026-10-08T10:51:51+09:00","items":40,"error":null},"hobby_item":{"ok":true,"at":"2026-10-08T10:51:55+09:00","items":150,"error":null},"translate":{"ok":true,"at":"2026-10-08T10:59:55+09:00","items":271,"error":null,"pending":0,"skipped":null,"model":"claude-sonnet-5-5","kanaRetried":0,"kanaRejected":0}},
-"crawl":{"scheduleFrom":"2015-01","girlBrandsDone":["30ms","30mp","figurerise-standard","figurerise-standard-amp"],"backlog":1994,"counts":{"gunpla":1679,"girl":390,"pending":1379,"excluded":87},"lastFixups":{"toExcluded":0,"lineChanged":0,"nameKoReplaced":0,"feedTitleKoReplaced":0}},
-"stats":{"requests":159,"byKind":{"robots":1,"schedule":4,"brand":4,"detail":150},"failures":0,"elapsedSec":491.1,"minGapSec":1.2},
+"updatedAt":"2026-10-08T15:40:41+09:00",
+"since":"2024-01-04",
+"sources":{"hobby_schedule":{"ok":true,"at":"2026-10-08T10:51:44+09:00","items":91,"error":null},"hobby_brand":{"ok":true,"at":"2026-10-08T10:51:51+09:00","items":40,"error":null},"hobby_item":{"ok":true,"at":"2026-10-08T10:51:55+09:00","items":150,"error":null},"translate":{"ok":true,"at":"2026-10-08T10:59:55+09:00","items":271,"error":null,"pending":0,"skipped":null,"model":"claude-sonnet-5-5","kanaRetried":0,"kanaRejected":0},"joyhobby":{"ok":true,"at":"2026-10-08T15:40:41+09:00","items":292,"error":null,"posts":298,"postStates":{"done":99,"no-bd":193,"broken":6},"rows":2382,"codes":1260,"linkedCodes":219,"pagesScanned":20,"newPosts":298,"postsFetched":292,"postsBroken":6,"pendingLeft":0,"newLinks":219,"nameChanged":147,"krAdded":463}},
+"crawl":{"scheduleFrom":"2015-01","girlBrandsDone":["30ms","30mp","figurerise-standard","figurerise-standard-amp"],"backlog":1994,"counts":{"gunpla":1679,"girl":390,"pending":1379,"excluded":87},"lastFixups":{"toExcluded":0,"lineChanged":0,"nameKoReplaced":0,"feedTitleKoReplaced":0},"joyNext":21,"joyOldest":"2024-01-04","joyDone":true},
+"stats":{"requests":319,"byKind":{"robots":1,"list":20,"detail":298},"failures":0,"elapsedSec":384.9,"minGapSec":1.2},
 "unknownBrandKeys":[]
 }
