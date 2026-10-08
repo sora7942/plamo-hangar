@@ -203,7 +203,7 @@ def test_notify_without_webhook_or_with_no_discord_only_prints(monkeypatch):
 # ---------------------------------------------------------------- 내 프라 우선 (SPEC 7장 ①)
 def kr_item(i, type_="kr-restock", cid="auto"):
     f = fitem(i, NOW_ISO, type_=type_)
-    f.update(id=f"jh-1-BD{i}", date="2026-10-03", catalogId=f"bh-01_{i}" if cid == "auto" else cid, url="https://www.joyhobby.co.kr/mall/board_view.asp?B_iID=1")
+    f.update(id=f"jh-1-BD{i:07d}", date="2026-10-03", catalogId=f"bh-01_{i}" if cid == "auto" else cid, url="https://www.joyhobby.co.kr/mall/board_view.asp?B_iID=1")
     return f
 
 
@@ -214,7 +214,7 @@ def test_mine_kr_items_go_first_with_highlight_color_and_who_label():
     embeds = msgs[0]["embeds"]
     assert [e["title"] for e in embeds] == ["[내 프라] T4", "[내 프라] T6", "T3", "T5", "T2", "T1"]
     assert [e["title"].startswith("[내 프라]") for e in embeds] == [True, True, False, False, False, False]
-    assert [e["url"] for e in embeds[:2]] == [items[3]["url"], items[5]["url"]]                           # 내 프라 안에서는 원래 순서
+    assert [e["url"] for e in embeds[:2]] == [discord.embed_url(items[3]), discord.embed_url(items[5])]                           # 내 프라 안에서는 원래 순서
     assert embeds[0]["color"] == config.MINE_COLOR == embeds[1]["color"] and embeds[2]["color"] != config.MINE_COLOR
     assert embeds[0]["description"] == "내 프라(위시) · 국내 신규 입고 · 2026-10-03"
     assert embeds[1]["description"] == "내 프라(보유·위시) · 국내 재입고 · 2026-10-03"
@@ -268,3 +268,41 @@ def test_run_reads_collection_for_mine_and_never_writes_it(tmp_path, monkeypatch
     go(World(), tmp_path, Options(bootstrap=True, from_month="2026-09"))
     assert seen["mine"] == {"bh-01_7001": ["wish"]}
     assert (tmp_path / "collection.json").read_text(encoding="utf-8") == coll
+
+
+# ---------------------------------------------------------------- embed url 중복 (디스코드는 url이 같은 embed를 한 카드로 합친다)
+def test_items_from_the_same_joyhobby_post_get_distinct_embed_urls():
+    post = "https://www.joyhobby.co.kr/mall/board_view.asp?SiteID=joyhobby&BoardCode=notice&B_iID=139506"
+    items = []
+    for code in ("BD5074303", "BD5074304", "BD5074305"):
+        it = fitem(1, NOW_ISO, type_="kr-new")
+        it.update(id=f"jh-139506-{code}", url=post, catalogId=None)
+        items.append(it)
+    assert len({it["url"] for it in items}) == 1                                    # 원본 피드 url은 글 하나
+    msgs, _ = discord.plan_messages(items)
+    urls = [e["url"] for e in msgs[0]["embeds"]]
+    assert len(urls) == len(set(urls)) == 3                                         # 한 메시지의 embed url은 서로 달라야 한다
+    assert urls[0] == post + "&bd=BD5074303" and all(u.startswith(post + "&bd=BD") for u in urls)       # 같은 글이 열린다(조이하비는 파라미터를 무시)
+    assert discord.embed_url({"id": "jh-1-BD0000001", "url": "https://x.example/a"}) == "https://x.example/a?bd=BD0000001"
+
+
+def test_embed_urls_stay_unique_even_for_unexpected_duplicates():
+    a, b = fitem(1, NOW_ISO), fitem(2, NOW_ISO)
+    b["url"] = a["url"]                                                             # 같은 url의 신제품 둘 (jh 형식이 아님)
+    urls = [e["url"] for e in discord.plan_messages([a, b])[0][0]["embeds"]]
+    assert len(set(urls)) == 2 and urls[1].startswith(a["url"] + "#")
+    for it in (fitem(3, NOW_ISO, "new"), fitem(4, NOW_ISO, "pb-new")):             # 겹치지 않는 항목의 url은 그대로
+        assert discord.embed_for(it)["url"] == it["url"]
+
+
+def test_discord_test_message_has_three_distinct_embeds(tmp_path):
+    from crawler import discord_test
+    post = "https://www.joyhobby.co.kr/mall/board_view.asp?B_iID=9"
+    feed = []
+    for i in range(1, 4):
+        f = fitem(i, f"2026-10-0{i}T09:00:00+09:00", type_="kr-new")
+        f.update(id=f"jh-9-BD{i:07d}", url=post, catalogId=None)
+        feed.append(f)
+    msg = discord_test.build_message(feed, {})
+    urls = [e["url"] for e in msg["embeds"]]
+    assert len(urls) == 3 and len(set(urls)) == 3

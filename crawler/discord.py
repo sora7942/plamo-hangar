@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import time
 
 import requests
@@ -21,6 +22,19 @@ log = logging.getLogger("plamo.discord")
 def _meta(item: dict) -> tuple[str, int, int]:
     label, color, prio = config.FEED_TYPES.get(item["type"], (item["type"], 0x95A5A6, 99))
     return label, color, prio
+
+
+_JH_ID = re.compile(r"^jh-[0-9]+-(BD[0-9]{7})$")
+
+
+def embed_url(item: dict) -> str:
+    """embed의 url. 디스코드는 **url이 같은 embed를 한 카드로 합쳐 버린다**(첫 번째만 보임). 조이하비는 한 글에 여러 상품이 들어 있어
+    url이 모두 같으므로 BD 코드를 붙여 구별한다 (`&bd=BD1234567` — 조이하비는 모르는 파라미터를 무시하고 같은 글이 열린다)."""
+    url = item["url"]
+    m = _JH_ID.match(item.get("id") or "")
+    if m:
+        url += ("&" if "?" in url else "?") + "bd=" + m.group(1)
+    return url
 
 
 def mine_lists(item: dict, mine: dict[str, list[str]] | None) -> list[str]:
@@ -41,7 +55,7 @@ def embed_for(item: dict, mine: dict[str, list[str]] | None = None) -> dict:
         title, desc, color = f"[내 프라] {title}", f"내 프라({who}) · {desc}", config.MINE_COLOR
     emb = {
         "title": title[:256],
-        "url": item["url"],
+        "url": embed_url(item),
         "description": desc,
         "color": color,
     }
@@ -55,6 +69,11 @@ def plan_messages(items: list[dict], mine: dict[str, list[str]] | None = None) -
     rank = lambda it: -1 if mine_lists(it, mine) else _meta(it)[2]            # 내 프라가 맨 앞 (한도를 넘어도 이쪽이 먼저 살아남는다)
     ordered = sorted(enumerate(items), key=lambda p: (rank(p[1]), p[0]))
     embeds = [embed_for(it, mine) for _, it in ordered]
+    seen: set[str] = set()
+    for emb, (_, it) in zip(embeds, ordered):          # 그래도 겹치면(예상 밖의 항목) 조각(#id)으로 구별한다 — url이 같으면 합쳐지기 때문
+        if emb["url"] in seen:
+            emb["url"] += "#" + (it.get("id") or str(len(seen)))
+        seen.add(emb["url"])
     n_mine = sum(1 for _, it in ordered if mine_lists(it, mine))
     cap = config.DISCORD_PER_MESSAGE * config.DISCORD_MAX_MESSAGES
     overflow = max(0, len(embeds) - cap)
