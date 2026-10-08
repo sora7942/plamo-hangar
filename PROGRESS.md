@@ -32,10 +32,13 @@
 ## 4d 하위 단계
 - [x] 4d-1 사이트 순수 로직: catalog.js `autoLinks`·`seriesKoSuggestions`·`applyAuto`·`reviewLinks`·seriesKo(`seriesText`), pure.js 엑셀 catalogId 열·'autolink' 커밋 메시지 + 테스트
 - [x] 4d-2 사이트 UI: 설정 '자동 연결 후보 보기'(연결 + 시리즈 한국어, 커밋 1개), 상세 리뷰 링크, 상세 linkbox에 시리즈, e2e
-- [ ] 4d-3 크롤러 seriesKo: crawler/series.py (고유 seriesKey만 번역, docs/data/series-ko.json 사전 + config.SERIES_KO_OVERRIDES), 카탈로그 항목에 seriesKo, crawl.yml 허용 목록, 테스트(Claude 호출 차단), --sample 10개
+- [x] 4d-3 크롤러 seriesKo: crawler/series.py (고유 seriesKey만 번역, docs/data/series-ko.json 사전 + config.SERIES_KO_OVERRIDES), 카탈로그 항목에 seriesKo, crawl.yml 허용 목록, 테스트(Claude 호출 차단), --sample 10개
 - [ ] 4d-4 크롤러 미등록 catalogId: collection.json 읽기만 → 카탈로그에 없는 bh- id 상세 받기 (manual:true, 제외 브랜드면 line:"other" → catalog-gunpla.json, 재분류 건너뜀, 제외 목록 id 되살림, pb-는 안내만)
 - [ ] 4d-5 디스코드 '내 프라 우선' (collection.json 읽기만, 국내 입고 항목, 강조 색, 맨 앞)
 - [ ] 4d-6 SPEC·CLAUDE.md 갱신 + 보고(번역 샘플 10개 포함)
 
+## 4d-3 메모 (보고에 사용)
+번역 샘플 10개(실제 API, 2026-10-08, 파일 쓰지 않음): SDガンダムワールド ヒーローズ→SD건담 월드 히어로즈 / ガンダムビルドダイバーズ Re:RISE→건담 빌드 다이버즈 Re:RISE / 機動戦士ガンダムSEED FREEDOM→기동전사 건담 SEED FREEDOM / スーパーロボット大戦OG→슈퍼로봇대전 OG / ケロロ軍曹→케로로 중사 / ドラゴンボールシリーズ→드래곤볼 시리즈 / コードギアスシリーズ→코드 기아스 시리즈 / 怪獣8号→괴수 8호 / ブルーアーカイブ→블루 아카이브 / 機動戦士ガンダム0080 ポケットの中の戦争→기동전사 건담 0080 포켓 속의 전쟁. 고유 시리즈 74개(토큰 in/out 약 1.5k/0.3k는 10개 기준 → 전체 한 번에 약 10k).
+
 ## 다음에 할 일
-4d-3 크롤러 seriesKo: crawler/series.py 새로 만들기. 고유 seriesKey(현재 74개)만 Claude로 번역 → docs/data/series-ko.json {"updatedAt","items":{key:{"ja","ko"}}} 사전 + config.SERIES_KO_OVERRIDES(사람이 고치는 표, 우선) → 카탈로그 항목 seriesKo 채움. translate 단계 안에서 실행(키 없으면 건너뜀, dry-run은 기본 제외). 가나 검사·용어집은 translate.py 재사용. crawl.yml 허용 목록(2곳)에 series-ko 추가. `python -m crawler.series --sample 10`.
+4d-4 크롤러 미등록 catalogId: config.COLLECTION_FILE 읽기만. catalog.py에 manual 항목 추가(add_manual), apply_detail에서 manual이면 제외 브랜드도 line:"other"로 보존(catalog-gunpla.json에 저장 — save()의 파일 분기·untranslated·counts 수정), reclassify는 manual 건너뜀, excluded id 되살림, pb-는 안내만. pipeline stage_item 맨 앞에서 manual 먼저(상한 config.MANUAL_DETAIL_MAX). meta.sources.hobby_item에 manual 통계.

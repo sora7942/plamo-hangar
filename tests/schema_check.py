@@ -40,6 +40,8 @@ def check_catalog_item(it: dict, line: str | None) -> list[str]:
     for k in ("grade", "scale", "seriesKey", "series", "nameKo", "pbUrl", "channel"):
         if k not in it or not _opt_str(it[k]):
             errs.append(f"{w}: {k} 누락/형식")
+    if "seriesKo" in it and not (isinstance(it["seriesKo"], str) and it["seriesKo"] and it.get("seriesKey")):
+        errs.append(f"{w}: seriesKo는 seriesKey가 있는 항목의 비어 있지 않은 문자열이어야 함")
     if it.get("channel") not in (None, "general", "online", "gbase"):
         errs.append(f"{w}: channel {it.get('channel')!r}")
     if not (isinstance(it.get("nameJa"), str) and it["nameJa"]):
@@ -174,6 +176,19 @@ def check_meta(doc: dict) -> list[str]:
     return errs
 
 
+def check_series(doc: dict) -> list[str]:
+    errs = []
+    if not isinstance(doc.get("updatedAt"), str):
+        errs.append("updatedAt")
+    items = doc.get("items")
+    if not isinstance(items, dict):
+        return errs + ["items가 객체가 아님"]
+    for k, v in items.items():
+        if not (isinstance(v, dict) and isinstance(v.get("ja"), str) and isinstance(v.get("ko"), str) and v["ko"]):
+            errs.append(f"items[{k}]: ja/ko")
+    return errs
+
+
 def check_dir(d: Path) -> list[str]:
     d = Path(d)
     errs = []
@@ -185,6 +200,8 @@ def check_dir(d: Path) -> list[str]:
             errs.append(f"{name} 없음")
     if (d / "kr-arrivals.json").exists():
         errs += [f"kr-arrivals.json: {e}" for e in check_arrivals(json.loads((d / "kr-arrivals.json").read_text(encoding="utf-8")))]
+    if (d / "series-ko.json").exists():
+        errs += [f"series-ko.json: {e}" for e in check_series(json.loads((d / "series-ko.json").read_text(encoding="utf-8")))]
     for name, fn in (("feed.json", check_feed), ("meta.json", check_meta)):
         p = d / name
         errs += [f"{name}: {e}" for e in fn(json.loads(p.read_text(encoding="utf-8")))] if p.exists() else [f"{name} 없음"]

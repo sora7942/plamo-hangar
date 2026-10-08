@@ -14,6 +14,7 @@ REQUEST_LOG = ROOT / "crawler" / "out" / "requests.log"
 CATALOG_FILES = {"gunpla": "catalog-gunpla.json", "girl": "catalog-girl.json"}
 PENDING_FILE = "catalog-pending.json"   # 아직 line을 모르는 항목 + 제외 목록
 FEED_FILE = "feed.json"
+SERIES_FILE = "series-ko.json"          # seriesKey → 한국어 시리즈 사전 (크롤러만 씀, 4단계)
 META_FILE = "meta.json"
 SITE_URL = os.environ.get("SITE_URL") or "https://sora7942.github.io/plamo-hangar/"
 
@@ -146,6 +147,10 @@ TRANSLATE_GLOSSARY: dict[str, str] = {
 NAME_KO_REPLACEMENTS: dict[str, str] = {
     "앰플리파이드": "Amplified",
 }
+# 시리즈 한국어: 번역 결과보다 우선하는 사람이 고치는 표 {seriesKey: 한국어}. 틀린 번역이 보이면 한 줄 추가한다. 값에는 가나를 쓰지 않는다(테스트가 막는다).
+SERIES_KO_OVERRIDES: dict[str, str] = {}
+SERIES_BATCH = 50
+SERIES_MAX_PER_RUN = 300
 TRANSLATE_BATCH = 50
 TRANSLATE_MAX_PER_RUN = 600
 TRANSLATE_MAX_TOKENS = 8000

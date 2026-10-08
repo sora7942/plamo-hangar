@@ -272,3 +272,44 @@ def test_translate_stage_fills_name_ko_and_feed_title_ko(tmp_path):
     assert all(i["nameKo"] for i in items.values()) and res["meta"]["sources"]["translate"]["ok"] is True
     feed = read(tmp_path, "feed.json")["items"]
     assert all(f["titleKo"] for f in feed)
+
+
+def test_series_ko_is_translated_once_stored_in_dictionary_and_applied_without_api(tmp_path):
+    from types import SimpleNamespace
+
+    calls = []
+
+    def create(**kw):
+        rows = json.loads(kw["messages"][0]["content"])
+        calls.append(rows)
+        text = json.dumps({"items": [{"id": r["id"], "ko": f"한글 {r['id']}"} for r in rows]}, ensure_ascii=False)
+        return SimpleNamespace(stop_reason="end_turn", content=[SimpleNamespace(type="text", text=text)], usage=SimpleNamespace(input_tokens=1, output_tokens=1))
+    fake = SimpleNamespace(messages=SimpleNamespace(create=create))
+    res, *_ = go(World(), tmp_path, Options(bootstrap=True, from_month="2026-09"), anthropic_client=fake)
+    series_calls = [r for r in calls if all(set(x) <= {"id", "ja", "prev_ko"} and "grade" not in x for x in r) and r and r[0]["id"] == "g-witch"]
+    assert len(series_calls) == 1 and series_calls[0] == [{"id": "g-witch", "ja": "水星の魔女"}]
+    items = {i["id"]: i for f in ("catalog-gunpla.json", "catalog-girl.json") for i in read(tmp_path, f)["items"]}
+    assert items["bh-01_7001"]["seriesKo"] == "한글 g-witch" and "seriesKo" not in items["bh-01_7003"]
+    assert read(tmp_path, "series-ko.json")["items"] == {"g-witch": {"ja": "水星の魔女", "ko": "한글 g-witch"}}
+    assert res["meta"]["sources"]["translate"]["seriesDone"] == 1 and res["meta"]["crawl"]["lastFixups"]["seriesKoApplied"] == 1
+    assert check_dir(tmp_path) == []
+
+    # 2회차: 번역 대상이 없으면 API를 부르지 않고, 카탈로그 파일에 seriesKo가 그대로 남는다
+    calls.clear()
+    go(World(), tmp_path, Options(), anthropic_client=fake)
+    assert calls == []
+    # dry-run(번역 단계 없음)·API 키 없음에서도 사전의 값은 새로 생긴 항목에까지 채워진다
+    World2 = World()
+    World2.schedule["2026-10"].append(c("01_7009", "HG 1/144 テスト機B"))
+    World2.details["01_7009"] = detail_html("HG 1/144 テスト機B", ["hg"], series=("g-witch", "水星の魔女"))
+    go(World2, tmp_path, Options(dry_run=True))
+    items = {i["id"]: i for f in ("catalog-gunpla.json", "catalog-girl.json") for i in read(tmp_path, f)["items"]}
+    assert items["bh-01_7009"]["seriesKo"] == "한글 g-witch" and calls == []
+
+
+def test_series_ko_overrides_apply_without_dictionary_or_api(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "SERIES_KO_OVERRIDES", {"g-witch": "사람이 정한 이름"})
+    go(World(), tmp_path, Options(bootstrap=True, from_month="2026-09"))
+    items = {i["id"]: i for f in ("catalog-gunpla.json", "catalog-girl.json") for i in read(tmp_path, f)["items"]}
+    assert items["bh-01_7001"]["seriesKo"] == "사람이 정한 이름"
+    assert not (tmp_path / "series-ko.json").exists()          # 번역한 게 없으면 사전 파일도 만들지 않는다

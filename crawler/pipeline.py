@@ -15,7 +15,7 @@ from pathlib import Path
 
 import requests
 
-from . import config, discord, feed, kr, translate
+from . import config, discord, feed, kr, series, translate
 from .catalog import Catalog
 from .http import Blocked, HttpClient, SourceAborted
 from .sources import hobby_brand, hobby_item, hobby_schedule, joyhobby
@@ -257,6 +257,7 @@ def run(opts: Options, http: HttpClient, *, now: datetime | None = None, anthrop
     prev_feed_doc = read_json(data_dir / config.FEED_FILE, {}) or {}
     prev_feed: list[dict] = prev_feed_doc.get("items", [])
     catalog = Catalog.load(data_dir)
+    series_known = series.load(data_dir)
     crawl = {"scheduleFrom": None, "girlBrandsDone": [], **(prev_meta.get("crawl") or {})}
     # 분류표에서 걸프라가 아니게 된 브랜드는 커서에서도 뺀다 (--only와 무관하게 실행 시작에 정리)
     crawl["girlBrandsDone"] = [k for k in crawl["girlBrandsDone"] if k in config.GIRL_BRANDS]
@@ -286,8 +287,14 @@ def run(opts: Options, http: HttpClient, *, now: datetime | None = None, anthrop
                                 "pending": res["pending"], "skipped": res["skipped"], "model": res["model"],
                                 "kanaRetried": res["kanaRetried"], "kanaRejected": res["kanaRejected"]}
         fixups["nameKoReplaced"] += catalog.apply_name_ko_replacements(config.NAME_KO_REPLACEMENTS)
+        sres = series.translate_pending(catalog, series_known, client=anthropic_client)       # 새 시리즈만 (사전에 있으면 API를 부르지 않는다)
+        t = sources["translate"]
+        t.update({"ok": t["ok"] and sres["ok"], "error": t["error"] or sres["error"], "seriesDone": sres["done"], "seriesPending": sres["pending"], "seriesSkipped": sres["skipped"]})
     elif opts.dry_run and opts.only is None:
         sources["translate"] = {"ok": True, "at": iso(now_kst()), "items": 0, "error": None, "skipped": "dry-run"}
+
+    # 시리즈 한국어: 사전(+덮어쓰기 표)을 항목에 채운다. API 키가 없거나 dry-run이어도 이미 아는 시리즈는 항상 채운다
+    fixups["seriesKoApplied"] = series.apply(catalog, series_known)
 
     # 피드: 이번에 처음 발견한 항목 + 이전 피드
     prev_snapshot = copy.deepcopy(prev_feed)               # merge_feed가 빈 칸(titleKo·image)을 제자리에서 보충하므로 비교용 복사
@@ -302,6 +309,7 @@ def run(opts: Options, http: HttpClient, *, now: datetime | None = None, anthrop
 
     # 파일 쓰기 (dry-run도 파일은 쓴다. 디스코드만 보내지 않는다)
     counts = catalog.save(data_dir, now_iso)
+    series.save(data_dir, series_known, now_iso)
     feed_updated = prev_feed_doc.get("updatedAt", now_iso) if merged == prev_snapshot else now_iso
     write_json(data_dir / config.FEED_FILE, {"updatedAt": feed_updated, "items": merged})
     crawl["backlog"] = catalog.backlog_count()

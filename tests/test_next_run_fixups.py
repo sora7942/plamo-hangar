@@ -62,7 +62,7 @@ def test_next_run_moves_bust_items_to_excluded_and_fixes_amplified(tmp_path):
     assert {k: v for k, v in feed["bh-new-01_7101"].items() if k != "titleKo"} == {k: v for k, v in before_feed["bh-new-01_7101"].items() if k != "titleKo"}
 
     meta = res["meta"]["crawl"]
-    assert meta["lastFixups"] == {"toExcluded": 3, "lineChanged": 0, "nameKoReplaced": 1, "feedTitleKoReplaced": 1}
+    assert meta["lastFixups"] == {"toExcluded": 3, "lineChanged": 0, "nameKoReplaced": 1, "feedTitleKoReplaced": 1, "seriesKoApplied": 0}
     assert meta["girlBrandsDone"] == config.GIRL_BRANDS                              # 더 이상 걸프라가 아닌 브랜드는 커서에서도 정리
     assert f"{HOBBY}/brand/figurerise-bust/" not in kinds(sess)                      # bust 브랜드 목록은 더 이상 요청하지 않는다
     assert meta["counts"]["excluded"] >= 3 and check_dir(tmp_path) == []
@@ -73,7 +73,7 @@ def test_fixups_are_idempotent_third_run_changes_nothing(tmp_path):
     go(w, tmp_path, Options(), now=NOW + timedelta(days=1))
     snapshot = {n: (tmp_path / n).read_bytes() for n in DATA_FILES - {"meta.json"}}
     res, *_ = go(w, tmp_path, Options(), now=NOW + timedelta(days=2))
-    assert res["meta"]["crawl"]["lastFixups"] == {"toExcluded": 0, "lineChanged": 0, "nameKoReplaced": 0, "feedTitleKoReplaced": 0}
+    assert res["meta"]["crawl"]["lastFixups"] == {"toExcluded": 0, "lineChanged": 0, "nameKoReplaced": 0, "feedTitleKoReplaced": 0, "seriesKoApplied": 0}
     assert {n: (tmp_path / n).read_bytes() for n in snapshot} == snapshot
 
 
