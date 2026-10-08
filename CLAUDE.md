@@ -78,6 +78,7 @@
 - 디스코드는 **`url`이 같은 embed를 한 카드로 합친다**(첫 번째만 보임). 조이하비는 한 글에 상품 여럿이라 `discord.embed_url`이 `&bd=<BD코드>`를 붙여 구별한다(조이하비는 모르는 파라미터를 무시한다). embed를 만들 때 `url`이 겹치지 않는지 항상 본다
 - 번역에 **원문에 없는 한자**가 섞이기도 한다(`ヴィダール`→`비达르`). 가나 검사가 못 거르므로 `translate.stray_han`이 따로 거르고, 기존 데이터는 매 실행 시작에 비워 재번역한다(`fixups.strayHanReset`). 원문에도 있는 한자(`89式`·`改`)는 정상
 - 용어집(`TRANSLATE_GLOSSARY`) 키는 **낱말 전체**로 쓴다(`アクシ`는 `アクション`에도 걸린다). 용어집에 새 용어를 넣으면 그 용어가 원문에 있는데 번역에 지정 표기가 없는 `nameKo`·`series-ko`가 다음 실행 시작에 비워져 재번역된다(용어마다 한 번 — `meta.crawl.glossaryApplied`, `fixups.glossaryReset`). 조사 붙은 표기(`티탄즈의 깃발 아래`)는 지정 표기를 포함하므로 정상으로 본다
+- 용어집 표기의 **근거 1순위는 몰 상품명**이다(몰 > 조이하비 > 사용자 지정 > AI). 몰에 같은 단어가 다른 표기로 나오면 몰 쪽으로 맞춘다. 조이하비 매칭·사이트 검색·자동 연결 후보는 `nameKo`뿐 아니라 `nameKoAi`·`nameKoJoy`·`nameJa`도 비교에 쓴다(몰 이름으로 바뀌며 모델번호·옛 표기가 빠지기 때문. 모델번호 보호 규칙은 모든 이름에서 모델번호를 모은다)
 - 호비 브랜드 목록의 페이저는 첫·끝 쪽만 링크로 보여 준다(`hg`는 143쪽, 쪽당 10개). `BRAND_MAX_PAGES`(60)는 걸프라용이고 과거 채우기는 `BRAND_BACKFILL_MAX_PAGES`를 쓴다
 - 검색은 **비교용 이름**(`HG 1/144`뿐 아니라 `HGUC`·`HGCE`·`HGBD:R` 머리말도 뗀 `kn`/`jn`/`cmp`)과 **화면용 이름**(`title` — 카탈로그 원래 이름, 등급·스케일 머리말만 뗌)이 다르다. 화면·이름 채우기에는 `title`을, 비교에는 `kn`/`jn`/`cmp`를 쓴다
 - `bandai-hobby.net/images`는 UA에 `HeadlessChrome`이 있으면 이미지 대신 HTML을 줘서 `ERR_BLOCKED_BY_ORB`로 막힌다 → Playwright 확인은 일반 Chrome UA로 (akamai는 무관, 일반 브라우저 방문자도 무관)
