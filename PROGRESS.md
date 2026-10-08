@@ -52,9 +52,10 @@
 - [x] 6-4 2015년 이전 카탈로그: `hobby_backfill` 단계(옵션 단계, 기본 실행에 안 들어감) + `python main.py --brand-backfill` + workflow 입력 `brand_backfill`. 커서 `meta.crawl.brandBackfill`, 대상 `config.OLD_BRANDS`(hg·hguc·hgce·hg-c·mg·mgka·rg·mgsd·sdgundamseries·sdcs·sdex, bb 제외), 목록 카드만(약 366쪽≈8분), 피드·알림 제외. 상세 순서를 발매월 최신순(같은 달이면 line 있는 것 먼저)으로 변경, 연결된 프라는 manual 경로가 먼저. 번역 비용 추정: 20제목 샘플 입력 2,506/출력 846 토큰 → 2,000건 ≈ 입력 17만·출력 8.4만 토큰 ≈ $1.2 (Sonnet 5.5 $2/$10 per 1M), 실행당 600건 상한이라 4번에 나눠 번역. (문서는 7번 시작 전까지 SPEC/README/CLAUDE.md를 바꾸지 않기로 해서 여기에만 적음: README 수동 실행 표에 brand_backfill 추가 필요)
 - [x] 6-3 검색 별칭 `docs/aliases.js`(묶음·줄임말·꼬리말·일반어) + catalog.js search 개편(별칭·꼬리말 가산·일반어만 맞으면 탈락·등급/스케일 낱말은 이름 일치로 안 침) + stripPrefix가 HGCE·HGUC·HGBD:R 머리말도 뗌. 미연결 124개 눈 판정 (정답/애매/오답/후보없음): 전 41/10/38/35 → 후 46/22/25/31, 연결된 7개는 7/7 유지. tests/site_aliases.test.mjs
 - [x] 6-5 빈 칸 채우기: catalog.js fillCandidates·applyAuto(fillIds), 자동 연결 화면의 세 번째 구역(등급 기타·스케일 논스케일·시리즈 빈 칸만, 직접 적은 값은 안 건드림), 커밋 메시지 "빈 칸 N개 채움". e2e 191개 통과(현재 실제 연결 7개엔 후보 0건)
-- [ ] 6-2 연결 도우미 — [x] 6-2a 순수 상태 `docs/assist.js`(큐·연결·건너뛰기·나중에·이전·끝에서 다시 보기, tests/site_assist.test.mjs) / [ ] 6-2b 화면(openAssist, 설정·'반다이 제품 미연결' 진입, 중간 저장, '나중에' localStorage `plamo-later`, 닫을 때 확인) + e2e
+- [x] 6-2 연결 도우미: 6-2a 순수 상태 `docs/assist.js` + 6-2b 화면 `openAssist`(설정 '연결 도우미 시작' · '반다이 제품 미연결' 모아보기의 '연결 도우미로 시작', 후보 5개+검색, [연결][건너뛰기][나중에][이전], 중간 저장=커밋 1개 후 이어서, 닫을 때 확인, '나중에'는 localStorage `plamo-later`, 끝 화면에서 건너뛴/나중에 다시 보기). e2e 223개 통과
 - [ ] (보류) 6-0b 몰 연동 — spike/mall-report.md 참고
 
 ## 다음에 할 일
-- 5단계 코드·문서 끝. push 후 사용자가: (1) Actions 수동 실행 `discord_test` 켜서 실제 알림 1건 확인(요청할 때만) (2) 다음 날 예약 실행으로 `마지막 관측`·meta 갱신 확인 (3) 이전 Claude 아티팩트 정리 여부 결정.
-- 토큰 만료 2027-10-06 (README 4장에 갱신 방법).
+- 6단계 1~6번 끝(로컬 커밋). **6-0b 몰 연동은 사용자가 이용약관 확인 후 따로 지시.** push는 사용자가.
+- push 후 사용자 확인 거리: (1) Actions `discord_test`로 embed 3개가 따로 보이는지 (2) Actions `brand_backfill`(약 8분, 알림 없음) → 이후 매일 실행이 상세·번역을 나눠 채움(번역 약 $1.2) (3) 한자 혼입 `비达르` 2건이 다음 실행에서 재번역되는지 (4) 사이트 연결 도우미·검색 별칭.
+- 문서 동기화가 밀려 있음(7번 전까지 SPEC/README/CLAUDE.md 안 바꾸기로 해서): README 수동 실행 표에 brand_backfill, 검색 별칭·연결 도우미·빈 칸 채우기, SPEC 4장 meta.crawl.brandBackfill·hobby_backfill 단계·fixups.strayHanReset.

@@ -2,7 +2,7 @@
 (function () {
 'use strict';
 
-var P = window.PlamoPure, GH = window.PlamoGitHub, C = window.PlamoCatalog, FD = window.PlamoFeed;
+var P = window.PlamoPure, GH = window.PlamoGitHub, C = window.PlamoCatalog, FD = window.PlamoFeed, AS = window.PlamoAssist;
 var REPO = 'sora7942/plamo-hangar';
 var TOKEN_KEY = 'plamo-token', UI_KEY = 'plamo-ui';
 var XLSX_SRC = { url: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
@@ -248,7 +248,7 @@ function renderAll() {
      '<div class="chips" id="chips"></div><div class="chips" id="tagchips"></div>' +
    '</section>' +
    (isSample() ? '<div class="banner">아래는 예시 데이터예요. ' + (canWrite ? '첫 프라를 추가하거나 엑셀 목록을 가져오면 사라져요.' : '소유자가 프라를 추가하면 사라져요.') + '</div>' : '') +
-   '<p class="count-line" id="countline"></p>' +
+   '<p class="count-line" id="countline"></p><div class="gap-tools" id="gap-tools"></div>' +
    '<div class="grid" id="grid"></div>') +
   '</div>' + (canWrite ? '' : '<footer class="foot"><button class="linkbtn" data-act="settings">소유자 설정</button></footer>');
   if (ui.tab === 'feed') { bindShell(); feedView.mount(document.getElementById('feed-root')); return; }
@@ -315,6 +315,12 @@ var lastList = [];
 function renderList() {
   lastList = P.filterSort(allKits(), ui, { gap: gapOf });
   document.getElementById('countline').textContent = lastList.length + '개 표시 중';
+  var gt = document.getElementById('gap-tools');
+  if (gt) {
+    var unl = canWrite && ui.gap === 'unlinked' ? lastList.filter(function (k) { return !k.catalogId && !k.sample; }) : [];
+    gt.innerHTML = unl.length ? '<button class="btn" type="button" id="gap-assist">연결 도우미로 시작 (' + unl.length + '개)</button><span class="hint">지금 보이는 순서대로 하나씩 연결해요.</span>' : '';
+    var gb = document.getElementById('gap-assist'); if (gb) gb.addEventListener('click', function () { openAssist(unl); });
+  }
   var cl = document.getElementById('countline');
   if (catState === 'error' && hasLinked()) cl.textContent += ' · 카탈로그를 불러오지 못해 공식 사진이 빠져 있어요';
   var empty = tabKits().length ? '조건에 맞는 프라가 없어요. 검색어나 필터를 바꿔 보세요.' : (ui.tab === 'wish' ? '위시리스트가 비어 있어요. 사고 싶은 프라를 추가해 보세요.' : '아직 등록한 프라가 없어요.');
@@ -364,8 +370,9 @@ function openModal(title, body, foot) {
   var f = o.querySelector('input:not([type=file]),select,textarea,button:not(.x)') || o.querySelector('.x'); if (f) f.focus();
   return o;
 }
-function closeModal() {
+function closeModal(force) {
   var m = document.getElementById('modal');
+  if (m && !force && m._guard && !m._guard()) return;          // 저장하지 않은 작업이 있으면 확인을 거친다 (연결 도우미)
   if (m) { if (m._cleanup) m._cleanup(); m.remove(); if (lastFocus && lastFocus.focus && document.contains(lastFocus)) lastFocus.focus(); }
 }
 document.addEventListener('keydown', function (e) {
@@ -412,7 +419,7 @@ function bindPicker(root, o) {
       } else status('P-반다이 한정 상품은 카탈로그에 있는 것만 연결할 수 있어요. 이름으로 찾아 보세요.');
       return;
     }
-    var r = C.search(cat, text, { grade: g.value, scale: o.getScale && o.getScale() });
+    var r = C.search(cat, text, { grade: g.value, scale: o.getScale && o.getScale(), limit: o.limit });
     if (!r.results.length) { status('찾지 못했어요.' + (g.value !== 'all' ? ' 등급을 "모든 등급"으로 바꿔 보세요.' : ' 카탈로그는 수집이 진행 중이라 일부 제품이 아직 없을 수 있어요. 호비사이트 상품 주소를 붙여넣으면 연결만 해 둘 수 있어요.')); return; }
     status(r.partial ? '정확히 같은 이름은 없어요. 비슷한 후보예요.' : (r.total > r.results.length ? r.total + '개 중 ' + r.results.length + '개를 보여 줘요. 더 구체적으로 적어 보세요.' : r.total + '개를 찾았어요.'));
     ul.innerHTML = r.results.map(function (it) { return pickRow(it, o.exceptId); }).join('');
@@ -521,6 +528,96 @@ function openAutoLink() {
       { okMsg: [Object.keys(linkMap).length ? '반다이 제품 ' + Object.keys(linkMap).length + '개를 연결' : '', serIds.length ? '시리즈 ' + serIds.length + '개를 한국어로 변경' : '', fillIds.length ? '빈 칸 ' + fillIds.length + '개를 채움' : ''].filter(Boolean).join(', ') + '했어요.' });
   });
   ensureCatalog().then(function () { if (m.isConnected) paint(); });
+}
+
+/* ---------- 연결 도우미: 미연결 프라를 하나씩 보며 후보 5개 + 검색으로 연결 (연결은 모아서 한 번에 저장) ---------- */
+var LATER_KEY = 'plamo-later';
+function getLater() { try { var a = JSON.parse(localStorage.getItem(LATER_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+function setLater(ids) { try { localStorage.setItem(LATER_KEY, JSON.stringify(ids)); } catch (e) {} } // "나중에"는 이 브라우저에만 기억한다
+function unlinkedKits() { return data.kits.filter(function (k) { return k.list === 'own' && !k.catalogId; }).concat(data.kits.filter(function (k) { return k.list === 'wish' && !k.catalogId; })); }
+
+// kitsList: 보여 줄 순서의 프라(없으면 보유 → 위시리스트의 미연결 전부). o.skipped: 중간 저장 뒤 이어 갈 때 이미 건너뛴 id들
+function openAssist(kitsList, o) {
+  o = o || {};
+  var kits = (kitsList || unlinkedKits()).filter(function (k) { return !k.catalogId; });
+  if (!kits.length) { toast('연결할 프라가 없어요. 모두 반다이 제품과 연결돼 있어요.'); return; }
+  var session = AS.createSession(kits, { deferred: getLater(), skipped: o.skipped || [] }), kitIds = kits.map(function (k) { return k.id; });
+  var chosen = null, saving = false;
+  var body = '<div id="as-count" class="as-count" aria-live="polite"></div><div id="as-main"></div>';
+  var foot = '<button class="btn" id="as-save" disabled>중간 저장</button><div class="r"><button class="btn" id="as-back" disabled>이전</button><button class="btn" id="as-skip">건너뛰기</button><button class="btn" id="as-later">나중에</button><button class="btn primary" id="as-link" disabled>연결</button></div>';
+  var m = openModal('연결 도우미', body, foot);
+  var main = m.querySelector('#as-main'), cnt = m.querySelector('#as-count');
+  var $ = function (id) { return m.querySelector('#' + id); };
+  var persistLater = function () { setLater(AS.cleanLater(session.deferredIds(), data.kits)); };
+
+  // 저장하지 않은 연결이 있는데 닫으려 하면 한 번 확인한다
+  m._guard = function () {
+    if (saving || !session.pendingCount()) return true;
+    openAlert('저장하지 않은 연결이 ' + session.pendingCount() + '개 있어요', '지금 닫으면 이 연결은 저장되지 않아요.',
+      [{ label: '계속하기', value: false }, { label: '저장하지 않고 닫기', value: true, primary: true }]).then(function (yes) { if (yes) closeModal(true); });
+    return false;
+  };
+
+  function save(reopen) {
+    var map = session.pendingMap(), n = session.pendingCount(); if (!n) return;
+    saving = true;
+    commit(function (d) { C.applyAuto(d.kits, cat, map, null, null); }, 'assist', { n: n }, { okMsg: '반다이 제품 ' + n + '개를 연결했어요.' }).then(function (ok) {
+      saving = false;
+      if (!ok) return;
+      session.afterSave(); persistLater();
+      if (reopen) openAssist(kitIds.map(findKit).filter(function (k) { return k && !k.catalogId; }), { skipped: session.skippedIds() }); // 중간 저장: 이어서
+    });
+  }
+
+  function stat() {
+    var st = session.stats();
+    cnt.innerHTML = '<span><b>' + st.pending + '</b> 연결 대기</span><span><b>' + st.left + '</b> 남음</span><span>건너뜀 ' + st.skipped + '</span><span>나중에 ' + st.later + '</span>';
+    $('as-save').disabled = !st.pending; $('as-save').textContent = st.pending ? '중간 저장 (' + st.pending + ')' : '중간 저장';
+    $('as-back').disabled = !session.canBack();
+    return st;
+  }
+  function kitCard(k) {
+    var cover = P.photoOrder(k, []).cover;
+    return '<div class="as-kit"><div class="pk-thumb as-thumb">' + (cover ? '<img src="' + esc(photoSrc(cover.thumb)) + '" alt="" referrerpolicy="no-referrer" data-g="' + esc(P.glabel(k.grade)) + '">' : '<div class="ghost">' + esc(P.glabel(k.grade)) + '</div>') + '</div>' +
+      '<div class="pk-body"><b>' + esc(k.name) + '</b><span class="hint">' + esc([k.list === 'wish' ? '위시리스트' : '보유', gname(k.grade), k.scale, k.series].filter(Boolean).join(' · ')) + '</span>' +
+      (k.tags.length ? '<span class="hint">' + k.tags.slice(0, 4).map(function (t) { return '#' + esc(t); }).join(' ') + '</span>' : '') + '</div></div>';
+  }
+  function paint() {
+    chosen = null; $('as-link').disabled = true;
+    var st = stat(), k = session.current();
+    if (catState !== 'ready') { main.innerHTML = '<p class="hint">' + (catState === 'error' ? '카탈로그를 불러오지 못했어요. <button type="button" class="linkbtn" id="as-retry">다시 시도</button>' : '카탈로그를 불러오는 중이에요…') + '</p>'; ensureCatalog().then(function () { if (m.isConnected) paint(); }); setActions(false); return; }
+    if (!k) { endScreen(st); return; }
+    setActions(true);
+    var gv = gname(k.grade);
+    main.innerHTML = kitCard(k) + pickerHTML({ query: k.name, grade: gv === '기타' ? 'all' : gv }) + '<p class="hint" id="as-sel">후보를 골라 [연결]을 누르세요. 맞는 게 없으면 [건너뛰기]나 [나중에].</p>';
+    bindPicker(main, { exceptId: k.id, limit: 5, getScale: function () { return k.scale === '논스케일' ? null : k.scale; },
+      onPick: function (sel) {
+        chosen = sel; $('as-link').disabled = false;
+        var r = sel.item ? C.fillPatch(sel.item, k) : null;
+        main.querySelector('#as-sel').textContent = sel.item ? '"' + sel.item.title + '"에 연결해요.' + (r.filled.length ? ' 채워질 항목: ' + r.filled.join(', ') : '') : '연결만 저장해요. 이름·등급·사진은 다음 수집 때 채워져요.';
+      } });
+  }
+  function setActions(on) { ['as-skip', 'as-later'].forEach(function (id) { $(id).disabled = !on; }); }
+  function endScreen(st) {
+    setActions(false);
+    main.innerHTML = '<div class="as-end"><h3>모두 훑었어요</h3><p class="hint">' + (st.pending ? '연결 대기 ' + st.pending + '개를 저장하면 반다이 제품과 연결돼요.' : '연결 대기 중인 프라는 없어요.') + '</p><div class="row-btns">' +
+      (st.pending ? '<button class="btn primary" id="as-end-save">' + st.pending + '개 저장하고 닫기</button>' : '') +
+      (st.skipped ? '<button class="btn" id="as-review-skip">건너뛴 ' + st.skipped + '개 다시 보기</button>' : '') +
+      (st.later ? '<button class="btn" id="as-review-later">나중에 미룬 ' + st.later + '개 보기</button>' : '') + '</div></div>';
+  }
+  m.addEventListener('click', function (e) {
+    var id = e.target && e.target.id;
+    if (id === 'as-retry') { ensureCatalog().then(paint); }
+    else if (id === 'as-end-save') { save(false); }
+    else if (id === 'as-review-skip') { session.reviewSkipped(); paint(); }
+    else if (id === 'as-review-later') { session.reviewLater(); paint(); }
+  });
+  $('as-link').addEventListener('click', function () { if (chosen && session.link(chosen.id)) paint(); });
+  $('as-skip').addEventListener('click', function () { if (session.skip()) paint(); });
+  $('as-later').addEventListener('click', function () { if (session.later()) { persistLater(); paint(); } else toast('나중에 미룰 수 있는 개수(' + AS.MAX_LATER + '개)에 닿았어요.'); });
+  $('as-back').addEventListener('click', function () { if (session.back()) { persistLater(); paint(); } });
+  $('as-save').addEventListener('click', function () { save(true); });
+  paint();
 }
 
 function openDetail(id) {
@@ -824,7 +921,7 @@ function openSettings() {
   var body = (canWrite ? '<div class="settings-sec"><div class="field"><label for="s-name">컬렉션 이름</label><input id="s-name" value="' + esc(data.settings.name) + '"></div>' +
      '<label class="check"><input type="checkbox" id="s-hide"' + (data.settings.hidePurchase ? ' checked' : '') + '><span>방문자 화면에서 구매일·구매처·가격 숨기기<br><span class="hint">화면에서만 숨겨요. 저장소가 공개라서 data/collection.json에는 그대로 보여요. 꼭 비공개여야 하는 정보는 적지 마세요.</span></span></label>' +
      '<label class="check"><input type="checkbox" id="s-offhide"' + (data.settings.hideOfficialPhotos ? ' checked' : '') + '><span>공식 사진 숨기기<br><span class="hint">반다이 제품과 연결된 프라에 공식 사진을 붙이지 않아요. 내가 올린 사진만 나와요.</span></span></label></div>' : '') +
-   (canWrite ? '<div class="settings-sec"><h3>반다이 제품 연결</h3><p class="hint">이름·등급·스케일이 카탈로그와 똑같은 프라를 한꺼번에 연결해 줘요. 확인한 것만 한 번에 저장해요.</p><div class="row-btns"><button class="btn" id="s-auto">자동 연결 후보 보기</button></div></div>' : '') +
+   (canWrite ? '<div class="settings-sec"><h3>반다이 제품 연결</h3><p class="hint">이름·등급·스케일이 카탈로그와 똑같은 프라를 한꺼번에 연결해 줘요. 확인한 것만 한 번에 저장해요.</p><div class="row-btns"><button class="btn" id="s-auto">자동 연결 후보 보기</button><button class="btn" id="s-assist">연결 도우미 시작</button></div></div>' : '') +
    '<div class="settings-sec"><h3>GITHUB 토큰</h3><p id="s-tstatus" style="font-size:14px">' + tokenStatus + '</p>' +
      '<div class="field"><label for="s-token">fine-grained 토큰</label><input id="s-token" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="' + (canWrite ? '다른 토큰으로 바꾸려면 붙여넣기' : 'github_pat_…') + '"></div>' +
      '<p class="hint">이 저장소(' + esc(REPO) + ')만, Contents: Read and write 권한으로 만든 토큰이어야 해요. 토큰은 이 브라우저에만 저장되고 화면에 다시 보여주지 않아요. 공용 PC에서는 쓰지 마세요.</p>' +
@@ -844,6 +941,7 @@ function openSettings() {
     });
   });
   var sa = $('s-auto'); if (sa) sa.addEventListener('click', openAutoLink);
+  var sas = $('s-assist'); if (sas) sas.addEventListener('click', function () { openAssist(); });
   var fg = $('s-forget');
   if (fg) fg.addEventListener('click', function () {
     clearToken(); store = null; canWrite = false; sel = null;

@@ -270,3 +270,12 @@ img{max-width:100%}
 .al-list{max-height:none;overflow:visible}
 .al-check{display:flex;align-items:center;padding:6px 2px;cursor:pointer}
 .al-check input{width:18px;height:18px}
+
+/* 연결 도우미 (6-2) */
+.as-count{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--muted);margin-bottom:10px}
+.as-count b{color:var(--fg);font-family:var(--f-mono)}
+.as-kit{display:flex;gap:12px;align-items:center;padding:10px 12px;margin-bottom:12px;background:var(--sunken);border-left:3px solid var(--accent)}
+.as-thumb{flex:0 0 72px;height:54px}
+.as-end h3{margin:0 0 6px;font-family:var(--f-display);font-size:16px}
+.gap-tools{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:-6px 0 10px}
+.gap-tools:empty{display:none}

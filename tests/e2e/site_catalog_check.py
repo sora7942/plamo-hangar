@@ -7,6 +7,7 @@
 - 스크린샷은 tests/e2e/out/ (gitignore — 공식 이미지가 찍히므로 저장소에 넣지 않는다).
 """
 import json
+import re
 import sys
 import threading
 from functools import partial
@@ -641,6 +642,133 @@ def autolink_checks(browser, base):
         ctx.close()
 
 
+def assist_checks(browser, base):
+    """연결 도우미: 하나씩 후보 5개 + 검색 → [연결][건너뛰기][나중에][이전], 중간 저장(커밋 1개), 닫을 때 확인, '나중에' 기억."""
+    kits = REAL["kits"]
+    seed = {COLL_PATH: json.dumps(REAL, ensure_ascii=False) + "\n", "docs/data/feed.json": '{"n":1}', "docs/data/meta.json": "{}"}
+    section("연결 도우미 (설정에서 시작)")
+    ctx = M.new_context(browser, fake={"seed": seed})
+    page = M.open_page(ctx, base)
+    page.locator('[data-act="settings"]').first.click()
+    page.wait_for_selector("#s-assist", timeout=5000)
+    page.click("#s-assist")
+    page.wait_for_selector(".as-kit", timeout=20000)
+    page.wait_for_selector(".pk-item, #pk-status", timeout=20000)
+    page.wait_for_timeout(500)
+    check(f"{len(kits)}" in page.locator("#as-count").inner_text() and "연결 대기" in page.locator("#as-count").inner_text(), f"진행 표시: {page.locator('#as-count').inner_text()}")
+    first = page.locator(".as-kit b").inner_text()
+    check(first == kits[0]["name"], f"첫 프라는 목록 순서대로: {first}")
+    n = page.locator(".pk-item").count()
+    check(1 <= n <= 5, f"후보는 상위 5개까지: {n}개")
+    check(page.locator("#as-link").is_disabled() and page.locator("#as-back").is_disabled(), "고르기 전엔 [연결]이 꺼져 있고 [이전]도 꺼져 있다")
+    check(page.locator("#pk-q").input_value() == kits[0]["name"], "검색창에 이름이 미리 들어 있다")
+
+    page.click("#as-skip")                                                  # 1번째: 건너뛰기
+    page.wait_for_timeout(300)
+    second = page.locator(".as-kit b").inner_text()
+    check(second == kits[1]["name"] and "건너뜀 1" in page.locator("#as-count").inner_text(), f"건너뛰기 → 다음 프라: {second}")
+    page.click("#as-later")                                                 # 2번째: 나중에
+    page.wait_for_timeout(300)
+    later_id = kits[1]["id"]
+    stored = page.evaluate("JSON.parse(localStorage.getItem('plamo-later') || '[]')")
+    check(stored == [later_id] and "나중에 1" in page.locator("#as-count").inner_text(), f"나중에 → 이 브라우저에 기억: {stored}")
+    third = page.locator(".as-kit b").inner_text()
+    page.wait_for_selector(".pk-item", timeout=10000)
+    pick = page.locator("[data-pick]").first
+    pid = pick.get_attribute("data-pick")
+    pick.click()
+    check(page.locator("#as-link").is_enabled() and "연결해요" in page.locator("#as-sel").inner_text(), f"후보 선택 → [연결] 켜짐: {page.locator('#as-sel').inner_text()[:50]}")
+    page.click("#as-link")                                                  # 3번째: 연결 (대기열에 모음)
+    page.wait_for_timeout(300)
+    check("1 연결 대기" in page.locator("#as-count").inner_text() and page.locator("#as-save").inner_text() == "중간 저장 (1)", "연결은 대기열에 모인다 (저장 전)")
+    check(len(M.history(page)) == 0, "저장 전에는 커밋이 없다")
+    page.click("#as-back")                                                  # 이전: 방금 연결을 취소
+    page.wait_for_timeout(200)
+    check(page.locator(".as-kit b").inner_text() == third and "0 연결 대기" in page.locator("#as-count").inner_text(), "[이전] → 방금 연결을 취소하고 그 프라로 돌아온다")
+    page.wait_for_selector("[data-pick]", timeout=10000)
+    page.locator("[data-pick]").first.click()
+    page.click("#as-link")
+    page.wait_for_timeout(200)
+
+    before = len(M.history(page)); M.reset_log(page)                         # 중간 저장
+    page.click("#as-save")
+    page.wait_for_selector(".as-kit", timeout=20000)                         # 저장하면 닫혔다가 이어서 다시 열린다
+    page.wait_for_timeout(500)
+    M.one_commit(page, "연결 도우미 중간 저장", before, msg_re=r"collection: 반다이 제품 1개 연결 \(연결 도우미\)", collection_only=True)
+    saved = {x["id"]: x for x in M.collection(page)["kits"]}
+    k3 = next(x for x in kits if x["name"] == third)
+    check(saved[k3["id"]]["catalogId"] == pid and saved[k3["id"]]["name"] == k3["name"], "고른 제품에 연결, 내 이름은 그대로")
+    check(sum(1 for x in saved.values() if x["catalogId"]) == 1, "나머지 프라는 연결되지 않았다 (건너뜀·나중에 포함)")
+    check(page.locator(".as-kit b").inner_text() == kits[3]["name"], f"저장 뒤 이어서: 연결한 프라와 건너뛴 프라는 빠지고 다음 프라 {page.locator('.as-kit b').inner_text()}")
+    check("0 연결 대기" in page.locator("#as-count").inner_text() and "건너뜀 1" in page.locator("#as-count").inner_text() and "나중에 1" in page.locator("#as-count").inner_text(), "저장 뒤에도 건너뜀·나중에 개수 유지")
+
+    section("연결 도우미: 닫을 때 확인")
+    page.wait_for_selector("[data-pick]", timeout=10000)
+    page.locator("[data-pick]").first.click(); page.click("#as-link")
+    page.wait_for_timeout(200)
+    page.keyboard.press("Escape")
+    page.wait_for_selector("#alert", timeout=3000)
+    check("저장하지 않은 연결이 1개" in page.locator("#alert").inner_text(), "저장하지 않은 연결이 있으면 닫을 때 묻는다")
+    page.click('#alert [data-i="0"]')                                       # 계속하기
+    check(page.locator("#modal").count() == 1, "[계속하기] → 도우미가 그대로 열려 있다")
+    before = len(M.history(page))
+    page.click(".panel-head .x")
+    page.wait_for_selector("#alert", timeout=3000)
+    page.click('#alert [data-i="1"]')                                       # 저장하지 않고 닫기
+    page.wait_for_selector("#modal", state="detached", timeout=5000)
+    check(len(M.history(page)) == before, "저장하지 않고 닫으면 커밋이 생기지 않는다")
+    ctx.close()
+
+    section("연결 도우미: '반다이 제품 미연결' 모아보기에서 시작 · 끝 화면 · 나중에 기억")
+    ctx = M.new_context(browser, fake={"seed": seed})
+    page = M.open_page(ctx, base)
+    page.evaluate(f"localStorage.setItem('plamo-later', JSON.stringify(['{kits[1]['id']}']))")
+    page.reload(); page.wait_for_selector(".card", timeout=15000)
+    page.select_option("#f-gap", "unlinked")
+    page.wait_for_timeout(300)
+    page.click('.chip[data-grade="EG"]')
+    page.wait_for_timeout(200)
+    eg = [x for x in kits if x["grade"] == "EG"]
+    btn = page.locator("#gap-assist")
+    check(btn.count() == 1 and f"({len(eg)}개)" in btn.inner_text(), f"필터 결과 {len(eg)}개로 시작 버튼: {btn.inner_text() if btn.count() else None}")
+    btn.click()
+    page.wait_for_selector(".as-kit", timeout=20000)
+    check(page.locator(".as-kit b").inner_text() == eg[0]["name"] and "1 남음" in page.locator("#as-count").inner_text(), "보이는 순서·범위 그대로 시작한다")
+    page.click("#as-skip")
+    page.wait_for_selector(".as-end", timeout=3000)
+    check("모두 훑었어요" in page.locator(".as-end").inner_text() and page.locator("#as-review-skip").count() == 1, "끝 화면: 건너뛴 것 다시 보기")
+    page.click("#as-review-skip")
+    page.wait_for_selector(".as-kit", timeout=5000)
+    check(page.locator(".as-kit b").inner_text() == eg[0]["name"], "건너뛴 프라가 다시 나온다")
+    page.click("#as-later")
+    page.wait_for_selector(".as-end", timeout=3000)
+    check(page.locator("#as-review-later").count() == 1, "끝 화면: 나중에 미룬 것 보기")
+    page.click("#as-review-later")
+    page.wait_for_selector(".as-kit", timeout=5000)
+    check(page.locator(".as-kit b").inner_text() == eg[0]["name"], "나중에 미룬 프라를 목록 끝에서 다시 본다")
+    page.keyboard.press("Escape")
+    page.wait_for_selector("#modal", state="detached", timeout=5000)
+    # 설정에서 시작하면 나중에로 미룬 프라는 맨 끝에 있다
+    page.locator('[data-act="settings"]').first.click(); page.click("#s-assist")
+    page.wait_for_selector(".as-kit", timeout=20000)
+    total = int(re.search(r"(\d+) 남음", page.locator("#as-count").inner_text()).group(1))
+    check(total == len(kits) and page.locator(".as-kit b").inner_text() == kits[0]["name"], "나중에로 미룬 프라는 목록 맨 끝으로 가고 앞 프라부터 시작")
+    check(not ctx.errors, f"콘솔 에러 없음 {ctx.errors[:3]}")
+    ctx.close()
+
+    section("연결 도우미: 400px · 다크")
+    for scheme in ("light", "dark"):
+        ctx = M.new_context(browser, w=400, h=860, scheme=scheme, fake={"seed": seed})
+        page = M.open_page(ctx, base)
+        page.locator('[data-act="settings"]').first.click(); page.click("#s-assist")
+        page.wait_for_selector(".as-kit", timeout=20000)
+        page.wait_for_selector(".pk-item", timeout=15000)
+        page.wait_for_timeout(1200)
+        check(page.evaluate("(() => { const p = document.querySelector('.panel'); return p.scrollWidth <= p.clientWidth + 1 && document.documentElement.scrollWidth <= innerWidth + 1; })()"), f"400px {scheme}: 가로 넘침 없음")
+        shot(page, f"cat-assist-400-{scheme}.png")
+        ctx.close()
+
+
 def owner_flows(browser, base):
     """소유자 모드: 찾기 → 연결 → 채우기 → 공식 대표 사진 → 저장(커밋 1개). 저장되는 건 catalogId·cover 뿐 (이미지 URL은 저장 안 함)."""
     import collections
@@ -820,6 +948,7 @@ def main():
             gap_checks(browser, base)
             feed_checks(browser, base)
             autolink_checks(browser, base)
+            assist_checks(browser, base)
         finally:
             browser.b.close()
             srv.shutdown()
