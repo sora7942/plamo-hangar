@@ -204,22 +204,41 @@ class Cand:
     toks: tuple
 
 
+NAME_FIELDS = ("nameKo", "nameKoAi", "nameKoJoy")      # 같은 상품의 한국어 이름들 (현재 이름·AI 번역·조이하비 이름). 몰 이름으로 바뀌어도 앞의 이름들로 비교한다
+
+
+def name_variants(item: dict) -> list[str]:
+    """비교에 쓰는 한국어 이름들 (중복 제거, 현재 nameKo가 첫째)."""
+    out: list[str] = []
+    for f in NAME_FIELDS:
+        v = item.get(f)
+        if v and v not in out:
+            out.append(v)
+    return out
+
+
 class CatalogIndex:
-    """등급별 후보 목록. nameKo가 있는 gunpla·girl 항목만 들어간다."""
+    """등급별 후보 목록. 한국어 이름이 있는 gunpla·girl 항목만 들어간다. 한 항목은 이름마다(nameKo·nameKoAi·nameKoJoy) 후보를 하나씩 갖고,
+    모델번호 토큰은 모든 이름과 nameJa에서 모아 쓴다 — 몰 이름으로 바뀌며 모델번호가 빠져도 보호 규칙(MSN-04 ≠ MSN-04FF)이 계속 작동한다."""
 
     def __init__(self, items) -> None:
         self.by_grade: dict[str | None, list[Cand]] = {}
         for it in items:
-            if it.get("line") not in LINES or not it.get("nameKo"):
+            names = name_variants(it)
+            if it.get("line") not in LINES or not names:
                 continue
-            core = catalog_core(it)
-            text = strip_models(core)
-            if not text:
-                continue
-            sp = spaced(text)
-            c = Cand(it["id"], it.get("grade"), it.get("scale"), core, text, squash(text), sp,
-                     model_tokens(it.get("nameKo"), it.get("nameJa")), significant_runs(text), tuple(sp.split()))
-            self.by_grade.setdefault(c.grade, []).append(c)
+            models = model_tokens(*names, it.get("nameJa"))
+            seen_text: set[str] = set()
+            for nm in names:
+                core = catalog_core({**it, "nameKo": nm})
+                text = strip_models(core)
+                if not text or squash(text) in seen_text:
+                    continue
+                seen_text.add(squash(text))
+                sp = spaced(text)
+                c = Cand(it["id"], it.get("grade"), it.get("scale"), core, text, squash(text), sp,
+                         models, significant_runs(text), tuple(sp.split()))
+                self.by_grade.setdefault(c.grade, []).append(c)
 
     def pool(self, grade: str | None, scale: str | None) -> list[Cand]:
         grades = config.JOY_GRADE_FAMILIES.get(grade or "", {grade})
@@ -286,14 +305,16 @@ def best_match(jn: JoyName, index: CatalogIndex) -> Match:
         return Match(None, 0, 0, 0, reason="no-candidates")
     jsq, jsp = squash(jn.text), spaced(jn.text)
     # 전체를 파이썬으로 채점하지 않고, 두 척도의 상위 후보만 모아 다시 채점한다
-    picks = {i for _, _, i in process.extract(jsq, [c.sq for c in pool], scorer=fuzz.ratio, limit=8)}
-    picks |= {i for _, _, i in process.extract(jsp, [c.sp for c in pool], scorer=fuzz.token_sort_ratio, limit=8)}
+    picks = {i for _, _, i in process.extract(jsq, [c.sq for c in pool], scorer=fuzz.ratio, limit=12)}
+    picks |= {i for _, _, i in process.extract(jsp, [c.sp for c in pool], scorer=fuzz.token_sort_ratio, limit=12)}
     scored = sorted(((*_score(jn, jsq, jsp, pool[i]), pool[i]) for i in picks), key=lambda t: (-t[0], t[2].id))
-    passing, first_guard = [], None
+    passing, first_guard, pass_ids = [], None, set()
     for s, conflict, c in scored:
         why = guard(jn.text, c)
         if why is None:
-            passing.append((s, conflict, c))
+            if c.id not in pass_ids:                       # 같은 상품의 다른 이름 후보는 가장 높은 점수 하나만 (2등과의 차이를 자기 자신과 재지 않는다)
+                pass_ids.add(c.id)
+                passing.append((s, conflict, c))
         elif first_guard is None and s >= config.MATCH_LINK_SCORE:
             first_guard = why
     if not passing:

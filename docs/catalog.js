@@ -72,7 +72,7 @@ function normalizeItem(raw) {
   var it = {
     id: raw.id, url: str(raw.url), pbUrl: str(raw.pbUrl), line: str(raw.line), channel: str(raw.channel),
     grade: P.catalogGrade(raw.grade), rawGrade: str(raw.grade), scale: str(raw.scale), series: str(raw.series), seriesKo: str(raw.seriesKo),
-    nameJa: str(raw.nameJa), nameKo: str(raw.nameKo), priceJpy: Number(raw.priceJpy) || 0,
+    nameJa: str(raw.nameJa), nameKo: str(raw.nameKo), nameKoAi: str(raw.nameKoAi), nameKoJoy: str(raw.nameKoJoy), priceJpy: Number(raw.priceJpy) || 0,
     priceKrw: Number.isInteger(raw.priceKrw) && raw.priceKrw > 0 ? raw.priceKrw : 0, priceKrwAt: str(raw.priceKrwAt),
     mallGno: typeof raw.mallGno === 'string' && /^\d+$/.test(raw.mallGno) ? raw.mallGno : null, mallSoldOut: raw.mallSoldOut === true, mallEnded: raw.mallEnded === true,
     release: { month: str(rel.month), date: str(rel.date) },
@@ -84,10 +84,14 @@ function normalizeItem(raw) {
   it.kn = norm(stripPrefix(it.nameKo, it.rawGrade, it.scale, true));       // 비교용 이름 (변형 머리말도 뗀 것)
   it.jn = norm(stripPrefix(it.nameJa, it.rawGrade, it.scale, true));
   it.cmp = norm(stripPrefix(it.nameKo || it.nameJa, it.rawGrade, it.scale, true));   // 자동 연결 후보 비교 키
+  // 같은 상품의 다른 한국어 이름(AI 번역·조이하비 이름) — 몰 이름으로 바뀌어 모델번호·옛 표기가 빠져도 검색·자동 연결이 계속 맞는다
+  it.alts = [it.nameKoAi, it.nameKoJoy].map(function (n) { return n ? norm(stripPrefix(n, it.rawGrade, it.scale, true)) : ''; })
+    .filter(function (n, i, a) { return n && n !== it.kn && a.indexOf(n) === i; });
+  it.ka = it.alts.join('|');
   it.seriesText = it.seriesKo || it.series;   // 화면·채우기에는 한국어(seriesKo)를 먼저 쓴다
   it.sn = norm(it.seriesKo) + norm(it.series);
   it.meta = norm(it.rawGrade) + '|' + norm(it.scale);                  // 등급·스케일은 낱말이 맞아도 '이름이 맞았다'로 치지 않는다
-  it.all = norm(it.nameKo) + '|' + norm(it.nameJa) + '|' + it.sn + '|' + it.meta;
+  it.all = norm(it.nameKo) + '|' + norm(it.nameJa) + '|' + it.ka + '|' + it.sn + '|' + it.meta;
   return it;
 }
 function build(lists, meta) {
@@ -132,6 +136,7 @@ function search(cat, query, o) {
     tokens.forEach(function (t, i) {
       var alts = altsOf[i], real = !(al && al.isGeneric(t));
       if (has(it.kn, alts) || has(it.jn, alts)) { hit++; score += 3; if (real) distinct++; }
+      else if (it.ka && has(it.ka, alts)) { hit++; score += 2; if (real) distinct++; }      // 다른 한국어 이름(nameKoAi·nameKoJoy)으로 맞음 — 현재 이름보다 약간 낮게
       else if (has(it.sn, alts)) { hit++; score += 1; if (real) distinct++; }
       else if (has(it.all, alts)) { hit++; score += 1; }
     });
@@ -269,8 +274,10 @@ function autoLinks(kits, cat) {
   var index = {};
   cat.items.forEach(function (it) {
     if (it.grade === '기타' || !it.cmp) return;
-    var k = linkKey(it.cmp, it.grade, it.scale);
-    (index[k] = index[k] || []).push(it);
+    [it.cmp].concat(it.alts).forEach(function (cmp) {         // 현재 이름 + 다른 한국어 이름 모두 키로 (같은 항목은 키마다 한 번)
+      var k = linkKey(cmp, it.grade, it.scale);
+      (index[k] = index[k] || []).push(it);
+    });
   });
   var out = [];
   (kits || []).forEach(function (kit) {

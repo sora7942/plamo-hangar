@@ -404,3 +404,33 @@ test('정가: 몰 가격이 있으면 ₩ + 몰 링크, 없으면 엔 정가, �
   assert.equal(C.mallUrl('12'), 'https://www.bnkrmall.co.kr/goods/detail.do?gno=12'); assert.equal(C.mallUrl('x'), null); assert.equal(C.mallUrl(null), null);
   assert.equal(C.priceShort(norm({ priceKrw: 26400, mallGno: '1' })), '₩26,400'); assert.equal(C.priceShort(norm({})), '¥4,950'); assert.equal(C.priceShort(norm({ priceJpy: 0 })), '');
 });
+
+// ---------- 몰 이름으로 바뀐 뒤에도 nameKoAi·nameKoJoy·nameJa로 찾는다 (모델번호·옛 표기가 빠지지 않게) ----------
+const renamed = C.build([{ items: [
+  raw('bh-r1', { nameKo: 'HG 1/144 사자비', nameKoSource: 'bnkrmall', nameKoAi: 'HG 1/144 MSN-04 사자비', nameKoJoy: 'HG 1/144 MSN-04 샤아 전용 사자비', nameJa: 'HG 1/144 サザビー' }),
+  raw('bh-r2', { nameKo: 'HG 1/144 즈고크 개수형', nameKoSource: 'bnkrmall', nameKoAi: 'HG 1/144 즈곡 개수형', nameJa: 'HG 1/144 ズゴック改' }),
+  raw('bh-r3', { nameKo: 'HG 1/144 완전히 다른 기체', nameJa: 'HG 1/144 別の機体' }),
+] }], null);
+
+test('검색: 몰 이름에 없는 모델번호·옛 표기도 nameKoAi·nameKoJoy로 찾고, 현재 이름 일치가 더 앞선다', () => {
+  assert.equal(C.search(renamed, 'MSN-04').results[0].id, 'bh-r1', '모델번호는 AI 번역·조이하비 이름에 남아 있다');
+  assert.equal(C.search(renamed, '샤아 전용').results[0].id, 'bh-r1', '조이하비 이름의 낱말');
+  assert.equal(C.search(renamed, '즈곡').results[0].id, 'bh-r2', '옛 표기(즈곡)로도');
+  assert.equal(C.search(renamed, '즈고크').results[0].id, 'bh-r2', '현재 표기');
+  assert.deepEqual(C.search(renamed, 'MSN-04 존재안함').results.map((x) => x.id).filter((i) => i === 'bh-r3'), []);
+  const it = renamed.byId['bh-r1'];
+  assert.equal(it.title, '사자비', '화면에 보이는 이름은 현재 nameKo (등급·스케일 머리말만 뗌)');
+  const order = C.build([{ items: [raw('bh-o1', { nameKo: 'HG 1/144 건담 옛이름', nameKoAi: 'HG 1/144 건담 새이름' }), raw('bh-o2', { nameKo: 'HG 1/144 건담 새이름 개' })] }], null);
+  assert.deepEqual(C.search(order, '새이름').results.map((x) => x.id), ['bh-o2', 'bh-o1'], '현재 이름이 맞은 쪽이 앞, 다른 이름으로 맞은 쪽도 후보');
+  assert.deepEqual(it.alts.sort(), ['msn04사자비', 'msn04샤아전용사자비'], '비교용 다른 이름들 (등급·스케일 머리말 뗌)');
+  assert.equal(renamed.byId['bh-r3'].alts.length, 0);
+});
+
+test('autoLinks: 옛 이름(nameKoAi)으로 적은 내 프라도 연결 후보가 되고, 후보가 둘이면 여전히 연결하지 않는다', () => {
+  const kit = (name) => P.normKit({ id: 'k' + name, list: 'own', name, grade: 'HG', scale: '1/144', series: '', brand: '반다이' });
+  assert.deepEqual(C.autoLinks([kit('즈곡 개수형')], renamed).map((x) => x.item.id), ['bh-r2']);
+  assert.deepEqual(C.autoLinks([kit('즈고크 개수형')], renamed).map((x) => x.item.id), ['bh-r2']);
+  assert.deepEqual(C.autoLinks([kit('MSN-04 사자비')], renamed).map((x) => x.item.id), ['bh-r1']);
+  const dup = C.build([{ items: [raw('bh-d1', { nameKo: 'HG 1/144 몰 이름', nameKoAi: 'HG 1/144 옛 이름' }), raw('bh-d2', { nameKo: 'HG 1/144 옛 이름' })] }], null);
+  assert.deepEqual(C.autoLinks([kit('옛 이름')], dup), [], '다른 두 상품이 같은 이름 키를 가지면 애매하므로 연결하지 않는다');
+});

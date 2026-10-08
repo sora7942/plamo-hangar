@@ -233,3 +233,42 @@ def test_variant_named_with_a_subtitle_is_not_linked_to_the_base_kit():
         assert not m.linked and m.reason in ("guard", "low-score"), (name, m.score, m.reason, m.guarded)     # 점수가 낮든 보호 규칙이 막든 연결은 안 된다
     # 기본형 이름 그대로 올라온 상품은 여전히 연결된다 (꼬리가 작품명이면 떼므로)
     assert best("[HGUC011] 1/144 큐베레이 마크2 - 기동전사 Z건담(프라모델)", base_only).linked
+
+
+# ---------------------------------------------------------------- 이름이 몰 표기로 바뀐 뒤에도 (nameKoAi·nameKoJoy·nameJa) 비교에 쓴다
+def mall_item(cid, name_ko, *, ai=None, joy=None, name_ja="", grade="HG", scale="1/144"):
+    it = {"id": cid, "line": "gunpla", "grade": grade, "scale": scale, "nameKo": name_ko, "nameJa": name_ja or "テスト機", "nameKoSource": "bnkrmall"}
+    if ai is not None:
+        it["nameKoAi"] = ai
+    if joy is not None:
+        it["nameKoJoy"] = joy
+    return it
+
+
+def test_model_number_guard_survives_a_rename_that_dropped_the_model_number():
+    # 몰 이름에는 모델번호가 없고 AI 번역·조이하비 이름·일본어 이름에만 있다 → 조이하비 `MSN-04FF`와는 다른 상품(model-conflict)
+    it = mall_item("a", "HG 1/144 사자비", ai="HG 1/144 MSN-04 사자비", name_ja="HG 1/144 MSN-04 サザビー")
+    m = best("[HG] 1/144 MSN-04FF 사자비", [it])
+    assert not m.linked and m.reason == "model-conflict"
+    assert best("[HG] 1/144 MSN-04 사자비", [it]).linked                                  # 같은 모델번호면 연결
+    only_ai = mall_item("b", "HG 1/144 사자비", ai="HG 1/144 MSN-04 사자비", name_ja="HG 1/144 サザビー")   # 일본어 이름에도 없으면 AI 이름에서 모은다
+    assert best("[HG] 1/144 MSN-04FF 사자비", [only_ai]).reason == "model-conflict"
+    only_joy = mall_item("c", "HG 1/144 사자비", joy="HG 1/144 MSN-04 사자비", name_ja="HG 1/144 サザビー")
+    assert best("[HG] 1/144 MSN-04FF 사자비", [only_joy]).reason == "model-conflict"
+
+
+def test_alternate_korean_names_are_candidates_but_never_compete_with_themselves():
+    # 현재 이름(몰 표기 `즈고크`)과 철자가 다른 옛 이름(`즈곡`)으로 온 조이하비 이름도 같은 상품으로 본다
+    it = mall_item("z", "HG 1/144 즈고크 개수형", ai="HG 1/144 즈곡 개수형")
+    assert best("[HG] 1/144 즈곡 개수형(프라모델)", [it]).catalog_id == "z"
+    assert best("[HG] 1/144 즈곡 개수형(프라모델)", [it]).linked
+    assert not best("[HG] 1/144 즈곡 개수형(프라모델)", [dict(it, nameKoAi=None)]).linked, "다른 이름이 없으면(예전 동작) 철자가 달라 연결되지 않는다"
+    # 두 이름이 거의 같아도 자기 자신이 2등이 되어 ambiguous가 되지는 않는다
+    two = mall_item("t", "HG 1/144 건담 에어리얼 (개수형)", ai="HG 1/144 건담 에어리얼(개수형)")
+    m = best("[HG] 1/144 건담 에어리얼(개수형)", [two])
+    assert m.linked and m.runner_up == 0.0
+    idx = M.CatalogIndex([two])
+    assert len(idx.by_grade["HG"]) <= 2 and {c.id for c in idx.by_grade["HG"]} == {"t"}
+    # 서로 다른 상품의 이름이 겹치면 여전히 애매하다
+    other = mall_item("u", "HG 1/144 건담 에어리얼 (개수형)")
+    assert best("[HG] 1/144 건담 에어리얼(개수형)", [two, other]).reason == "ambiguous"
