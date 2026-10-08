@@ -29,6 +29,14 @@ on:
         description: "디스코드 테스트 알림 1건만 보낸다 (수집·커밋 없음). feed.json 최근 3개(내 프라 연결 항목 포함)를 실제 알림과 같은 형식으로, 맨 앞에 [테스트] 표시"
         type: boolean
         default: false
+      translate_only:
+        description: "번역만 실행 (수집 없음, API 사용). 밀린 번역(nameKo가 빈 항목)을 최신 발매순으로 translate_max개까지 채우고 커밋한다. brand_backfill 뒤에 쌓인 번역 대기를 한 번에 끝낼 때"
+        type: boolean
+        default: false
+      translate_max:
+        description: "translate_only일 때 번역할 항목 수 상한 (기본 600, 최대 3000). 50개씩 나눠 요청한다 — 1500개면 약 30요청, 20분 안팎"
+        type: number
+        default: 600
       joy_pages:
         description: "조이하비 과거 목록을 훑을 쪽 수 (기본 25 — 게시판이 20쪽이라 한 번에 끝난다). bootstrap과 같이 켜도 적용"
         type: number
@@ -70,9 +78,15 @@ jobs:
           JOY_PAGES: ${{ inputs.joy_pages }}
           DISCORD_TEST: ${{ inputs.discord_test }}
           BRAND_BACKFILL: ${{ inputs.brand_backfill }}
+          TRANSLATE_ONLY: ${{ inputs.translate_only }}
+          TRANSLATE_MAX: ${{ inputs.translate_max }}
         run: |
           if [ "$DISCORD_TEST" = "true" ]; then
             python main.py --discord-test          # 수집·파일 쓰기 없음
+            exit 0
+          fi
+          if [ "$TRANSLATE_ONLY" = "true" ]; then
+            python main.py --translate-only --translate-max "${TRANSLATE_MAX:-600}"     # 수집 없이 번역만
             exit 0
           fi
           if [ "$BRAND_BACKFILL" = "true" ]; then

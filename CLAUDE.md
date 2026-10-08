@@ -16,6 +16,8 @@
 - 조이하비 과거 글 채우기(한 번에 끝남): `python main.py --bootstrap --dry-run --only joyhobby` (`--joy-pages N`으로 쪽 수 조절, 진행 위치는 `meta.crawl.joyNext`). 전체 보고서는 `crawler/out/joy-report.json`
 - 최초 카탈로그 채우기: `python main.py --bootstrap` (상세는 실행당 새 40 + 밀린 150. 확인용으로 범위를 줄일 때: `--bootstrap --from 2025-10 --data-dir <임시폴더>`)
 - 2015년 이전 상품 채우기(수동 실행 `brand_backfill`): `python main.py --brand-backfill` (= `--only hobby_backfill`. 목록 약 366쪽을 카드만으로, 약 8분. 진행 위치는 `meta.crawl.brandBackfill`, 알림 없음. 대상 브랜드는 `config.OLD_BRANDS`, bb 제외)
+- 번역만(수집 없음): `python main.py --translate-only --translate-max 1500` (밀린 번역을 최신 발매순으로 한 번에. Actions 입력 `translate_only`·`translate_max`)
+- 용어 일관성 점검(읽기 전용): `python -m crawler.audit_terms --top 50` → 표기가 갈린 가타카나 단어 표. 결과는 `crawler/out/term-audit.md`
 - 디스코드 테스트(수집 없음): `python main.py --discord-test --dry-run` (실제 발송은 Actions `discord_test`로, 사용자가 요청할 때만)
 - 사이트 미리보기: `python -m http.server -d docs 8000` → http://localhost:8000
 - 테스트: `pytest -q` (사이트 순수 함수는 `node --test tests/site_*.test.mjs`, 화면은 `python tests/e2e/site_mock_check.py`·`site_catalog_check.py`)
@@ -25,7 +27,7 @@
 - 크롤러가 쓰는 파일: `docs/data/catalog-*.json`, `feed.json`, `kr-arrivals.json`, `series-ko.json`, `meta.json` — 사이트는 읽기만 한다. **이 파일들은 Actions만 커밋한다** — 로컬 `--dry-run`/`--bootstrap` 결과는 `git restore`로 되돌리고 커밋하지 않는다
 - 크롤러는 `docs/data/collection.json`을 **읽기만 한다**(`crawler/mine.py`) — 연결된 `catalogId`로 미등록 상품의 상세를 받고(`manual:true`, 제외 브랜드는 `line:"other"`), 디스코드에서 "내 프라"를 먼저 보낸다
 - 시리즈 한국어: `crawler/series.py`가 seriesKey별로 한 번만 번역해 `series-ko.json`에 보관하고 카탈로그 항목의 `seriesKo`를 채운다. 틀린 번역은 `config.SERIES_KO_OVERRIDES`에 한 줄 추가
-- 검색 별칭은 `docs/aliases.js`(사이트 쪽 사전 — config가 아니다): 철자·줄임말 묶음, 무시할 꼬리말(클리어·코팅 — 가산만), 일반어. 연결 도우미의 진행 상태는 순수 로직 `docs/assist.js`, 화면은 app.js `openAssist`
+- 검색 별칭은 `docs/aliases.js`(사이트 쪽 사전 — config가 아니다; 일본어 가나는 묶음에서만, 한국어 표기와 짝으로. `∀`는 `norm`이 `ターンエー`로 읽는다): 철자·줄임말 묶음, 무시할 꼬리말(클리어·코팅 — 가산만), 일반어. 연결 도우미의 진행 상태는 순수 로직 `docs/assist.js`, 화면은 app.js `openAssist`
 - 상세 받는 순서: ① 사이트에서 연결한 미등록 상품(`manual`, 실행당 `MANUAL_DETAIL_MAX`) ② 새 상품 ③ 밀린 상품은 **발매월 최신순**(같은 달이면 line이 있는 항목 먼저)
 - URL·대상 라인·주기·개수 제한·알림 규칙·모델명·매칭 임계값은 `crawler/config.py` 한 곳에만 둔다. 사람이 고치는 표(`BRAND_LINE`, `JOY_BRACKET_GRADES`, `KR_CODE_OVERRIDES` …)도 거기 있다
 - 수집기는 `crawler/sources/`에 소스별 파일로 두고 SPEC 4장 형식을 반환한다
@@ -73,6 +75,7 @@
 - 사이트 확인 e2e: `python tests/e2e/site_mock_check.py`(빈 컬렉션 전제, 가짜 GitHub), `python tests/e2e/site_catalog_check.py`(카탈로그 연결·공식 사진·방문자 화면, 실제 이미지 호스트 사용 — 일반 Chrome UA). `loading="lazy"`라서 화면에 들어와야 이미지 요청이 나가니 스크롤해서 확인한다
 - 디스코드는 **`url`이 같은 embed를 한 카드로 합친다**(첫 번째만 보임). 조이하비는 한 글에 상품 여럿이라 `discord.embed_url`이 `&bd=<BD코드>`를 붙여 구별한다(조이하비는 모르는 파라미터를 무시한다). embed를 만들 때 `url`이 겹치지 않는지 항상 본다
 - 번역에 **원문에 없는 한자**가 섞이기도 한다(`ヴィダール`→`비达르`). 가나 검사가 못 거르므로 `translate.stray_han`이 따로 거르고, 기존 데이터는 매 실행 시작에 비워 재번역한다(`fixups.strayHanReset`). 원문에도 있는 한자(`89式`·`改`)는 정상
+- 용어집(`TRANSLATE_GLOSSARY`) 키는 **낱말 전체**로 쓴다(`アクシ`는 `アクション`에도 걸린다). 용어집에 새 용어를 넣으면 그 용어가 원문에 있는데 번역에 지정 표기가 없는 `nameKo`·`series-ko`가 다음 실행 시작에 비워져 재번역된다(용어마다 한 번 — `meta.crawl.glossaryApplied`, `fixups.glossaryReset`). 조사 붙은 표기(`티탄즈의 깃발 아래`)는 지정 표기를 포함하므로 정상으로 본다
 - 호비 브랜드 목록의 페이저는 첫·끝 쪽만 링크로 보여 준다(`hg`는 143쪽, 쪽당 10개). `BRAND_MAX_PAGES`(60)는 걸프라용이고 과거 채우기는 `BRAND_BACKFILL_MAX_PAGES`를 쓴다
 - 검색은 **비교용 이름**(`HG 1/144`뿐 아니라 `HGUC`·`HGCE`·`HGBD:R` 머리말도 뗀 `kn`/`jn`/`cmp`)과 **화면용 이름**(`title` — 카탈로그 원래 이름, 등급·스케일 머리말만 뗌)이 다르다. 화면·이름 채우기에는 `title`을, 비교에는 `kn`/`jn`/`cmp`를 쓴다
 - `bandai-hobby.net/images`는 UA에 `HeadlessChrome`이 있으면 이미지 대신 HTML을 줘서 `ERR_BLOCKED_BY_ORB`로 막힌다 → Playwright 확인은 일반 Chrome UA로 (akamai는 무관, 일반 브라우저 방문자도 무관)

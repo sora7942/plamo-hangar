@@ -169,7 +169,8 @@ plamo-hangar/
             "translate":{"ok":true,"at":"ISO","items":50,"error":null,"pending":0,"skipped":null,"model":"...","kanaRetried":0,"kanaRejected":0},"joyhobby":{...}},
  "crawl":{"scheduleFrom":"2015-01","girlBrandsDone":["30ms"],"backlog":120,"joyNext":21,"joyDone":true,"joyOldest":"2024-01-04","counts":{"gunpla":0,"girl":0,"pending":0,"excluded":0},
            "brandBackfill":{"hg":{"next":144,"last":143,"done":true}},
-           "lastFixups":{"toExcluded":0,"lineChanged":0,"nameKoReplaced":0,"feedTitleKoReplaced":0,"seriesKoApplied":0,"strayHanReset":0}},
+           "glossaryApplied":{"クアンタ":"콴타"},
+           "lastFixups":{"toExcluded":0,"lineChanged":0,"nameKoReplaced":0,"feedTitleKoReplaced":0,"seriesKoApplied":0,"strayHanReset":0,"glossaryReset":0}},
  "stats":{"requests":0,"byKind":{},"failures":0,"elapsedSec":0,"minGapSec":1.2},
  "unknownBrandKeys":[]}
 ```
@@ -177,6 +178,7 @@ plamo-hangar/
 - `crawl.lastFixups`: 이번 실행에 적용한 기존 데이터 보정 결과(재분류로 제외된 수·line 변경 수·nameKo/피드 titleKo 치환 수·`seriesKoApplied` 시리즈 한국어를 채운 항목 수·`strayHanReset` 한자가 섞인 번역을 비워 재번역하게 한 수). 매 실행 덮어쓴다
 - `crawl`: 최초 채우기 커서(5장) — `scheduleFrom`은 "이 달부터 현재까지 일정을 다 훑었다", `girlBrandsDone`은 전체 쪽수를 끝낸 걸프라 브랜드, `backlog`는 상세를 기다리는 항목 수(0이 되면 채우기 완료)
 - `crawl.brandBackfill` *(6단계)*: 2015년 이전 채우기(5장) 커서 — 브랜드 키별 `{next: 다음에 받을 쪽, last: 마지막 쪽, done}`. 중간에 멎으면 그 쪽부터 이어 하고, 전부 `done`이면 더 요청하지 않는다. `meta.sources.hobby_backfill`에 이번 실행의 성공·실패(`hg:2`처럼 실패한 쪽)가 남는다
+- `crawl.glossaryApplied` *(6단계)*: 이미 번역에 반영한 용어집 `{일본어: 한국어}`. 매 실행 시작에 현재 `TRANSLATE_GLOSSARY`와 비교해 **새로 생기거나 값이 바뀐 용어**만 기존 번역에 적용하고(아래 5장 번역), 끝에 현재 용어집으로 덮어쓴다. `lastFixups.glossaryReset`은 그때 비운 `nameKo`·시리즈 수
 - `crawl.joyNext`·`joyDone`·`joyOldest` *(3단계)*: 조이하비 과거 글 커서 — `joyNext`는 1쪽부터 끊김 없이 훑은 다음 쪽, `joyDone`은 게시판 끝(마지막 쪽)까지 훑었다는 뜻, `joyOldest`는 그렇게 훑은 범위의 가장 오래된 글 날짜. `meta.sources.joyhobby`에는 글·행·코드 수, 연결 수, 이번 실행의 통계가 들어간다
 - `since` *(3단계 정의)*: 조이하비를 훑은 범위의 가장 오래된 글 날짜(`joyOldest`). "이 날짜 이후의 입고 기록은 본다"는 뜻이라 가장 오래된 **반다이** 글이 아니라 훑은 쪽의 가장 오래된 글 날짜를 쓴다. 조이하비를 아직 훑지 않았으면 수집 시작일
 - 사이트 하단에 "마지막 수집"과 실패한 소스, 재판 공백 문구에 `since`를 쓴다
@@ -228,6 +230,8 @@ plamo-hangar/
 - 수동 확인: `python -m crawler.translate --sample 20` — 실제 파이프라인과 같은 경로(가나 재요청 포함)로 fixture 제목 20개를 한 번 번역해 출력. 테스트는 실제 Claude를 호출하지 않는다(클라이언트 생성·`.env` 읽기를 `conftest`가 막음)
 - **시리즈 번역** *(4단계, `series.py`)*: 고유 `seriesKey`(현재 74개)만 Claude API로 한 번 번역한다(`translate` 단계 안에서, 새 시리즈가 없으면 호출하지 않음). 한국 정식 제목을 따르고 영문·숫자 표기(`SEED DESTINY`, `Re:RISE`)는 그대로 두며, 같은 용어집·가나 검사(남으면 그 항목만 한 번 재요청, 그래도 남으면 저장하지 않고 다음 실행에 재시도)를 쓴다. 키가 없거나 dry-run이어도 사전에 있는 시리즈는 항상 항목에 채운다. 수동 확인: `python -m crawler.series --sample 10`(번역해 출력만, 파일은 쓰지 않음)
 - **한자 혼입 검사** *(6단계)*: 가나 검사가 못 거르는 오번역 — 번역(`ko`)에 **원문(`ja`)에 없는 한자**가 있으면(`ヴィダール` → `비达르`) 가나가 남은 경우와 똑같이 그 항목만 한 번 재요청하고, 그래도 남으면 저장하지 않는다(`translate.stray_han`·`bad_translation`, 시리즈 번역도 같다). `89式`·`改`처럼 원문에도 있는 한자는 정상이다. **기존 데이터도** 매 실행 시작에 `nameKo`(조이하비 한글명으로 바뀐 항목 제외)·피드 `titleKo`·`series-ko.json`에서 같은 검사에 걸린 값을 비워(`fixups.strayHanReset`) 같은 실행의 번역 단계가 다시 번역한다. 용어집에는 `ヴィダール→비다르`를 넣었다
+- **용어집 변경 반영** *(6단계)*: `TRANSLATE_GLOSSARY`에 새 용어를 넣거나 값을 바꾸면, 다음 실행 시작에 그 용어가 원문(`nameJa`·시리즈 `ja`, NFKC 비교)에 있는데 번역에 지정 표기가 **들어 있지 않은** `nameKo`·`series-ko` 항목을 비워 같은 실행의 번역 단계가 다시 번역한다(조이하비 한글명 `nameKoSource` 제외). 용어마다 한 번만 하고(`meta.crawl.glossaryApplied`) 모델이 지정 표기를 안 써도 매 실행 다시 비우지 않는다. 키는 낱말 전체로 쓴다(짧게 줄이면 다른 낱말에 걸린다). 조사가 붙은 표기(`티탄즈의 깃발 아래`)도 지정 표기를 포함하므로 정상이다. 점검 도구 `python -m crawler.audit_terms`(읽기 전용)가 갈린 표기와 조이하비 근거를 표로 보여 준다
+- **번역만 실행** *(6단계)*: `--translate-only [--translate-max N]`(= `--only translate`, 상한 기본 600·최대 3000, 최신 발매순). Actions 입력 `translate_only`·`translate_max`
 
 ## 6. 사이트 — 소유자 모드와 저장
 - 설정에서 **GitHub fine-grained 토큰**(이 저장소만, Contents: Read and write)을 넣으면 소유자 모드. 토큰은 그 브라우저 localStorage에만. `GET /repos/sora7942/plamo-hangar`의 `permissions.push`로 확인
@@ -255,7 +259,7 @@ plamo-hangar/
 - **리뷰 찾아보기** *(4단계 구현)*: 상세에 `<등급> <이름> 리뷰` 유튜브·네이버 블로그 검색 링크(새 탭, noopener)
 - **빈 칸 채우기** *(6단계)*: 자동 연결 후보 화면의 세 번째 구역. 이미 연결된 프라 중 등급(`기타`)·스케일(`논스케일`)·시리즈(빈 칸)가 비어 있고 카탈로그에는 값이 생긴 것을 "기타 → HG" 식 미리보기와 함께 제안한다. `fillPatch`의 "빈 칸만" 규칙 그대로라 직접 적은 값은 건드리지 않고, 이름·브랜드는 제안하지 않는다. 커밋 메시지에 `빈 칸 N개 채움`이 들어간다
 - **연결 도우미** *(6단계, `assist.js` + app.js `openAssist`)*: 설정의 "연결 도우미 시작" 또는 "빈 칸 모아보기 → 반다이 제품 미연결"의 "연결 도우미로 시작"(지금 보이는 필터·순서 그대로). 미연결 프라를 하나씩 보여주고 상위 후보 5개 + 검색창을 준다. **[연결]**은 대기열에 모을 뿐 바로 저장하지 않고, **[건너뛰기]**는 이번 도우미에서만 넘기며, **[나중에]**는 이 브라우저(`localStorage` `plamo-later`)에 기억해 다음부터 목록 맨 끝으로 미룬다(끝 화면에서 "나중에 미룬 N개 보기"). **[이전]**은 방금 동작을 취소한다. **중간 저장**·끝의 저장은 커밋 1개(`collection: 반다이 제품 N개 연결 (연결 도우미)`, 빈 칸만 채우고 이름은 그대로)이고 저장 뒤 이어서 계속한다. 저장하지 않은 연결이 있는데 닫으려 하면 확인한다
-- **검색 별칭** *(6단계, `docs/aliases.js`)*: 사이트 쪽 사전(크롤러·config와 무관). ① 철자·기호 변형 묶음(발바토스↔바르바토스, 캠퍼↔켐퍼, 퀀터↔콴타, 하이뉴↔Hi-ν, 뉴↔ν …, 양방향) ② 줄임말(`퍼건`→퍼스트 건담/RX-78-2) ③ 꼬리말(`클리어`·`코팅`·`무등급`·`크로스 컨트라스트 컬러`·`철혈 코팅`) — 필수가 아니라 **가산**이라 변형이 카탈로그에 있으면 그쪽이 앞에 오고 없으면 기본형이 후보 ④ 일반어(`건담`·`한정`·`세트`·`컬러` …) — 이 말만 맞은 후보와, 등급·스케일 낱말만 맞은 후보는 버린다(검색어가 전부 일반어면 그대로). 비교용 이름은 `HG`·`1/144`뿐 아니라 `HGUC`·`HGCE`·`HGBD:R` 같은 등급 변형 머리말도 뗀 것이고, **화면에 보이는 이름(후보 목록·연결 도우미·이름 채우기)은 카탈로그 원래 이름 그대로**다. 틀린 후보가 자주 나오면 `aliases.js`에 한 줄 추가한다
+- **검색 별칭** *(6단계, `docs/aliases.js`)*: 사이트 쪽 사전(크롤러·config와 무관). ① 철자·기호 변형 묶음(발바토스↔바르바토스, 캠퍼↔켐퍼, 퀀터↔콴타, 하이뉴↔Hi-ν, 뉴↔ν …, 양방향) ② 줄임말(`퍼건`→퍼스트 건담/RX-78-2) — 묶음에는 일본어 이름으로도 찾게 가나를 넣을 수 있다(`턴엑스`↔`ターンX`), `∀`는 `norm`이 `ターンエー`로 읽어 `턴에이`와 묶인다 ③ 꼬리말(`클리어`·`코팅`·`무등급`·`크로스 컨트라스트 컬러`·`철혈 코팅`) — 필수가 아니라 **가산**이라 변형이 카탈로그에 있으면 그쪽이 앞에 오고 없으면 기본형이 후보 ④ 일반어(`건담`·`한정`·`세트`·`컬러` …) — 이 말만 맞은 후보와, 등급·스케일 낱말만 맞은 후보는 버린다(검색어가 전부 일반어면 그대로). 비교용 이름은 `HG`·`1/144`뿐 아니라 `HGUC`·`HGCE`·`HGBD:R` 같은 등급 변형 머리말도 뗀 것이고, **화면에 보이는 이름(후보 목록·연결 도우미·이름 채우기)은 카탈로그 원래 이름 그대로**다. 틀린 후보가 자주 나오면 `aliases.js`에 한 줄 추가한다
 
 ## 7. 디스코드 알림
 - 매 실행 1회, 이번에 새로 들어온 피드 항목을 묶어 보낸다
@@ -274,13 +278,14 @@ plamo-hangar/
   - `--max-new N` / `--max-backlog N`: 실행당 상세 상한(기본 40 / 150). `--max-details`는 폐지
   - `--joy-pages N`: `--bootstrap` 때 조이하비 과거 목록을 훑을 쪽 수(기본 25). 조이하비 과거 글만 채우려면 `--bootstrap --only joyhobby`
   - `--brand-backfill` *(6단계)*: 2015년 이전 상품 채우기(5장)만 실행(`--only hobby_backfill`과 같다). 커서(`meta.crawl.brandBackfill`)로 이어 하고 알림 없음. `--bootstrap`·`--only`·`--discord-test`와는 함께 쓸 수 없다
+  - `--translate-only` / `--translate-max N` *(6단계)*: 수집 없이 번역 단계만 실행하고 이번 실행의 번역 항목 수 상한을 정한다(기본 600, 1~3000). `--only`·`--bootstrap`·`--brand-backfill`·`--discord-test`와는 함께 쓸 수 없다
   - `--data-dir DIR`: `docs/data` 대신 다른 폴더에 읽고 쓴다(로컬에서 부분 채우기를 저장소와 섞지 않으려고)
   - `--no-discord`: 발송만 끈다. `--dry-run`은 파일은 쓰고 디스코드는 보내지 않으며 **보낼 내용을 항상 출력**하고, API 비용이 드는 번역은 `--only translate`로 명시할 때만 돌린다
   - `--discord-test` *(5단계)*: 수집 없이 테스트 알림 **1메시지**만 보낸다. `feed.json` 최근 3개(내 프라 연결 항목이 있으면 그중 1개 포함)를 실제 알림과 같은 형식으로 묶고 맨 앞에 `[테스트] 프라 격납고 알림 확인용`을 붙인다. `docs/data`는 바꾸지 않고(커밋도 없음) 웹훅은 `DISCORD_WEBHOOK_URL`(Actions Secret)만 쓴다 — 없으면 "웹훅 없음"만 출력하고 성공 종료, 발송 실패는 종료 코드 1. `--dry-run`을 같이 주면 내용만 출력. 수집 옵션과는 함께 쓸 수 없다
 - 로컬 미리보기: `python -m http.server -d docs 8000`
 
 ## 9. GitHub Actions (`crawl.yml`)
-- 트리거: `schedule: cron "10 22 * * *"` (KST 07:10), `workflow_dispatch`(입력: `bootstrap`, `max_backlog`(기본 150), `joy_backfill`(조이하비 과거 글만: `--bootstrap --only joyhobby`), `joy_pages`(기본 25), `brand_backfill`(기본 꺼짐: 2015년 이전 상품 채우기만 — 8장 `--brand-backfill`, 약 8분), `discord_test`(기본 꺼짐: 수집·커밋 없이 테스트 알림 1건만 — 8장 `--discord-test`))
+- 트리거: `schedule: cron "10 22 * * *"` (KST 07:10), `workflow_dispatch`(입력: `bootstrap`, `max_backlog`(기본 150), `joy_backfill`(조이하비 과거 글만: `--bootstrap --only joyhobby`), `joy_pages`(기본 25), `brand_backfill`(기본 꺼짐: 2015년 이전 상품 채우기만 — 8장 `--brand-backfill`, 약 8분), `translate_only`(기본 꺼짐: 수집 없이 번역만 — `--translate-only`) + `translate_max`(기본 600), `discord_test`(기본 꺼짐: 수집·커밋 없이 테스트 알림 1건만 — 8장 `--discord-test`))
 - `concurrency: { group: crawl }`, 권한 `contents: write`
 - 단계: checkout → Python 3.12 + pip 캐시 → `python main.py` → 요청 로그 artifact(7일) → `git pull --rebase --autostash` → **허용 목록 7개만 add**(`catalog-gunpla/girl/pending.json`, `feed.json`, `kr-arrivals.json`, `series-ko.json`, `meta.json`; 그 밖의 경로가 staged면 실패해 `collection.json`·`photos/`를 지킨다) → 변경이 있으면 커밋(`data: crawl YYYY-MM-DD`) → push(충돌 시 `pull --rebase` 후 최대 3회). `timeout-minutes: 45`
 - 조이하비 과거 글 채우기: 수동 실행에서 `joy_backfill`을 켠다(한 번에 끝남, 약 320요청 ≈ 6.5분 — 후보 글의 2/3가 BD 행이 없는 글이라 대부분이 "봤음"용 요청이다). 호비사이트 채우기와 독립이다

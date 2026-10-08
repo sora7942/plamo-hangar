@@ -6,6 +6,7 @@
     python main.py --bootstrap --only joyhobby   # 조이하비 과거 글 채우기 (실행당 --joy-pages쪽, 진행 위치는 meta.crawl.joyNext)
     python main.py --bootstrap --from 2025-10 --data-dir /tmp/data   # 최초 채우기(범위를 줄여 확인용으로)
     python main.py --brand-backfill        # 2015년 이전 상품 채우기(목록 카드만, 커서로 이어 함)
+    python main.py --translate-only --translate-max 1500   # 수집 없이 번역만 (밀린 번역을 한 번에 채울 때)
     python main.py --discord-test          # 수집 없이 디스코드 테스트 알림 1건(feed.json 최근 3개). docs/data는 바꾸지 않는다. --dry-run이면 내용만 출력
 """
 from __future__ import annotations
@@ -36,10 +37,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap.add_argument("--joy-pages", type=int, default=None, help=f"--bootstrap 때 조이하비 과거 목록을 훑을 쪽 수 (기본 {config.JOY_BACKFILL_PAGES})")
     ap.add_argument("--data-dir", type=Path, default=None, help=f"데이터 폴더 (기본 {config.DATA_DIR})")
     ap.add_argument("--brand-backfill", action="store_true", help="2015년 이전 상품 채우기: 건프라 등급 브랜드 목록(hg·hguc·mg·rg·mgsd·sd 계열)을 전체 쪽수로 훑는다. 커서로 이어 하고, 알림 없음")
+    ap.add_argument("--translate-only", action="store_true", help="수집 없이 번역 단계만 실행한다 (--only translate와 같다). 상한은 --translate-max")
+    ap.add_argument("--translate-max", type=int, default=config.TRANSLATE_MAX_PER_RUN, help=f"이번 실행에서 번역할 항목 수 상한 (기본 {config.TRANSLATE_MAX_PER_RUN}, 최신 발매순)")
     ap.add_argument("--discord-test", action="store_true", help="수집 없이 디스코드 테스트 알림 1건만 보낸다 (feed.json 최근 3개, 내 프라 연결 항목 포함)")
     args = ap.parse_args(argv)
     if args.from_month and not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", args.from_month):
         ap.error("--from은 YYYY-MM 형식이어야 합니다")
+    if args.translate_max < 1 or args.translate_max > config.TRANSLATE_MAX_HARD:
+        ap.error(f"--translate-max는 1 이상 {config.TRANSLATE_MAX_HARD} 이하여야 합니다")
+    if args.translate_only and (args.only or args.bootstrap or args.brand_backfill or args.discord_test):
+        ap.error("--translate-only는 --only, --bootstrap, --brand-backfill, --discord-test와 함께 쓸 수 없습니다")
     if args.max_new < 0 or args.max_backlog < 0:
         ap.error("--max-new/--max-backlog는 0 이상이어야 합니다")
     if args.joy_pages is not None and args.joy_pages < 1:
@@ -95,10 +102,11 @@ def main(argv: list[str] | None = None) -> int:
 
     opts = Options(
         dry_run=args.dry_run, no_discord=args.no_discord,
-        only={s.strip() for s in args.only.split(",") if s.strip()} if args.only else None,
+        only={"translate"} if args.translate_only else {s.strip() for s in args.only.split(",") if s.strip()} if args.only else None,
         bootstrap=args.bootstrap, from_month=args.from_month,
         max_new=args.max_new, max_backlog=args.max_backlog, joy_pages=args.joy_pages,
         data_dir=args.data_dir or config.DATA_DIR, report_dir=config.REQUEST_LOG.parent, brand_backfill=args.brand_backfill,
+        translate_max=args.translate_max,
     )
     opts.stages()                                                  # 잘못된 --only는 여기서 바로 실패
     http = HttpClient(log_path=config.REQUEST_LOG)

@@ -40,6 +40,7 @@ class Options:
     max_backlog: int = config.DETAIL_BACKLOG_MAX
     joy_pages: int | None = None            # --bootstrap 때 조이하비 과거 쪽 수 (None이면 config.JOY_BACKFILL_PAGES)
     brand_backfill: bool = False            # 2015년 이전 상품 채우기만 실행 (hobby_backfill 단계)
+    translate_max: int = config.TRANSLATE_MAX_PER_RUN    # 이번 실행에서 번역할 항목 수 상한 (--translate-max)
     data_dir: Path = field(default_factory=lambda: config.DATA_DIR)
     report_dir: Path | None = None          # 조이하비 전체 보고서(joy-report.json)를 쓸 폴더. None이면 쓰지 않는다
 
@@ -331,6 +332,15 @@ def run(opts: Options, http: HttpClient, *, now: datetime | None = None, anthrop
     fixups["strayHanReset"] = len(reset_names) + len(reset_series)
     if reset_names or reset_series:
         log.info("한자 혼입 번역을 비웠습니다(재번역 대상): 이름 %s, 시리즈 %s", reset_names, reset_series)
+    # 용어집에 새로 생기거나 바뀐 용어가 번역에 반영돼 있지 않은 항목도 비운다. 이미 적용한 용어는 meta에 기록해 두어 한 번만 한다
+    # (모델이 계속 다른 표기를 내도 매 실행 다시 비우지 않는다)
+    applied = dict(crawl.get("glossaryApplied") or {})
+    gl_names = catalog.reset_glossary(config.TRANSLATE_GLOSSARY, applied)
+    gl_series = series.drop_glossary(series_known, config.TRANSLATE_GLOSSARY, applied)
+    crawl["glossaryApplied"] = dict(config.TRANSLATE_GLOSSARY)
+    fixups["glossaryReset"] = len(gl_names) + len(gl_series)
+    if gl_names or gl_series:
+        log.info("용어집이 바뀌어 번역을 비웠습니다(재번역 대상): 이름 %d개, 시리즈 %s", len(gl_names), gl_series)
 
     if "joyhobby" in stages:
         ctx.arrivals = kr.Arrivals.load(data_dir)
@@ -347,7 +357,7 @@ def run(opts: Options, http: HttpClient, *, now: datetime | None = None, anthrop
         _report_joy(out, ctx, joy_rep, opts.report_dir, catalog)
 
     if "translate" in stages:
-        res = translate.translate_pending(catalog, now_iso, client=anthropic_client)
+        res = translate.translate_pending(catalog, now_iso, client=anthropic_client, max_items=opts.translate_max)
         sources["translate"] = {"ok": res["ok"], "at": iso(now_kst()), "items": res["done"], "error": res["error"],
                                 "pending": res["pending"], "skipped": res["skipped"], "model": res["model"],
                                 "kanaRetried": res["kanaRetried"], "kanaRejected": res["kanaRejected"]}

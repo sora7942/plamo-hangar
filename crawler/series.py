@@ -15,6 +15,7 @@ import argparse
 import json
 import logging
 import sys
+import unicodedata
 from collections import Counter
 from pathlib import Path
 
@@ -81,6 +82,19 @@ def save(data_dir: Path, known: dict[str, dict], updated_at: str) -> bool:
 def drop_stray_han(known: dict[str, dict]) -> list[str]:
     """사전에 저장된 번역 중 원문에 없는 한자가 섞인 것을 버린다(다음 번역 때 다시 번역). 버린 seriesKey 목록."""
     bad = [k for k, e in known.items() if stray_han(e["ja"], e["ko"])]
+    for k in bad:
+        del known[k]
+    return bad
+
+
+def drop_glossary(known: dict[str, dict], glossary: dict[str, str], applied: dict[str, str]) -> list[str]:
+    """`Catalog.reset_glossary`의 시리즈 사전판: 새 용어가 원문에 있는데 번역에 지정 표기가 없는 항목을 버린다(다음 번역 때 다시 번역)."""
+    new = {ja: ko for ja, ko in glossary.items() if applied.get(ja) != ko}
+    bad = []
+    for k, e in known.items():
+        ja = unicodedata.normalize("NFKC", e.get("ja") or "")
+        if any(unicodedata.normalize("NFKC", j) in ja and v not in (e.get("ko") or "") for j, v in new.items()):
+            bad.append(k)
     for k in bad:
         del known[k]
     return bad

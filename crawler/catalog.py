@@ -255,6 +255,24 @@ class Catalog:
                 out.append(it["id"])
         return out
 
+    def reset_glossary(self, glossary: dict[str, str], applied: dict[str, str]) -> list[str]:
+        """용어집에 **새로 생겼거나 값이 바뀐** 용어(`applied`에 같은 값으로 기록되지 않은 것)가 원문(nameJa)에 들어 있는데
+        번역(nameKo)에 지정 표기가 없는 항목의 nameKo를 비운다 → 같은 실행의 번역 단계(또는 다음 실행)가 용어집으로 다시 번역한다.
+        조이하비 한글명으로 바뀐 항목(nameKoSource)은 건드리지 않는다. 비운 항목 id를 돌려준다."""
+        new = {ja: ko for ja, ko in glossary.items() if applied.get(ja) != ko}
+        if not new:
+            return []
+        out = []
+        for it in self.items.values():
+            ko = it.get("nameKo")
+            if not ko or it.get("nameKoSource") == "joyhobby":
+                continue
+            ja = unicodedata.normalize("NFKC", it.get("nameJa") or "")
+            if any(unicodedata.normalize("NFKC", j) in ja and k not in ko for j, k in new.items()):
+                it["nameKo"] = None
+                out.append(it["id"])
+        return out
+
     def apply_name_ko_replacements(self, replacements: dict[str, str]) -> int:
         """저장된 nameKo에서 해당 부분 문자열만 바꾼다. 바뀐 항목 수를 돌려준다. (`updated` 등 다른 필드는 건드리지 않는다)"""
         changed = 0

@@ -150,6 +150,8 @@ SPEC.md  CLAUDE.md  PROGRESS.md
 | `joy_backfill` | 꺼짐 | **조이하비 과거 글 채우기만** 실행(`--bootstrap --only joyhobby`). 호비사이트는 건드리지 않는다. 게시판이 20쪽이라 한 번에 끝나고 약 7분 걸린다. 알림 없음 |
 | `joy_pages` | 25 | 조이하비 과거 목록을 훑을 쪽 수. `bootstrap`과 같이 켜도 적용 |
 | `brand_backfill` | 꺼짐 | **2015년 이전 상품 채우기만** 실행(`--brand-backfill`). HG·HGUC·HGCE·MG·RG·MGSD·SD 계열(`sdgundamseries`·`sdcs`·`sdex`; BB전사 제외) 브랜드 목록 약 366쪽을 **카드만으로** 훑는다(약 8분, 알림 없음). 상세·번역은 하지 않고 매일 실행이 나눠 채운다(번역은 하루 최대 600건). 진행 위치는 `meta.crawl.brandBackfill`이라 중간에 멎으면 이어 하고, 끝났으면 다시 눌러도 요청이 없다 |
+| `translate_only` | 꺼짐 | **번역만** 실행한다(수집 없음, Claude API 사용). `nameKo`가 빈 항목을 최신 발매순으로 `translate_max`개까지 채우고 커밋한다 — `brand_backfill` 뒤에 쌓인 번역 대기를 한 번에 끝낼 때(`--translate-only`) |
+| `translate_max` | 600 | `translate_only`일 때 번역할 항목 수 상한(최대 3000). 50개씩 나눠 요청한다 — 1500개면 약 30요청, 20분 안팎, 비용은 1달러 남짓(입력 약 13만 토큰 + 출력 약 8만 토큰 기준 추정) |
 | `discord_test` | 꺼짐 | **디스코드 테스트 알림 1건만** 보낸다. 수집·커밋은 하지 않는다. `feed.json` 최근 3개(내 프라 연결 항목이 있으면 그중 1개 포함)를 실제 알림과 같은 형식으로, 맨 앞에 `[테스트] 프라 격납고 알림 확인용`을 붙여 보낸다. 웹훅은 Secret만 쓰고, 없으면 "웹훅 없음"만 출력하고 끝난다 |
 
 ### 로컬에서 같은 일 해 보기
@@ -211,6 +213,7 @@ python tests/e2e/site_catalog_check.py      # Playwright: 카탈로그 연결·�
 - 크롤러 소스 하나가 `FAIL`이다 → Actions 실행 요약과 `meta.json`의 `sources`를 본다. 다른 소스는 영향 없이 계속 돈다. 조이하비·호비사이트가 해외 IP를 막으면 그 소스만 끄고, 크롤러를 사용자 PC(작업 스케줄러)에서 돌려 push하는 방식으로 바꾼다(SPEC 9장).
 - 조이하비는 EUC-KR이고, 조회수가 32767을 넘은 글은 사이트 버그로 HTTP 500이다(`broken`으로 한 번만 기록, 실패로 세지 않는다).
 - 번역 이름에 한자가 섞여 있다(`비达르`) → 원문에 없는 한자는 자동으로 걸러 재번역한다(`fixups.strayHanReset`). 같은 용어가 반복되면 `TRANSLATE_GLOSSARY`에 추가.
+- 같은 단어가 번역마다 다르게 적혀 있다(`쿠안타`/`콴타`) → `python -m crawler.audit_terms`로 갈린 표기를 표로 보고(읽기 전용), 정할 표기를 `TRANSLATE_GLOSSARY`에 **낱말 전체**로 추가한다(`アクシ`처럼 줄이면 `アクション`까지 걸린다). 용어집에 새로 생기거나 값이 바뀐 용어가 번역에 없는 항목은 다음 실행 시작에 `nameKo`가 비워져 다시 번역되고(`fixups.glossaryReset`, 용어마다 한 번만 — `meta.crawl.glossaryApplied`), 검색용 철자 변형은 `docs/aliases.js`에 같이 추가한다.
 - 디스코드에서 알림 3개가 1개로 보인다 → 같은 `url`의 임베드는 한 카드로 합쳐진다. 임베드 `url`을 항목마다 구별하도록 고쳐져 있고(`discord.embed_url`), 확인은 `discord_test`로 한다.
 - Pages 배포·크롤러가 실패해도 데이터는 마지막 커밋 기준으로 다음 실행에 다시 수집된다(`added`·알림 중복이 생기지 않게 설계).
 
