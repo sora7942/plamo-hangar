@@ -311,4 +311,6 @@ test('커밋 메시지: 자동 연결', () => {
   assert.equal(P.commitMessage('autolink', { links: 3, series: 2 }), 'collection: 반다이 제품 3개 자동 연결 · 시리즈 2개 한국어로');
   assert.equal(P.commitMessage('autolink', { links: 0, series: 2 }), 'collection: 시리즈 2개 한국어로');
   assert.equal(P.commitMessage('autolink', { links: 1, series: 0 }), 'collection: 반다이 제품 1개 자동 연결');
+  assert.equal(P.commitMessage('autolink', { links: 2, series: 1, fills: 3 }), 'collection: 반다이 제품 2개 자동 연결 · 시리즈 1개 한국어로 · 빈 칸 3개 채움');
+  assert.equal(P.commitMessage('autolink', { fills: 4 }), 'collection: 빈 칸 4개 채움');
 });

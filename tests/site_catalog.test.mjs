@@ -310,12 +310,12 @@ test('seriesKoSuggestions: 시리즈 칸이 카탈로그 일본어와 정확히 
 test('applyAuto: 선택한 것만 연결(빈 칸만 채움)·시리즈 변경, 이름은 그대로', () => {
   const a = kitOf({ name: '건담 에어리얼' }), b = kitOf({ name: '건담 에어리얼', series: '내 값' }), s = kitOf({ catalogId: 'bh-02_1', series: SER_JA }), s2 = kitOf({ catalogId: 'bh-02_1', series: SER_JA });
   const n = C.applyAuto([a, b, s, s2], acat, { [a.id]: 'bh-02_1', [b.id]: 'bh-02_1' }, [s.id]);
-  assert.deepEqual(n, { links: 2, series: 1 });
+  assert.deepEqual(n, { links: 2, series: 1, fills: 0 });
   assert.equal(a.catalogId, 'bh-02_1'); assert.equal(a.series, SER_KO); assert.equal(a.name, '건담 에어리얼');
   assert.equal(b.series, '내 값', '이미 적은 시리즈는 그대로');
   assert.equal(s.series, SER_KO); assert.equal(s2.series, SER_JA, '선택하지 않은 것은 그대로');
   const t = kitOf({ catalogId: 'bh-02_1', series: '사용자가 고침' });
-  assert.deepEqual(C.applyAuto([t], acat, {}, [t.id]), { links: 0, series: 0 }, '그 사이 값이 바뀌었으면 건드리지 않는다');
+  assert.deepEqual(C.applyAuto([t], acat, {}, [t.id]), { links: 0, series: 0, fills: 0 }, '그 사이 값이 바뀌었으면 건드리지 않는다');
 });
 
 test('fillPatch·검색: 시리즈는 한국어(seriesKo)를 먼저, 일본어로도 찾아진다', () => {
@@ -347,4 +347,31 @@ test('line:"other"(manual) 항목: 검색·연결은 되지만 등급이 없어 
   assert.equal(C.search(oc, 'ドラゴン').results[0].id, 'bh-77_1');
   assert.deepEqual(C.autoLinks([P.normKit({ id: 'k1', name: '드래곤 퀘스트 슬라임', grade: 'HG', scale: '논스케일' })], oc), []);
   assert.deepEqual(C.fillPatch(it, { name: '', grade: 'HG', scale: '논스케일', series: '', brand: '반다이' }, { fillAll: true }).patch, { name: '드래곤 퀘스트 슬라임', series: '드래곤 퀘스트' });
+});
+
+// ---------- 빈 칸 채우기 (이미 연결된 프라) ----------
+test('fillCandidates: 연결된 프라의 빈 등급(기타)·스케일(논스케일)·시리즈만, 직접 적은 값은 제외', () => {
+  const blank = kitOf({ catalogId: 'bh-02_1', grade: '기타', scale: '논스케일', series: '' });
+  const onlySeries = kitOf({ catalogId: 'bh-02_1', series: '' });
+  const mine = kitOf({ catalogId: 'bh-02_1', grade: 'RG', scale: '1/100', series: '내 시리즈' });                       // 직접 적은 값 (카탈로그와 달라도)
+  const unlinked = kitOf({ grade: '기타', scale: '논스케일', series: '' });
+  const unknown = kitOf({ catalogId: 'bh-없음', series: '' });
+  const noValue = kitOf({ catalogId: 'bh-02_4', grade: 'MGSD', scale: '논스케일', series: '' });                          // 카탈로그에도 스케일·시리즈가 없다
+  const r = C.fillCandidates([blank, onlySeries, mine, unlinked, unknown, noValue], acat);
+  assert.deepEqual(r.map((x) => x.kit.id), [blank.id, onlySeries.id]);
+  assert.deepEqual(r[0].changes.map((c) => [c.field, c.from, c.to]), [['grade', '기타', 'HG'], ['scale', '논스케일', '1/144'], ['series', '', SER_KO]]);
+  assert.deepEqual(r[1].changes.map((c) => c.field), ['series']);
+  assert.deepEqual(C.fillCandidates([blank], null), []);
+});
+
+test('applyAuto(fillIds): 선택한 것만 빈 칸을 채우고, 그 사이 사용자가 적은 값은 건드리지 않는다', () => {
+  const a = kitOf({ catalogId: 'bh-02_1', grade: '기타', scale: '논스케일', series: '' }), b = kitOf({ catalogId: 'bh-02_1', grade: '기타', scale: '논스케일', series: '' });
+  const c = kitOf({ catalogId: 'bh-02_1', grade: '기타', scale: '논스케일', series: '그 사이 적음' });
+  const n = C.applyAuto([a, b, c], acat, null, null, [a.id, c.id]);
+  assert.deepEqual(n, { links: 0, series: 0, fills: 2 });
+  assert.deepEqual([a.grade, a.scale, a.series], ['HG', '1/144', SER_KO]);
+  assert.deepEqual([b.grade, b.scale, b.series], ['기타', '논스케일', ''], '선택하지 않은 프라는 그대로');
+  assert.deepEqual([c.grade, c.scale, c.series], ['HG', '1/144', '그 사이 적음'], '이미 적은 시리즈는 그대로, 비어 있던 칸만');
+  assert.equal(a.name, '건담 에어리얼');
+  assert.equal(C.applyAuto([a], acat, null, null, [a.id]).fills, 0, '다시 적용해도 바뀐 게 없다');
 });

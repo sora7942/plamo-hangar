@@ -268,15 +268,35 @@ function seriesKoSuggestions(kits, cat) {
   });
   return out;
 }
-// 고른 제안을 next(데이터 사본)의 kits 에 적용한다. links: [kitId→catalogId], series: [kitId]. 적용한 수를 돌려준다.
-function applyAuto(kits, cat, links, seriesIds) {
-  var n = { links: 0, series: 0 };
+// 이미 연결된 프라 중 등급(기타)·스케일(논스케일)·시리즈(빈 칸)가 비어 있는데 카탈로그에는 값이 생긴 것 → 채우자는 제안.
+// fillPatch의 "빈 칸만" 규칙 그대로라 사용자가 적은 값은 건드리지 않는다. 이름·브랜드는 제안하지 않는다.
+var FILL_FIELDS = [['grade', '등급'], ['scale', '스케일'], ['series', '시리즈']];
+function fillCandidates(kits, cat) {
+  if (!cat) return [];
+  var out = [];
+  (kits || []).forEach(function (kit) {
+    var it = kit.catalogId ? cat.byId[kit.catalogId] : null;
+    if (!it) return;
+    var patch = fillPatch(it, kit).patch, changes = [];
+    FILL_FIELDS.forEach(function (f) { if (patch[f[0]] != null) changes.push({ field: f[0], label: f[1], from: kit[f[0]] || '', to: patch[f[0]] }); });
+    if (changes.length) out.push({ kit: kit, item: it, changes: changes });
+  });
+  return out;
+}
+// 고른 제안을 next(데이터 사본)의 kits 에 적용한다. links: {kitId→catalogId}, seriesIds: [kitId], fillIds: [kitId](빈 칸 채우기). 적용한 수를 돌려준다.
+function applyAuto(kits, cat, links, seriesIds, fillIds) {
+  var n = { links: 0, series: 0, fills: 0 };
   (kits || []).forEach(function (k) {
     var it = links && links[k.id] ? cat.byId[links[k.id]] : null;
     if (it && !k.catalogId) { Object.assign(k, fillPatch(it, k).patch); k.catalogId = it.id; n.links++; }
     if (seriesIds && seriesIds.indexOf(k.id) >= 0) {
       var cur = k.catalogId ? cat.byId[k.catalogId] : null;
       if (cur && cur.seriesKo && k.series === cur.series) { k.series = cur.seriesKo; n.series++; }
+    }
+    if (fillIds && fillIds.indexOf(k.id) >= 0 && k.catalogId && cat.byId[k.catalogId]) {   // 그 사이 값이 채워졌거나 바뀌었으면 fillPatch가 알아서 건드리지 않는다
+      var patch = fillPatch(cat.byId[k.catalogId], k).patch, did = false;
+      FILL_FIELDS.forEach(function (f) { if (patch[f[0]] != null) { k[f[0]] = patch[f[0]]; did = true; } });
+      if (did) n.fills++;
     }
   });
   return n;
@@ -309,6 +329,6 @@ return {
   FILES: FILES, SEARCH_LIMIT: SEARCH_LIMIT,
   norm: norm, stripPrefix: stripPrefix, displayName: displayName, isStableImage: isStableImage, thumbUrl: thumbUrl, pageUrl: pageUrl,
   normalizeItem: normalizeItem, build: build, search: search, parseRef: parseRef, fillPatch: fillPatch,
-  officialImages: officialImages, setCatalogId: setCatalogId, gapInfo: gapInfo, autoLinks: autoLinks, seriesKoSuggestions: seriesKoSuggestions, applyAuto: applyAuto, reviewLinks: reviewLinks, dayNum: dayNum, monthEnd: monthEnd, releaseLabel: releaseLabel, releaseSortKey: releaseSortKey, cacheKey: cacheKey, load: load
+  officialImages: officialImages, setCatalogId: setCatalogId, gapInfo: gapInfo, autoLinks: autoLinks, seriesKoSuggestions: seriesKoSuggestions, fillCandidates: fillCandidates, applyAuto: applyAuto, reviewLinks: reviewLinks, dayNum: dayNum, monthEnd: monthEnd, releaseLabel: releaseLabel, releaseSortKey: releaseSortKey, cacheKey: cacheKey, load: load
 };
 });

@@ -521,7 +521,7 @@ def autolink_checks(browser, base):
     cnt = collections.Counter((pynorm(pytitle(x)), x["grade"], x["scale"] or "논스케일") for x in ITEMS if x.get("nameKo") and x["grade"] in ("HG", "MG", "RG"))
     ok = [x for x in ITEMS if x.get("nameKo") and x["grade"] in ("HG", "MG", "RG") and x["scale"] and x.get("series") and cnt[(pynorm(pytitle(x)), x["grade"], x["scale"])] == 1 and pytitle(x)]
     dup = next(x for x in ITEMS if x.get("nameKo") and x["grade"] in ("HG", "MG", "RG") and x["scale"] and cnt[(pynorm(pytitle(x)), x["grade"], x["scale"])] > 1 and pytitle(x))
-    X, Y = ok[0], ok[1]
+    X, Y, Z = ok[0], ok[1], ok[2]
     KO = {X["id"]: "테스트 시리즈 한국어 X", Y["id"]: "테스트 시리즈 한국어 Y"}
 
     def serve(route):
@@ -538,6 +538,8 @@ def autolink_checks(browser, base):
     k[2].update(name="직접 적은 시리즈", catalogId=Y["id"], series="내가 직접 쓴 시리즈")                              # 제안 안 함
     k[3].update(name=pytitle(dup), grade=dup["grade"], scale=dup["scale"], catalogId=None)                          # 후보 2개 → 제안 안 함
     k[4].update(name=pytitle(X), grade="기타", scale=X["scale"], catalogId=None)                                      # 등급 기타 → 제안 안 함
+    k[6].update(name="빈 칸 채우기 대상", catalogId=Z["id"], grade="기타", scale="논스케일", series="")                      # 빈 칸 채우기 후보 (등급·스케일·시리즈)
+    k[7].update(name="시리즈는 직접 적음", catalogId=Z["id"], grade="기타", scale="논스케일", series="내가 직접 쓴 시리즈 Z")      # 시리즈는 건드리면 안 됨
     ids = [x["id"] for x in k[:5]]
     text = json.dumps(coll, ensure_ascii=False)
     seed = {COLL_PATH: text + "\n", "docs/data/feed.json": '{"n":1}', "docs/data/meta.json": "{}"}
@@ -564,6 +566,7 @@ def autolink_checks(browser, base):
     # 우리가 확인하려는 두 개만 남긴다
     page.click('[data-all="link"]')
     page.click('[data-all="series"]')
+    page.click('[data-all="fill"]')
     page.check(f'input[data-kind="link"][data-id="{ids[0]}"]')
     page.check(f'input[data-kind="series"][data-id="{ids[1]}"]')
     check(page.locator("#al-go").inner_text() == "1개 연결 · 시리즈 1개 변경 적용", f"선택 수가 버튼에 반영: {page.locator('#al-go').inner_text()}")
@@ -576,7 +579,32 @@ def autolink_checks(browser, base):
     check(after[ids[0]]["series"] == KO[X["id"]], f"빈 시리즈칸은 한국어 시리즈로 채움: {after[ids[0]]['series']}")
     check(after[ids[1]]["series"] == KO[Y["id"]] and after[ids[1]]["catalogId"] == Y["id"], "일본어 시리즈를 한국어로 바꿈")
     others = [i for i in after if i not in ids[:2]]
-    check(all(after[i] == next(x for x in k if x["id"] == i) for i in others), f"나머지 프라 {len(others)}개는 하나도 바뀌지 않음 (직접 적은 시리즈 포함)")
+    check(all(after[i] == next(x for x in k if x["id"] == i) for i in others), f"나머지 프라 {len(others)}개는 하나도 바뀌지 않음 (직접 적은 시리즈·빈 칸 채우기 후보 포함)")
+
+    section("빈 칸 채우기 (이미 연결된 프라)")
+    z_series = Z.get("seriesKo") or Z["series"]
+    page.locator('[data-act="settings"]').first.click()
+    page.click("#s-auto")
+    page.wait_for_selector('input[data-kind="fill"]', timeout=20000)
+    fill_ids = page.evaluate("""Array.from(document.querySelectorAll('input[data-kind="fill"]')).map(i => i.dataset.id)""")
+    check(k[6]["id"] in fill_ids and k[7]["id"] in fill_ids, "빈 칸이 있는 연결 프라가 후보에 있다")
+    check(ids[0] not in fill_ids and ids[2] not in fill_ids and k[10]["id"] not in fill_ids, "이미 채워진·미연결 프라는 후보가 아니다")
+    r6 = page.locator(f'input[data-kind="fill"][data-id="{k[6]["id"]}"]').locator("xpath=ancestor::li").inner_text()
+    r7 = page.locator(f'input[data-kind="fill"][data-id="{k[7]["id"]}"]').locator("xpath=ancestor::li").inner_text()
+    check("등급: 기타 → " + Z["grade"] in r6 and "스케일: 논스케일 → " + Z["scale"] in r6 and "시리즈" in r6, f"행에 바뀔 값 미리보기: {r6.splitlines()[1:4]}")
+    check("시리즈" not in r7.replace("시리즈는 직접 적음", ""), "직접 적은 시리즈는 후보 항목에 없다")
+    page.click('[data-all="fill"]'); page.click('[data-all="link"]') if page.locator('[data-all="link"]').count() else None
+    page.check(f'input[data-kind="fill"][data-id="{k[6]["id"]}"]')
+    check(page.locator("#al-go").inner_text() == "빈 칸 1개 채움 적용", f"버튼: {page.locator('#al-go').inner_text()}")
+    before = len(M.history(page)); M.reset_log(page)
+    page.click("#al-go")
+    M.settle(page)
+    M.one_commit(page, "빈 칸 채우기", before, msg_re=r"collection: 빈 칸 1개 채움", collection_only=True)
+    after2 = {x["id"]: x for x in M.collection(page)["kits"]}
+    a6, a7 = after2[k[6]["id"]], after2[k[7]["id"]]
+    check((a6["grade"], a6["scale"], a6["series"]) == (Z["grade"], Z["scale"], z_series) and a6["name"] == "빈 칸 채우기 대상", f"등급·스케일·시리즈 채움: {a6['grade']} {a6['scale']} {a6['series'][:12]}")
+    check((a7["grade"], a7["scale"], a7["series"]) == ("기타", "논스케일", "내가 직접 쓴 시리즈 Z"), "선택하지 않은 프라는 그대로(직접 적은 시리즈 포함)")
+    page.keyboard.press("Escape")
 
     section("상세: 리뷰 찾아보기 · 시리즈 · 다시 열면 제안이 없다")
     card_for(page, ids[0]).click()

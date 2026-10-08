@@ -466,7 +466,7 @@ function openAutoLink() {
   var body = '<div id="al-body"><p class="hint">카탈로그를 불러오는 중이에요…</p></div>';
   var foot = '<span class="hint" style="align-self:center">저장하면 저장소에 커밋이 하나 생겨요.</span><div class="r"><button class="btn" data-close>취소</button><button class="btn primary" id="al-go" disabled>적용</button></div>';
   var m = openModal('자동 연결 후보', body, foot);
-  var box = m.querySelector('#al-body'), go = m.querySelector('#al-go'), links = [], sers = [];
+  var box = m.querySelector('#al-body'), go = m.querySelector('#al-go'), links = [], sers = [], fills = [];
   function thumbHTML(it) {
     var im = it.images[0], t = im ? C.thumbUrl(im) : '';
     return '<div class="pk-thumb">' + (im ? '<img src="' + esc(t) + '"' + (t !== im ? ' data-alt="' + esc(im) + '"' : '') + ' alt="" loading="lazy" referrerpolicy="no-referrer" data-g="' + esc(P.glabel(it.grade)) + '">' : '<div class="ghost">' + esc(P.glabel(it.grade)) + '</div>') + '</div>';
@@ -478,8 +478,8 @@ function openAutoLink() {
   }
   function paint() {
     if (!cat) { box.innerHTML = '<p class="hint">카탈로그를 불러오지 못했어요. <button type="button" class="linkbtn" id="al-retry">다시 시도</button></p>'; return; }
-    links = C.autoLinks(data.kits, cat); sers = C.seriesKoSuggestions(data.kits, cat);
-    if (!links.length && !sers.length) {
+    links = C.autoLinks(data.kits, cat); sers = C.seriesKoSuggestions(data.kits, cat); fills = C.fillCandidates(data.kits, cat);
+    if (!links.length && !sers.length && !fills.length) {
       box.innerHTML = '<p class="hint" style="font-size:14px">제안할 게 없어요. 이름·등급·스케일이 모두 같고 카탈로그 후보가 하나뿐인 미연결 프라가 없고, 시리즈를 한국어로 바꿀 연결 프라도 없어요. (이름이 조금이라도 다르거나 등급이 "기타"인 프라는 상세에서 직접 연결해 주세요.)</p>';
       go.disabled = true; return;
     }
@@ -492,15 +492,20 @@ function openAutoLink() {
       return '<li class="pk-item"><label class="al-check"><input type="checkbox" data-kind="series" data-id="' + esc(x.kit.id) + '" checked></label>' +
         '<div class="pk-body"><b>' + esc(x.kit.name) + '</b><span class="hint">' + esc(x.from) + '</span><span class="hint">→ ' + esc(x.to) + '</span></div></li>';
     });
+    var frows = fills.map(function (x) {
+      return '<li class="pk-item"><label class="al-check"><input type="checkbox" data-kind="fill" data-id="' + esc(x.kit.id) + '" checked></label>' + thumbHTML(x.item) +
+        '<div class="pk-body"><b>' + esc(x.kit.name) + '</b>' + x.changes.map(function (c) { return '<span class="hint">' + esc(c.label) + ': ' + esc(c.from || '(비어 있음)') + ' → ' + esc(c.to) + '</span>'; }).join('') + '</div></li>';
+    });
     box.innerHTML = '<p class="hint" style="font-size:14px">체크한 것만 적용해요. 연결하면 이름·등급·스케일은 그대로 두고 비어 있는 칸(시리즈 등)만 채워요.</p>' +
       section('반다이 제품에 연결', '이름·등급·스케일이 모두 같은 제품이 카탈로그에 하나뿐인 프라예요.', lrows, 'link') +
-      section('시리즈를 한국어로 바꾸기', '시리즈 칸이 카탈로그의 일본어 시리즈와 똑같은 프라만 보여요. 직접 적은 값은 건드리지 않아요.', srows, 'series');
+      section('시리즈를 한국어로 바꾸기', '시리즈 칸이 카탈로그의 일본어 시리즈와 똑같은 프라만 보여요. 직접 적은 값은 건드리지 않아요.', srows, 'series') +
+      section('빈 칸 채우기', '이미 연결된 프라 중 등급(기타)·스케일(논스케일)·시리즈가 비어 있는데 카탈로그에 값이 생긴 것이에요. 직접 적은 값은 건드리지 않아요.', frows, 'fill');
     count();
   }
   function picked(kind) { return Array.prototype.slice.call(box.querySelectorAll('input[data-kind="' + kind + '"]:checked')).map(function (i) { return i.dataset.id; }); }
   function count() {
-    var a = picked('link').length, b = picked('series').length;
-    go.disabled = !(a + b); go.textContent = !(a + b) ? '적용' : [a ? a + '개 연결' : '', b ? '시리즈 ' + b + '개 변경' : ''].filter(Boolean).join(' · ') + ' 적용';
+    var a = picked('link').length, b = picked('series').length, c = picked('fill').length;
+    go.disabled = !(a + b + c); go.textContent = !(a + b + c) ? '적용' : [a ? a + '개 연결' : '', b ? '시리즈 ' + b + '개 변경' : '', c ? '빈 칸 ' + c + '개 채움' : ''].filter(Boolean).join(' · ') + ' 적용';
   }
   box.addEventListener('change', function (e) { if (e.target.matches('input[data-kind]')) count(); });
   box.addEventListener('click', function (e) {
@@ -511,9 +516,9 @@ function openAutoLink() {
   });
   go.addEventListener('click', function () {
     var linkMap = {}; picked('link').forEach(function (id) { var x = links.filter(function (l) { return l.kit.id === id; })[0]; if (x) linkMap[id] = x.item.id; });
-    var serIds = picked('series'), result = { links: 0, series: 0 };
-    commit(function (d) { result = C.applyAuto(d.kits, cat, linkMap, serIds); }, 'autolink', { links: Object.keys(linkMap).length, series: serIds.length },
-      { okMsg: [Object.keys(linkMap).length ? '반다이 제품 ' + Object.keys(linkMap).length + '개를 연결' : '', serIds.length ? '시리즈 ' + serIds.length + '개를 한국어로 변경' : ''].filter(Boolean).join(', ') + '했어요.' });
+    var serIds = picked('series'), fillIds = picked('fill'), result = { links: 0, series: 0, fills: 0 };
+    commit(function (d) { result = C.applyAuto(d.kits, cat, linkMap, serIds, fillIds); }, 'autolink', { links: Object.keys(linkMap).length, series: serIds.length, fills: fillIds.length },
+      { okMsg: [Object.keys(linkMap).length ? '반다이 제품 ' + Object.keys(linkMap).length + '개를 연결' : '', serIds.length ? '시리즈 ' + serIds.length + '개를 한국어로 변경' : '', fillIds.length ? '빈 칸 ' + fillIds.length + '개를 채움' : ''].filter(Boolean).join(', ') + '했어요.' });
   });
   ensureCatalog().then(function () { if (m.isConnected) paint(); });
 }
