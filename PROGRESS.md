@@ -59,6 +59,11 @@
 - [x] 6-3 보정: 후보 목록·연결 도우미·이름 채우기에 보이는 이름은 카탈로그 원래 이름 그대로(`title`, 등급·스케일 머리말만 뗌). `HGUC`·`HGCE`·`HGBD:R` 머리말은 비교용(`kn`/`jn`/`cmp`, `stripPrefix(..., loose=true)`)에서만 뗀다. 미연결 124개 판정 수치는 그대로.
 - [x] 문서 동기화: CLAUDE.md·SPEC.md·README.md에 6단계 반영(brand_backfill 입력·커서·`--brand-backfill`, 상세 받기 순서, strayHanReset·한자 검사, aliases.js, 연결 도우미, 빈 칸 채우기, 디스코드 url 구별). **몰 관련 규칙 문구(CLAUDE.md Critical 첫 항목·SPEC 2장·README 9장 이미지)는 7번 전까지 그대로.**
 
+## 번역 품질 (6-8, 점검만 — 반영은 사용자 선택 후)
+- [x] 6-8 용어 일관성 점검 도구 `python -m crawler.audit_terms [--top 50] [--min-items 3] [--out crawler/out/term-audit.md]` (읽기 전용, 자음 골격으로 같은 가타카나 단어의 한국어 표기 갈림을 찾고 조이하비 표기를 근거로 제안 + 내 컬렉션 별칭 후보). 테스트 `tests/test_audit_terms.py`. 사람이 확인하는 보조 도구라 오탐(フェクト·ジオン 등)이 있다
+- [ ] 사용자 선택 후: TRANSLATE_GLOSSARY 추가 + 해당 nameKo 비우기(재번역은 실행당 600건 안) + aliases.js 묶음 추가
+- [x] MG 비다르(bh-01_5469) 확인: 한자 리셋 후 재번역 대기(상세는 완료, 안정 이미지 없음) — 그대로 둠
+
 ## 다음에 할 일
 - 6단계 1~6번 + 보정·문서 끝(로컬 커밋). **6-0b 몰 연동은 사용자가 이용약관 확인 후 따로 지시.** push는 사용자가.
 - push 후 사용자 확인 거리: (1) Actions `discord_test`로 embed 3개가 따로 보이는지 (2) Actions `brand_backfill`(약 8분, 알림 없음) → 이후 매일 실행이 상세·번역을 나눠 채움(번역 약 $1.2) (3) 한자 혼입 `비达르` 2건이 다음 실행에서 재번역되는지 (4) 사이트 연결 도우미·검색 별칭.
