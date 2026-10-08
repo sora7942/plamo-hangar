@@ -384,3 +384,23 @@ test('자동 연결 후보: 카탈로그 이름의 HGUC 같은 머리말은 비�
   assert.equal(r[0].item.title, 'HGUC 1/144 돔 트로펜');
   assert.equal(C.fillPatch(c.byId['bh-03_1'], { name: '', grade: 'HG', scale: '1/144', series: '', brand: 'b' }).patch.name, 'HGUC 1/144 돔 트로펜', '이름을 채울 때도 원래 이름');
 });
+
+test('정가: 몰 가격이 있으면 ₩ + 몰 링크, 없으면 엔 정가, 판매 종료·품절 표시, 링크는 사이트가 만든다', () => {
+  const base = { id: 'bh-1', url: 'https://bandai-hobby.net/item/01_1/', line: 'gunpla', grade: 'HG', scale: '1/144', nameKo: 'HG 1/144 테스트', priceJpy: 4950, release: {}, kr: [], images: [] };
+  const norm = (o) => C.normalizeItem({ ...base, ...o });
+  assert.deepEqual(C.priceInfo(norm({})), { kind: 'jpy', amount: '¥4,950', label: '일본 정가(세금 포함)', url: null, ended: false, soldOut: false, note: '' });
+  const live = C.priceInfo(norm({ priceKrw: 46800, priceKrwAt: '2026-10-09T10:00:00+09:00', mallGno: '58992' }));
+  assert.equal(live.kind, 'krw'); assert.equal(live.amount, '₩46,800'); assert.equal(live.label, '반다이남코코리아몰');
+  assert.equal(live.url, 'https://www.bnkrmall.co.kr/goods/detail.do?gno=58992'); assert.equal(live.note, '');
+  const sold = C.priceInfo(norm({ priceKrw: 46800, priceKrwAt: '2026-10-09T10:00:00+09:00', mallGno: '58992', mallSoldOut: true }));
+  assert.equal(sold.soldOut, true); assert.equal(sold.note, '품절'); assert.ok(sold.url);
+  const ended = C.priceInfo(norm({ priceKrw: 46800, priceKrwAt: '2026-10-09T10:00:00+09:00', mallGno: '58992', mallSoldOut: true, mallEnded: true }));
+  assert.equal(ended.ended, true); assert.equal(ended.amount, '₩46,800'); assert.equal(ended.note, '판매 종료(마지막 확인 2026-10-09)'); assert.equal(ended.url, null, '사라진 상품에는 링크를 걸지 않는다'); assert.equal(ended.soldOut, false);
+  assert.equal(C.priceInfo(norm({ priceJpy: 0 })), null);
+  assert.equal(C.priceInfo(null), null);
+  // 값이 이상하면 몰 가격을 쓰지 않는다 (gno가 숫자가 아니거나 가격이 정수가 아님) → 엔 정가로
+  assert.equal(C.priceInfo(norm({ priceKrw: 46800, mallGno: '58992/../x' })).kind, 'jpy');
+  assert.equal(C.priceInfo(norm({ priceKrw: '46800', mallGno: '58992' })).kind, 'jpy');
+  assert.equal(C.mallUrl('12'), 'https://www.bnkrmall.co.kr/goods/detail.do?gno=12'); assert.equal(C.mallUrl('x'), null); assert.equal(C.mallUrl(null), null);
+  assert.equal(C.priceShort(norm({ priceKrw: 26400, mallGno: '1' })), '₩26,400'); assert.equal(C.priceShort(norm({})), '¥4,950'); assert.equal(C.priceShort(norm({ priceJpy: 0 })), '');
+});

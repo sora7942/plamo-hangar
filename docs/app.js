@@ -392,7 +392,7 @@ function pickerHTML(o) {
 function pickRow(it, exceptId) {
   var im = it.images[0], used = usedBy(it.id, exceptId);
   return '<li class="pk-item" data-id="' + esc(it.id) + '"><div class="pk-thumb">' + (im ? '<img src="' + esc(C.thumbUrl(im)) + '"' + (C.thumbUrl(im) !== im ? ' data-alt="' + esc(im) + '"' : '') + ' alt="" loading="lazy" referrerpolicy="no-referrer" data-g="' + esc(P.glabel(it.grade)) + '">' : '<div class="ghost">' + esc(P.glabel(it.grade)) + '</div>') + '</div>' +
-    '<div class="pk-body"><b>' + esc(it.title) + '</b><span class="hint">' + esc([it.grade, it.scale, relText(it), it.seriesText].filter(Boolean).join(' · ')) + '</span>' +
+    '<div class="pk-body"><b>' + esc(it.title) + '</b><span class="hint">' + esc([it.grade, it.scale, relText(it), it.seriesText, C.priceShort(it)].filter(Boolean).join(' · ')) + '</span>' +
     (used.length ? '<span class="hint pk-used">이미 ' + esc(used.slice(0, 2).map(function (x) { return '"' + x.name + '"'; }).join(', ')) + (used.length > 2 ? ' 외 ' + (used.length - 2) + '개' : '') + '에 연결돼 있어요</span>' : '') + '</div>' +
     '<button type="button" class="btn" data-pick="' + esc(it.id) + '">선택</button></li>';
 }
@@ -641,9 +641,12 @@ function openDetail(id) {
   var linkInfo = !k.catalogId ? '' : '<div class="linkbox"><span class="lk">반다이 제품</span>' + (ci
       ? '<span>' + esc(ci.title) + ' <span class="hint">' + esc([ci.grade, ci.scale, ci.seriesText].filter(Boolean).join(' · ')) + '</span>' + (pu ? ' · <a href="' + esc(pu) + '" target="_blank" rel="noopener noreferrer">공식 페이지</a>' : '') + '</span>'
       : '<span class="hint">' + (catState === 'ready' ? '카탈로그에 아직 없는 제품이에요 (' + esc(k.catalogId) + '). 다음 수집 때 채워져요.' : catState === 'error' ? '카탈로그를 불러오지 못했어요.' : '카탈로그를 불러오는 중이에요…') + '</span>') + '</div>';
+  var pi = ci && C.priceInfo(ci);
+  var priceLine = !pi ? '' : '<p class="priceline"><span class="lk">정가</span><span class="mono">' + esc(pi.amount) + '</span><span>' + (pi.url ? '<a href="' + esc(pi.url) + '" target="_blank" rel="noopener noreferrer">' + esc(pi.label) + '</a>' : esc(pi.label)) + '</span>' +
+    (pi.note ? '<span class="' + (pi.ended ? 'ended' : 'soldout') + '">' + esc(pi.note) + '</span>' : '') + '</p>';
   var rv = k.sample ? null : C.reviewLinks(k);
   var reviews = rv ? '<p class="reviews"><span class="lk">리뷰 찾아보기</span><a href="' + esc(rv.youtube) + '" target="_blank" rel="noopener noreferrer">유튜브</a><a href="' + esc(rv.naver) + '" target="_blank" rel="noopener noreferrer">네이버 블로그</a></p>' : '';
-  var body = gallery + linkInfo + reviews +
+  var body = gallery + linkInfo + priceLine + reviews +
     '<dl class="specs">' + show.map(function (r) { return '<dt>' + r[0] + '</dt>' + (r[1] ? '<dd' + (/가격/.test(r[0]) ? ' class="mono"' : '') + '>' + esc(r[1]) + '</dd>' : '<dd class="missing">미입력</dd>'); }).join('') + '</dl>' +
     (k.memo ? '<p class="memo">' + esc(k.memo) + '</p>' : '');
   var foot = (canWrite && !k.sample) ? '<button class="btn danger" id="del">삭제</button><div class="r">' + '<button class="btn" id="relink">' + (k.catalogId ? '제품 연결 변경' : '반다이 제품 연결') + '</button>' + (k.catalogId ? '<button class="btn" id="unlink">연결 해제</button>' : '') +

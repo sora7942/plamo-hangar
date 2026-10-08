@@ -73,6 +73,8 @@ function normalizeItem(raw) {
     id: raw.id, url: str(raw.url), pbUrl: str(raw.pbUrl), line: str(raw.line), channel: str(raw.channel),
     grade: P.catalogGrade(raw.grade), rawGrade: str(raw.grade), scale: str(raw.scale), series: str(raw.series), seriesKo: str(raw.seriesKo),
     nameJa: str(raw.nameJa), nameKo: str(raw.nameKo), priceJpy: Number(raw.priceJpy) || 0,
+    priceKrw: Number.isInteger(raw.priceKrw) && raw.priceKrw > 0 ? raw.priceKrw : 0, priceKrwAt: str(raw.priceKrwAt),
+    mallGno: typeof raw.mallGno === 'string' && /^\d+$/.test(raw.mallGno) ? raw.mallGno : null, mallSoldOut: raw.mallSoldOut === true, mallEnded: raw.mallEnded === true,
     release: { month: str(rel.month), date: str(rel.date) },
     kr: (Array.isArray(raw.kr) ? raw.kr : []).filter(function (e) { return e && typeof e.date === 'string'; }),
     images: (Array.isArray(raw.images) ? raw.images : []).filter(isStableImage),
@@ -238,6 +240,25 @@ function gapInfo(item, today, since) {
   return out;
 }
 
+/* ---------- 정가 (반다이남코코리아몰 가격 · 호비 일본 정가) ---------- */
+var MALL_BASE = 'https://www.bnkrmall.co.kr';
+function mallUrl(gno) { return /^\d+$/.test(String(gno == null ? '' : gno)) ? MALL_BASE + '/goods/detail.do?gno=' + gno : null; }   // 상품 URL은 사이트가 만든다 (카탈로그에는 gno만)
+function fmtMoney(sym, n) { return sym + Math.round(Number(n) || 0).toLocaleString('ko-KR'); }
+// 상세의 "정가" 줄 정보. 몰 가격이 있으면 ₩ · 반다이남코코리아몰(링크), 없으면 호비의 엔 정가(세금 포함). 둘 다 없으면 null.
+// 몰에서 사라졌으면(mallEnded) 마지막 값과 날짜를 그대로 보이되 링크는 걸지 않는다. 카드에는 쓰지 않는다 (내 구매가와 헷갈리지 않게).
+function priceInfo(item) {
+  if (!item) return null;
+  var url = mallUrl(item.mallGno);
+  if (item.priceKrw > 0 && url) {
+    var checked = String(item.priceKrwAt || '').slice(0, 10), ended = !!item.mallEnded, sold = !ended && !!item.mallSoldOut;
+    return { kind: 'krw', amount: fmtMoney('₩', item.priceKrw), label: '반다이남코코리아몰', url: ended ? null : url, ended: ended, soldOut: sold,
+             note: ended ? '판매 종료' + (checked ? '(마지막 확인 ' + checked + ')' : '') : (sold ? '품절' : '') };
+  }
+  if (item.priceJpy > 0) return { kind: 'jpy', amount: fmtMoney('¥', item.priceJpy), label: '일본 정가(세금 포함)', url: null, ended: false, soldOut: false, note: '' };
+  return null;
+}
+function priceShort(item) { var p = priceInfo(item); return p ? p.amount : ''; }          // 연결 후보 목록의 작은 가격 (₩ 또는 ¥)
+
 /* ---------- 자동 연결 후보 · 시리즈 한국어 · 리뷰 링크 ---------- */
 // 연결 후보 키: 정규화한 이름(등급·스케일 머리말 뗌) + 등급 + 스케일. 카탈로그에 스케일이 없으면 '논스케일'로 본다
 function linkKey(name, grade, scale) { return norm(name) + '|' + grade + '|' + (scale || '논스케일'); }
@@ -332,6 +353,6 @@ return {
   FILES: FILES, SEARCH_LIMIT: SEARCH_LIMIT,
   norm: norm, stripPrefix: stripPrefix, displayName: displayName, isStableImage: isStableImage, thumbUrl: thumbUrl, pageUrl: pageUrl,
   normalizeItem: normalizeItem, build: build, search: search, parseRef: parseRef, fillPatch: fillPatch,
-  officialImages: officialImages, setCatalogId: setCatalogId, gapInfo: gapInfo, autoLinks: autoLinks, seriesKoSuggestions: seriesKoSuggestions, fillCandidates: fillCandidates, applyAuto: applyAuto, reviewLinks: reviewLinks, dayNum: dayNum, monthEnd: monthEnd, releaseLabel: releaseLabel, releaseSortKey: releaseSortKey, cacheKey: cacheKey, load: load
+  officialImages: officialImages, setCatalogId: setCatalogId, gapInfo: gapInfo, priceInfo: priceInfo, priceShort: priceShort, mallUrl: mallUrl, autoLinks: autoLinks, seriesKoSuggestions: seriesKoSuggestions, fillCandidates: fillCandidates, applyAuto: applyAuto, reviewLinks: reviewLinks, dayNum: dayNum, monthEnd: monthEnd, releaseLabel: releaseLabel, releaseSortKey: releaseSortKey, cacheKey: cacheKey, load: load
 };
 });

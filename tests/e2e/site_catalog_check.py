@@ -258,6 +258,84 @@ def run(browser, base):
 COLL_PATH = M.COLL
 
 
+def price_checks(browser, base):
+    """정가 줄: 카탈로그 응답에 몰 가격·품절·판매 종료를 주입(route)해서 문구·링크를 결정적으로 확인한다."""
+    ids = [COLL["kits"][i]["id"] for i in range(6)]
+    patch = {
+        MANY[0]["id"]: {"priceKrw": 46800, "priceKrwAt": "2026-10-09T10:00:00+09:00", "mallGno": "58992", "priceJpy": 4950},
+        MANY[1]["id"]: {"priceKrw": 28800, "priceKrwAt": "2026-10-09T10:00:00+09:00", "mallGno": "12345", "mallSoldOut": True},
+        MANY[2]["id"]: {"priceKrw": 21600, "priceKrwAt": "2026-10-01T10:00:00+09:00", "mallGno": "777", "mallSoldOut": True, "mallEnded": True},
+        MANY[3]["id"]: {"priceJpy": 4950},
+    }
+    for k in ("priceKrw", "priceKrwAt", "mallGno", "mallSoldOut", "mallEnded"):          # 실제 카탈로그에 이미 있어도 시험은 주입한 값만으로
+        for it in patch.values():
+            it.setdefault(k, None) if k != "mallSoldOut" and k != "mallEnded" else it.setdefault(k, False)
+
+    def serve(route):
+        body = json.loads(route.fetch().text())
+        for it in body["items"]:
+            if it["id"] in patch:
+                it.update(patch[it["id"]])
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(body, ensure_ascii=False))
+
+    section("상세: 정가 줄 (몰 가격 · 품절 · 판매 종료 · 일본 정가)")
+    ctx = M.new_context(browser, token=False)
+    ctx.route("**/data/catalog-*.json*", serve)
+    page = M.open_page(ctx, base)
+    poll(page, f"!!document.querySelector('.card[data-id=\"{ids[0]}\"] .ph img')", timeout=15000)
+    check(page.locator(".card .priceline").count() == 0 and "₩46,800" not in page.locator(".card").first.inner_text(), "카드에는 정가를 넣지 않는다 (내 구매가와 헷갈리지 않게)")
+
+    def line(i):
+        card_for(page, ids[i]).click()
+        page.wait_for_selector(".priceline", timeout=5000)
+        return " ".join(page.locator(".priceline").inner_text().split())
+
+    t0 = line(0)
+    check("정가" in t0 and "₩46,800" in t0 and "반다이남코코리아몰" in t0 and "¥" not in t0, f"몰 가격이 있으면 ₩ + 몰 이름: {t0}")
+    a = page.locator(".priceline a")
+    check(a.get_attribute("href") == "https://www.bnkrmall.co.kr/goods/detail.do?gno=58992" and a.get_attribute("target") == "_blank" and "noopener" in a.get_attribute("rel"), "몰 링크: 새 탭 · noopener · 사이트가 만든 URL")
+    shot(page, "cat-price-live.png")
+    page.keyboard.press("Escape")
+    t1 = line(1)
+    check("₩28,800" in t1 and "품절" in t1 and page.locator(".priceline a").count() == 1, f"품절 표시: {t1}")
+    page.keyboard.press("Escape")
+    t2 = line(2)
+    check("₩21,600" in t2 and "판매 종료(마지막 확인 2026-10-01)" in t2 and page.locator(".priceline a").count() == 0, f"판매 종료: 마지막 값·날짜, 링크 없음: {t2}")
+    page.keyboard.press("Escape")
+    t3 = line(3)
+    check("¥4,950" in t3 and "일본 정가(세금 포함)" in t3 and "₩" not in t3 and page.locator(".priceline a").count() == 0, f"몰 가격이 없으면 일본 정가: {t3}")
+    page.keyboard.press("Escape")
+    ctx.close()
+
+    section("연결 후보 목록: 가격을 작게 (₩ 또는 ¥)")
+    ctx = M.new_context(browser, token=True)
+    ctx.route("**/data/catalog-*.json*", serve)
+    page = M.open_page(ctx, base)
+    page.click("[data-act=add]")
+    page.wait_for_selector("#pk-q", timeout=5000)
+    page.fill("#pk-q", MANY[0]["nameKo"])
+    page.wait_for_selector(f'.pk-item[data-id="{MANY[0]["id"]}"]', timeout=5000)
+    row = page.locator(f'.pk-item[data-id="{MANY[0]["id"]}"] .pk-body').inner_text()
+    check("₩46,800" in row, f"후보 행에 몰 가격: {row.replace(chr(10), ' / ')}")
+    page.fill("#pk-q", MANY[3]["nameKo"])
+    page.wait_for_selector(f'.pk-item[data-id="{MANY[3]["id"]}"]', timeout=5000)
+    check("¥4,950" in page.locator(f'.pk-item[data-id="{MANY[3]["id"]}"] .pk-body').inner_text(), "후보 행: 몰 가격이 없으면 엔 정가")
+    ctx.close()
+
+    section("400px · 다크: 정가 줄")
+    for scheme in ("light", "dark"):
+        ctx = M.new_context(browser, w=400, h=860, scheme=scheme, token=False)
+        ctx.route("**/data/catalog-*.json*", serve)
+        page = M.open_page(ctx, base)
+        poll(page, f"!!document.querySelector('.card[data-id=\"{ids[2]}\"] .ph img')", timeout=15000)
+        card_for(page, ids[2]).click()
+        page.wait_for_selector(".priceline", timeout=5000)
+        page.wait_for_timeout(500)
+        check(M.no_overflow(page) and page.evaluate("document.querySelector('.panel').scrollWidth <= document.querySelector('.panel').clientWidth + 1"), f"400px {scheme}: 정가 줄 가로 넘침 없음")
+        shot(page, f"cat-price-400-{scheme}.png")
+        ctx.close()
+
+
 def gap_checks(browser, base):
     """재판 공백: 카탈로그 응답에 입고 날짜·발매일을 주입(route)해서 문구·정렬을 결정적으로 확인한다."""
     import datetime
@@ -946,6 +1024,7 @@ def main():
             run(browser, base)
             owner_flows(browser, base)
             gap_checks(browser, base)
+            price_checks(browser, base)
             feed_checks(browser, base)
             autolink_checks(browser, base)
             assist_checks(browser, base)

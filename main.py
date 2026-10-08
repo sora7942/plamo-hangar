@@ -29,7 +29,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap = argparse.ArgumentParser(description="반다이 호비사이트 카탈로그·신제품 피드 수집")
     ap.add_argument("--dry-run", action="store_true", help="파일은 쓰되 디스코드로 보내지 않는다 (보낼 내용을 콘솔에 출력)")
     ap.add_argument("--no-discord", action="store_true", help="디스코드 발송을 끈다")
-    ap.add_argument("--only", help="콤마로 구분한 단계만 실행: hobby, hobby_schedule, hobby_brand, hobby_item, joyhobby, translate")
+    ap.add_argument("--only", help="콤마로 구분한 단계만 실행: hobby, hobby_schedule, hobby_brand, hobby_item, joyhobby, mall, translate")
     ap.add_argument("--bootstrap", action="store_true", help="최초 채우기: 일정을 과거로, 걸프라 브랜드를 전체 쪽수로")
     ap.add_argument("--from", dest="from_month", metavar="YYYY-MM", help=f"--bootstrap 일정 시작 달 (기본 {config.SCHEDULE_START})")
     ap.add_argument("--max-new", type=int, default=config.DETAIL_NEW_MAX, help="실행당 상세: 새 상품 상한")
