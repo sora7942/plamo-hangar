@@ -24,7 +24,10 @@
 - [x] 4b-3 app.js UI: 카드·상세 재판 공백 줄, 정렬 '재판 공백 긴 순', 빈 칸 '반다이 제품 미연결' + e2e(117개) + 400px·다크
 - [x] 4b-4 보고 (사용자가 4c 진행하라고 하면 시작)
 
+## 4c 하위 단계 (신제품·입고 탭)
+- [x] 4c-1 docs/feed.js 순수 로직(normalize·safeLink·build·filter·sort·문구·wishPrefill) + tests/site_feed.test.mjs
+- [ ] 4c-2 app.js 연결: 3번째 탭, feed-root 마운트, 위시 추가(openForm prefill), CSS
+- [ ] 4c-3 e2e(site_catalog_check.py에 feed 시나리오) + 400px·다크 + 보고
+
 ## 다음에 할 일
-- 4b 끝. **사용자가 4c(신제품·입고 탭)를 지시하면 시작.** push는 사용자가 한다.
-- 4c 메모: `docs/feed.js` 별도 파일(읽기 전용, kits·위시 추가 콜백만 받음). feed.json은 탭을 처음 열 때 로드, 썸네일은 feed.image(6건뿐) 대신 catalogId→카탈로그 images[0](`C.thumbUrl`). 필터: 종류(new/pb-new/kr-restock/kr-new)·라인(건프라/걸프라)·등급. 내 보유·위시와 catalogId 같은 항목은 맨 위 '내 프라' 강조. '위시리스트에 추가'는 catalogId 연결 + `C.fillPatch(fillAll)`. 재판 공백 문구는 `C.gapInfo` 재사용 가능.
-- 4d 메모: 크롤러가 collection.json 읽기 전용으로 catalogId 중 카탈로그에 없는 것 상세 받기(`manual:true`, `line:"other"`는 SPEC 4장), 디스코드 내 프라 우선, 엑셀 catalogId 열, 자동 연결 후보, 리뷰 링크
+4c-2: index.html에 feed.js 추가, renderAll에서 ui.tab==='feed'일 때 stats/controls/grid 대신 #feed-root, bindShell을 탭 전용으로 분기, openForm(null,{prefill,openPicker}) 지원, '+ 추가'의 list 기본값은 wish/own만.
