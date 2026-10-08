@@ -21,6 +21,10 @@ on:
         description: "조이하비 과거 글 채우기만 실행 (--bootstrap --only joyhobby). 호비사이트는 건드리지 않고, 진행 위치는 meta.crawl.joyNext. 알림 없음"
         type: boolean
         default: false
+      brand_backfill:
+        description: "2015년 이전 상품 채우기 (HG·HGUC·MG·RG·MGSD·SD 계열 브랜드 목록 약 366쪽을 카드만으로 훑는다, 약 8분, 알림 없음). 다른 수집은 하지 않고 커서(meta.crawl.brandBackfill)로 이어 한다"
+        type: boolean
+        default: false
       discord_test:
         description: "디스코드 테스트 알림 1건만 보낸다 (수집·커밋 없음). feed.json 최근 3개(내 프라 연결 항목 포함)를 실제 알림과 같은 형식으로, 맨 앞에 [테스트] 표시"
         type: boolean
@@ -65,9 +69,14 @@ jobs:
           JOY_BACKFILL: ${{ inputs.joy_backfill }}
           JOY_PAGES: ${{ inputs.joy_pages }}
           DISCORD_TEST: ${{ inputs.discord_test }}
+          BRAND_BACKFILL: ${{ inputs.brand_backfill }}
         run: |
           if [ "$DISCORD_TEST" = "true" ]; then
             python main.py --discord-test          # 수집·파일 쓰기 없음
+            exit 0
+          fi
+          if [ "$BRAND_BACKFILL" = "true" ]; then
+            python main.py --brand-backfill        # 목록 카드만 (상세·번역은 매일 실행이 나눠서 채운다)
             exit 0
           fi
           args=()

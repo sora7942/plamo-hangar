@@ -356,12 +356,12 @@ class Catalog:
 
     # ------------------------------------------------------------ 밀린 상품 선택
     def backlog_candidates(self) -> list[dict]:
-        """상세가 필요한 항목(호비 상세가 있는 bh- 만). 임시 판정된 것 먼저, 발매일 최신순."""
+        """상세가 필요한 항목(호비 상세가 있는 bh- 만). 발매월 최신순(같은 달이면 임시 판정된 것 먼저)."""
         cands = [i for i in self.items.values()
                  if i["id"].startswith("bh-") and i["detailAt"] is None
                  and i.get("detailFails", 0) < config.DETAIL_MAX_FAILURES]
-        cands.sort(key=lambda i: (release_key(i.get("release")), i["id"]), reverse=True)
-        cands.sort(key=lambda i: i.get("line") is None)     # 안정 정렬: 임시 판정된 항목이 앞
+        # 발매월 최신순. 같은 달이면 임시 판정된(line이 있는) 항목이 먼저. (연결된 프라는 manual 경로가 이보다 먼저 받는다)
+        cands.sort(key=lambda i: ((i.get("release") or {}).get("month") or "", i.get("line") is not None, i["id"]), reverse=True)
         return cands
 
     def select_details(self, max_new: int, max_backlog: int, new_ids: set[str] | list[str]) -> tuple[list[str], list[str]]:

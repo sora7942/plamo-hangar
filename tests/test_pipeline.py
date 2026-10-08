@@ -95,7 +95,7 @@ def test_first_bootstrap_run_builds_all_files_in_spec_format(tmp_path):
     assert check_dir(tmp_path) == []                                              # SPEC 4장 형식
     cat = {**{i["id"]: i for f in ("catalog-gunpla.json", "catalog-girl.json", "catalog-pending.json")
               for i in read(tmp_path, f)["items"]}}
-    assert set(cat) == {"bh-01_6001", "bh-01_7001", "bh-01_7002", "bh-01_7003", "pb-item-1000250001",
+    assert set(cat) == {"bh-01_6001", "bh-01_7001", "bh-01_7003", "pb-item-1000250001",     # 7002는 발매월이 최신이라 먼저 상세를 받고(비대상) 제외로 옮겨졌다
                         "bh-01_7101", "bh-01_7102", "bh-01_7103"}
     assert res["newItems"] == 8 and posted == []                                  # 첫 실행은 알림 없음 (웹훅이 있어도)
 

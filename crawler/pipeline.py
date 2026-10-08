@@ -26,6 +26,7 @@ log = logging.getLogger("plamo.pipeline")
 HOBBY_STAGES = ("hobby_schedule", "hobby_brand", "hobby_item")
 SOURCE_STAGES = (*HOBBY_STAGES, "joyhobby")            # 수집 단계 (translate 앞)
 ALL_STAGES = (*SOURCE_STAGES, "translate")
+OPTIONAL_STAGES = ("hobby_backfill",)                  # 기본 실행에는 들어가지 않고 --brand-backfill / --only 로만 돈다 (2015년 이전 상품 채우기)
 
 
 @dataclass
@@ -38,10 +39,13 @@ class Options:
     max_new: int = config.DETAIL_NEW_MAX
     max_backlog: int = config.DETAIL_BACKLOG_MAX
     joy_pages: int | None = None            # --bootstrap 때 조이하비 과거 쪽 수 (None이면 config.JOY_BACKFILL_PAGES)
+    brand_backfill: bool = False            # 2015년 이전 상품 채우기만 실행 (hobby_backfill 단계)
     data_dir: Path = field(default_factory=lambda: config.DATA_DIR)
     report_dir: Path | None = None          # 조이하비 전체 보고서(joy-report.json)를 쓸 폴더. None이면 쓰지 않는다
 
     def stages(self) -> set[str]:
+        if self.only is None and self.brand_backfill:
+            return {"hobby_backfill"}
         if self.only is None:
             # dry-run은 Claude API 비용이 드는 번역을 기본으로 건너뛴다 (필요하면 --only translate로 명시)
             return set(ALL_STAGES) - ({"translate"} if self.dry_run else set())
@@ -49,10 +53,10 @@ class Options:
         for name in self.only:
             if name == "hobby":
                 out |= set(HOBBY_STAGES)
-            elif name in ALL_STAGES:
+            elif name in ALL_STAGES or name in OPTIONAL_STAGES:
                 out.add(name)
             else:
-                raise ValueError(f"알 수 없는 --only 값: {name} (가능: hobby, {', '.join(ALL_STAGES)})")
+                raise ValueError(f"알 수 없는 --only 값: {name} (가능: hobby, {', '.join((*ALL_STAGES, *OPTIONAL_STAGES))})")
         return out
 
 
@@ -139,6 +143,41 @@ def stage_brand(ctx: _Ctx) -> tuple[int, list[str]]:
         if complete:
             done.append(key)
     ctx.crawl["girlBrandsDone"] = done
+    return cards_n, failed
+
+
+def stage_backfill(ctx: _Ctx) -> tuple[int, list[str]]:
+    """2015년 이전 상품 채우기: config.OLD_BRANDS의 목록을 전체 쪽수로 훑어 카드만으로 항목을 만든다(상세는 안 받는다).
+
+    커서 `meta.crawl.brandBackfill = {key: {next, last, done}}` 가 있어 중간에 멎어도 그 쪽부터 이어 한다. 실행당 목록 요청은 BRAND_BACKFILL_PAGES_PER_RUN까지.
+    새 항목은 피드·알림 대상(new_ids)에 넣지 않는다 — 과거 상품이다. 이미 있는 항목·제외 목록의 상품은 upsert_card가 알아서 처리한다."""
+    state: dict = ctx.crawl.setdefault("brandBackfill", {})
+    budget = config.BRAND_BACKFILL_PAGES_PER_RUN
+    cards_n, failed = 0, []
+    for key in config.OLD_BRANDS:
+        st = state.get(key) or {}
+        if st.get("done"):
+            continue
+        page, last = st.get("next", 1), st.get("last")
+        while budget > 0:
+            data = hobby_brand.fetch_page(ctx.http, key, page, max_pages=config.BRAND_BACKFILL_MAX_PAGES)
+            if data is None:
+                failed.append(f"{key}:{page}")
+                state[key] = {"next": page, "last": last, "done": False}
+                return cards_n, failed                       # 다음 실행이 이 쪽부터 이어 한다 (연속 실패 차단기가 걸려도 커서는 남는다)
+            budget -= 1
+            if last is None or page == 1:
+                last = data["last_page"]
+            for c in data["items"]:
+                ctx.catalog.upsert_card(c, ctx.now_iso, key)
+            cards_n += len(data["items"])
+            page += 1
+            done = page > last or not data["items"]
+            state[key] = {"next": page, "last": last, "done": done}
+            if done:
+                break
+        if not state.get(key, {}).get("done"):
+            break                                            # 실행당 상한에 닿았다
     return cards_n, failed
 
 
@@ -243,7 +282,7 @@ def stage_joyhobby(ctx: _Ctx) -> tuple[int, list[str]]:
 
 
 STAGE_FUNCS = {"hobby_schedule": stage_schedule, "hobby_brand": stage_brand, "hobby_item": stage_item,
-               "joyhobby": stage_joyhobby}
+               "joyhobby": stage_joyhobby, "hobby_backfill": stage_backfill}
 
 
 def _run_stage(ctx: _Ctx, name: str) -> dict:
@@ -295,7 +334,7 @@ def run(opts: Options, http: HttpClient, *, now: datetime | None = None, anthrop
 
     if "joyhobby" in stages:
         ctx.arrivals = kr.Arrivals.load(data_dir)
-    for name in SOURCE_STAGES:
+    for name in (*SOURCE_STAGES, *OPTIONAL_STAGES):
         if name in stages:
             sources[name] = _run_stage(ctx, name)
     if "hobby_item" in sources and ctx.manual:

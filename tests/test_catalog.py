@@ -212,13 +212,16 @@ def test_select_details_caps_new_and_backlog_separately():
     assert set(new) - set(new_sel) <= set(back_sel)
 
 
-def test_select_details_prefers_provisional_lines_then_newest_release():
+def test_select_details_newest_release_month_first_then_provisional_lines():
     cat = Catalog()
     cat.upsert_card(card("01_8001", "謎A", month="2026-12"), NOW)                           # line 없음
     cat.upsert_card(card("01_8002", "HG 1/144 古い", month="2024-01"), NOW)
     cat.upsert_card(card("01_8003", "HG 1/144 新しい", month="2026-11"), NOW)
     _, back = cat.select_details(0, 10, set())
-    assert back == ["bh-01_8003", "bh-01_8002", "bh-01_8001"]
+    assert back == ["bh-01_8001", "bh-01_8003", "bh-01_8002"]                           # 발매월 최신순 (같은 달이면 line이 있는 항목이 먼저)
+    cat.upsert_card(card("01_8004", "謎B", month="2026-11"), NOW)
+    _, back = cat.select_details(0, 10, set())
+    assert back[:3] == ["bh-01_8001", "bh-01_8003", "bh-01_8004"]
 
 
 def test_select_details_skips_pb_cards_confirmed_items_and_respects_hard_max():

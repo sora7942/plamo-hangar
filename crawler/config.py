@@ -47,7 +47,12 @@ DETAIL_BACKLOG_MAX = 150          # 실행당 상세: 밀린 상품
 DETAIL_HARD_MAX = 400             # 어떤 옵션을 줘도 실행당 상세 합계는 이 수를 넘지 않는다
 MANUAL_DETAIL_MAX = 20           # 실행당 상세: 사용자가 사이트에서 연결했는데 카탈로그에 없는 상품 (새·밀린 상품 상한과 별개)
 DETAIL_MAX_FAILURES = 3           # 상세가 이 횟수 실패한 항목은 더 시도하지 않는다
-BRAND_MAX_PAGES = 60              # 브랜드 목록 쪽수 안전 상한
+BRAND_MAX_PAGES = 60              # 브랜드 목록 쪽수 안전 상한 (걸프라용 — 일반 실행·--bootstrap)
+# 2015년 이전 상품 채우기(--brand-backfill, workflow 입력 brand_backfill): 건프라 등급 브랜드의 목록을 전체 쪽수로 훑는다.
+# bb(BB전사)는 제외. 목록 카드만으로 이름·가격·발매일·등급이 정해지므로 상세 없이도 검색·연결된다(상세는 연결 때·밀린 상품으로 받는다).
+OLD_BRANDS = ["hg", "hguc", "hgce", "hg-c", "mg", "mgka", "rg", "mgsd", "sdgundamseries", "sdcs", "sdex"]
+BRAND_BACKFILL_MAX_PAGES = 300    # 브랜드 하나의 쪽수 안전 상한 (hg가 143쪽)
+BRAND_BACKFILL_PAGES_PER_RUN = 450  # 실행당 목록 요청 상한 (전체 약 366쪽 — 한 번에 끝나고, 중간에 멎으면 meta.crawl.brandBackfill 커서에서 이어 한다)
 
 # ---------------------------------------------------------------- 피드·알림 (SPEC 4·7장)
 FEED_MAX = 1000

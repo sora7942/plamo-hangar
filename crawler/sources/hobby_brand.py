@@ -24,7 +24,7 @@ def brand_url(key: str, page: int = 1) -> str:
     return base if page <= 1 else f"{base}?p={page}"
 
 
-def parse_brand_page(html: str) -> dict:
+def parse_brand_page(html: str, max_pages: int | None = None) -> dict:
     """→ {"items": [카드...], "last_page": N}. 페이저가 없으면 last_page=1."""
     soup = BeautifulSoup(html, "html.parser")
     items, seen = [], set()
@@ -38,13 +38,13 @@ def parse_brand_page(html: str) -> dict:
         m = _PAGE_RX.search(a.get("href", ""))
         if m:
             last = max(last, int(m.group(1)))
-    return {"items": items, "last_page": min(last, config.BRAND_MAX_PAGES)}
+    return {"items": items, "last_page": min(last, max_pages or config.BRAND_MAX_PAGES)}
 
 
-def fetch_page(client: HttpClient, key: str, page: int = 1) -> dict | None:
+def fetch_page(client: HttpClient, key: str, page: int = 1, max_pages: int | None = None) -> dict | None:
     """한 쪽. 요청이 실패하면 None."""
     res = client.get(brand_url(key, page), kind="brand")
     if not res.ok:
         log.warning("브랜드 %s %d쪽 실패: %s", key, page, res.status or res.error)
         return None
-    return parse_brand_page(res.text)
+    return parse_brand_page(res.text, max_pages)
