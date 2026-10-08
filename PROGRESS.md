@@ -61,7 +61,10 @@
 
 ## 번역 품질 (6-8, 점검만 — 반영은 사용자 선택 후)
 - [x] 6-8 용어 일관성 점검 도구 `python -m crawler.audit_terms [--top 50] [--min-items 3] [--out crawler/out/term-audit.md]` (읽기 전용, 자음 골격으로 같은 가타카나 단어의 한국어 표기 갈림을 찾고 조이하비 표기를 근거로 제안 + 내 컬렉션 별칭 후보). 테스트 `tests/test_audit_terms.py`. 사람이 확인하는 보조 도구라 오탐(フェクト·ジオン 등)이 있다
-- [ ] 사용자 선택 후: TRANSLATE_GLOSSARY 추가 + 해당 nameKo 비우기(재번역은 실행당 600건 안) + aliases.js 묶음 추가
+- [x] 사용자 선택 반영: TRANSLATE_GLOSSARY 32개 추가(번호 1·6·7…47, 보류 6개·오탐 9개 제외; 21번은 `アクシ`→`アクシズ`로 낱말 전체, 9번은 `티탄즈의`의 `의`가 조사라 `티탄즈`만). 용어집 변경 시 기존 nameKo·series-ko를 한 번만 비워 재번역(`Catalog.reset_glossary`·`series.drop_glossary`, `meta.crawl.glossaryApplied`, `fixups.glossaryReset`) — 실제 데이터 기준 이름 87개, 번역 대기 1,277→1,364
+- [x] aliases.js: 퀀터↔퀀타↔콴타↔쿠안타, 즈곡그↔즈곡↔즈고크, 턴에이↔턴A↔∀(norm이 ∀를 ターンエー로 읽음), 턴엑스↔턴X↔ターンX. 스탠드→스탠다드는 넣지 않음. 부수 수정: 전각 `ＭＧ` 일본어 이름의 등급 머리말이 안 떼어져 등급 글자만으로 후보가 되던 `stripPrefix` 버그
+- [x] Actions 입력 `translate_only`·`translate_max`(`--translate-only`·`--translate-max`, 최대 3000)
+- [x] MG ∀ガンダム(MG 1/100 WD-M01 ターンエーガンダム, `01_1663`, 2007-08): 호비사이트에는 있으나 상품 페이지에 브랜드 키가 없어 브랜드 목록(mg)에 안 나온다 → brand_backfill로는 안 들어옴. 연결하려면 사이트에서 URL 붙여넣기(manual)
 - [x] MG 비다르(bh-01_5469) 확인: 한자 리셋 후 재번역 대기(상세는 완료, 안정 이미지 없음) — 그대로 둠
 
 ## 다음에 할 일
