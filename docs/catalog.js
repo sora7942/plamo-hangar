@@ -16,7 +16,8 @@ var AKAMAI = 'bandai-a.akamaihd.net', HOBBY = 'bandai-hobby.net';
 
 /* ---------- 문자열 ---------- */
 // 검색용: NFKC(전각·반각 통일) + 소문자 + 글자·숫자만 남긴다 ("건담 에어리얼"="건담에어리얼", "ＨＧ"="hg")
-function norm(s) { return String(s == null ? '' : s).normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ''); }
+// ∀(턴에이 건담의 기호)는 글자가 아니라 지워지므로, 먼저 ターンエー로 바꿔 둔다 → "∀건담"·"∀ガンダム"가 "턴에이"(aliases.js 묶음)로 찾아진다.
+function norm(s) { return String(s == null ? '' : s).normalize('NFKC').replace(/∀/g, 'ターンエー').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ''); }
 
 // "HG 1/144 건담 에어리얼" → "건담 에어리얼" (내 프라 이름은 보통 등급·스케일 없이 적는다).
 // loose=true(비교용)면 HGUC·HGCE·HGBD:R 같은 등급 변형 머리말도 뗀다. 화면에 보이는 이름(displayName)은 loose 없이 — 카탈로그 원래 이름을 그대로 보여 준다.
@@ -24,7 +25,7 @@ function stripPrefix(name, grade, scale, loose) {
   var s = String(name == null ? '' : name).trim();
   if (grade) {
     var g = String(grade);
-    if (s.slice(0, g.length).toLowerCase() === g.toLowerCase() && /^\s/.test(s.slice(g.length) + ' ')) s = s.slice(g.length).trim();
+    if (s.slice(0, g.length).normalize('NFKC').toLowerCase() === g.toLowerCase() && /^\s/.test(s.slice(g.length) + ' ')) s = s.slice(g.length).trim();   // 전각 ＭＧ도 등급 머리말로 뗀다 (일본어 이름)
   }
   if (grade && loose) {                                  // HGCE·HGUC·HGBD:R 같은 등급 변형 머리말 (등급 글자로 시작하는 영문 낱말)
     var g2 = String(grade).replace(/[^A-Za-z]/g, ''), m = g2 && new RegExp('^' + g2 + '[A-Za-z]{1,4}(?::[A-Za-z])?(?=\\s)', 'i').exec(s);

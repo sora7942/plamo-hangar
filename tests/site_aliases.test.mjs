@@ -22,6 +22,10 @@ const cat = C.build([{ items: [
   raw('bh-10', { nameKo: 'HG 1/144 즈고크' }),
   raw('bh-11', { nameKo: 'HG 1/144 더블오 콴타' }),
   raw('bh-12', { nameKo: 'MG 1/100 건담 에어리얼', grade: 'MG', scale: '1/100' }),
+  raw('bh-13', { nameKo: 'MG 1/100 ∀건담/턴 X[나노스킨 이미지]', nameJa: 'ＭＧ 1/100 ∀ガンダム／ターンＸ［ナノスキンイメージ］', grade: 'MG', scale: '1/100' }),
+  raw('bh-14', { nameKo: 'MG 1/100 WD-M01 건담', nameJa: 'MG 1/100 WD-M01 ターンエーガンダム', grade: 'MG', scale: '1/100' }),
+  raw('bh-15', { nameKo: 'HG 1/144 즈곡' }),
+  raw('bh-16', { nameKo: 'HG 1/144 더블오 퀀타' }),
 ] }], null);
 const ids = (q, o) => C.search(cat, q, o).results.map((x) => x.id);
 
@@ -30,7 +34,8 @@ test('사전 형식: 묶음은 둘 이상, 줄임말은 값이 있고, 꼬리말
   assert.ok(Object.values(A.EXPAND).every((v) => Array.isArray(v) && v.length >= 1));
   assert.ok(A.TAILS.every((t) => Array.isArray(t) && t.length >= 1) && A.GENERIC.length > 3);
   const kana = /[ぁ-ゖァ-ヺー]/;
-  assert.ok([...A.GROUPS.flat(), ...Object.keys(A.EXPAND), ...Object.values(A.EXPAND).flat(), ...A.TAILS.flat(), ...A.GENERIC].every((w) => !kana.test(w)), '사전에 일본어 가나를 쓰지 않는다');
+  assert.ok([...Object.keys(A.EXPAND), ...Object.values(A.EXPAND).flat(), ...A.TAILS.flat(), ...A.GENERIC].every((w) => !kana.test(w)), '줄임말·꼬리말·일반어에는 일본어 가나를 쓰지 않는다');
+  assert.ok(A.GROUPS.every((g) => g.some((w) => !kana.test(w))), '묶음에는 한국어 표기가 하나 이상 있다 (일본어 이름은 한국어 표기와 짝으로만)');
 });
 
 test('build: 묶음은 양방향, 줄임말은 단방향, norm 처리', () => {
@@ -60,10 +65,23 @@ test('철자 변형·줄임말·기호: 발바토스↔바르바토스, 캠퍼�
   assert.equal(ids('하이뉴 건담')[0], 'bh-4');
   assert.equal(ids('뉴 건담', { grade: 'RG' }).includes('bh-5'), true);
   assert.equal(ids('퍼건 2.0')[0], 'bh-6');
-  assert.equal(ids('즈곡그')[0], 'bh-10');
-  assert.equal(ids('퀀터')[0], 'bh-11');
+  assert.ok(ids('즈곡그').slice(0, 2).includes('bh-10'));
+  assert.ok(ids('퀀터').slice(0, 2).includes('bh-11'));
   assert.deepEqual(ids('발바토스', { aliases: false }), [], '별칭을 끄면(개선 전) 못 찾는다');
   assert.deepEqual(ids('하이뉴', { aliases: false }), []);
+});
+
+test('용어집 정리에 맞춘 별칭: 퀀터·퀀타·콴타·쿠안타, 즈곡그·즈곡, 턴에이·∀, 턴엑스·ターンX', () => {
+  assert.deepEqual(new Set(ids('퀀터')), new Set(['bh-11', 'bh-16']), '퀀터로 콴타·퀀타 모두');
+  assert.ok(ids('쿠안타').includes('bh-11') && ids('쿠안타').includes('bh-16'));
+  assert.deepEqual(ids('즈곡그').sort(), ['bh-10', 'bh-15'], '즈곡그 ↔ 즈곡 ↔ 즈고크');
+  assert.deepEqual(ids('즈곡').sort(), ['bh-10', 'bh-15']);
+  assert.equal(C.norm('∀건담'), C.norm('ターンエー건담'), 'norm: ∀는 ターンエー로 읽는다');
+  assert.ok(ids('턴에이').includes('bh-13') && ids('턴에이').includes('bh-14'), '턴에이 → ∀가 든 이름도, ターンエー가 든 일본어 이름도');
+  assert.ok(ids('턴에이 건담', { grade: 'MG' }).includes('bh-13'));
+  assert.ok(ids('∀ 건담').includes('bh-13') && ids('∀ 건담').includes('bh-14'), '∀로 검색해도 같은 별칭(낱말로 띄어 쓸 때)');
+  assert.ok(ids('∀건담').includes('bh-13'), '붙여 쓴 ∀건담은 ∀가 든 이름');
+  assert.ok(ids('턴엑스').includes('bh-13'), '턴엑스 → 일본어 이름의 ターンＸ (NFKC로 ターンX)');
 });
 
 test('꼬리말은 필수가 아니라 가산: 기본형도 찾고, 변형이 있으면 그쪽이 먼저', () => {
@@ -85,6 +103,11 @@ test('등급·스케일 낱말은 "이름이 맞았다"로 치지 않는다 (MG 
   assert.deepEqual(ids('mg 존재안함'), []);
   assert.equal(ids('mg 에어리얼')[0], 'bh-12');
   assert.equal(ids('1/100 에어리얼')[0], 'bh-12');
+});
+
+test('전각 등급 머리말(ＭＧ)이 붙은 일본어 이름도 등급 글자만으로는 후보가 되지 않는다', () => {
+  assert.equal(C.stripPrefix('ＭＧ 1/100 ∀ガンダム／ターンＸ', 'MG', '1/100', true), '∀ガンダム／ターンＸ');
+  assert.deepEqual(ids('mg 존재안함'), []);
 });
 
 test('등급 변형 머리말(HGUC·HGCE·HGBD:R)은 비교할 때만 뗀다 — 화면에 보이는 이름은 카탈로그 원래 이름 그대로', () => {
