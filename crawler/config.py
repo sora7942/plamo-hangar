@@ -17,6 +17,7 @@ FEED_FILE = "feed.json"
 COLLECTION_FILE = "collection.json"      # 사이트가 쓰는 내 컬렉션 — 크롤러는 읽기만 한다
 SERIES_FILE = "series-ko.json"          # seriesKey → 한국어 시리즈 사전 (크롤러만 씀, 4단계)
 META_FILE = "meta.json"
+MALL_FILE = "mall.json"                  # 반다이남코코리아몰 상품 목록 + gno ↔ catalogId 연결 (크롤러만 씀, 7a)
 SITE_URL = os.environ.get("SITE_URL") or "https://sora7942.github.io/plamo-hangar/"
 
 # ---------------------------------------------------------------- HTTP (CLAUDE.md Rules: robots 준수, 1.2초 이상, timeout 20, 브라우저형 UA)
@@ -53,6 +54,25 @@ BRAND_MAX_PAGES = 60              # 브랜드 목록 쪽수 안전 상한 (걸�
 OLD_BRANDS = ["hg", "hguc", "hgce", "hg-c", "mg", "mgka", "rg", "mgsd", "sdgundamseries", "sdcs", "sdex"]
 BRAND_BACKFILL_MAX_PAGES = 300    # 브랜드 하나의 쪽수 안전 상한 (hg가 143쪽)
 BRAND_BACKFILL_PAGES_PER_RUN = 450  # 실행당 목록 요청 상한 (전체 약 366쪽 — 한 번에 끝나고, 중간에 멎으면 meta.crawl.brandBackfill 커서에서 이어 한다)
+
+# ---------------------------------------------------------------- 반다이남코코리아몰 (7a: 가격·한국 공식 이름. 목록 페이지만, 이미지는 쓰지 않는다)
+MALL_BASE = "https://www.bnkrmall.co.kr"
+MALL_GOODS_URL = MALL_BASE + "/goods/detail.do?gno={gno}"        # 상품 URL은 사이트도 같은 모양으로 만든다 (catalog.js mallUrl)
+# 스캔할 카테고리 (목록 쪽당 40개). 건프라 cate=1576(≈8쪽). 걸프라는 애니프라 cate=1577 안의 브랜드: 30 MINUTES MISSIONS(30MS·30MP, brandIdx=205),
+# Figure-rise 시리즈(brandIdx=202,203,407,386 — Standard 외에 Bust 등도 섞여 있지만 카탈로그에 후보가 없으면 연결되지 않는다)
+MALL_CATEGORIES = [
+    {"key": "gunpla", "params": {"cate": "1576", "cateName": "건프라"}},
+    {"key": "girl-30mm", "params": {"cate": "1577", "cateName": "애니프라", "brandIdx": "205"}},
+    {"key": "girl-figurerise", "params": {"cate": "1577", "cateName": "애니프라", "brandIdx": "202,203,407,386"}},
+]
+MALL_MAX_REQUESTS = 20            # 실행당 요청 상한 (robots.txt 포함). 넘으면 멈추고 그 실행은 "사라짐" 판정을 하지 않는다
+MALL_MAX_PAGES = 12               # 카테고리 하나의 쪽수 안전 상한
+MALL_PRICE_RATIO = (9.5, 12.5)    # 몰 판매가(원) ÷ 호비 정가(엔, 세금 포함)의 정상 범위. 밖이면 이름이 비슷해도 연결하지 않는다(세트 구성·분류가 다른 상품).
+                                  # 2026-10 첫 실행에서 연결된 63개가 모두 10.91(= 12 ÷ 1.1)이었다 — 어긋나면 틀린 연결을 의심한다
+MALL_ENDED_MIN_RATIO = 0.5        # 이번 스캔이 이전 스캔 상품 수의 이 비율 미만이면 목록이 비정상으로 보고 "사라짐" 판정을 하지 않는다
+# 사람이 고치는 표: 몰 상품번호(gno) → 카탈로그 id(강제 연결) 또는 None(연결 금지).
+# None이면 굳은 연결을 풀고 그 상품이 바꿔 놓은 nameKo·seriesKo·가격 필드를 되돌린다. 틀린 연결이 보이면 한 줄 추가한다.
+MALL_OVERRIDES: dict[str, str | None] = {}
 
 # ---------------------------------------------------------------- 피드·알림 (SPEC 4·7장)
 FEED_MAX = 1000

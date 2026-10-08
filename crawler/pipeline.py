@@ -15,16 +15,16 @@ from pathlib import Path
 
 import requests
 
-from . import config, discord, feed, kr, mine, series, translate
+from . import config, discord, feed, kr, mall_link, mine, series, translate
 from .catalog import Catalog
 from .http import Blocked, HttpClient, SourceAborted
-from .sources import hobby_brand, hobby_item, hobby_schedule, joyhobby
+from .sources import hobby_brand, hobby_item, hobby_schedule, joyhobby, mall
 from .store import iso, now_kst, read_json, write_json
 
 log = logging.getLogger("plamo.pipeline")
 
 HOBBY_STAGES = ("hobby_schedule", "hobby_brand", "hobby_item")
-SOURCE_STAGES = (*HOBBY_STAGES, "joyhobby")            # 수집 단계 (translate 앞)
+SOURCE_STAGES = (*HOBBY_STAGES, "joyhobby", "mall")            # 수집 단계 (translate 앞)
 ALL_STAGES = (*SOURCE_STAGES, "translate")
 OPTIONAL_STAGES = ("hobby_backfill",)                  # 기본 실행에는 들어가지 않고 --brand-backfill / --only 로만 돈다 (2015년 이전 상품 채우기)
 
@@ -73,6 +73,7 @@ class _Ctx:
         self.arrivals = kr.Arrivals()
         self.manual: dict = {}                    # 사용자가 연결한 미등록 상품 처리 결과 (meta.sources.hobby_item.manual)
         self.joy_scan: dict = {}                  # 조이하비 단계의 이번 실행 통계
+        self.mall_scan: dict | None = None        # 몰 단계의 스캔 결과 (mall.scan). 단계가 돌지 않았거나 중단되면 None
 
     def add_card(self, card: dict, brand_key: str | None = None) -> None:
         item, is_new = self.catalog.upsert_card(card, self.now_iso, brand_key)
@@ -282,8 +283,15 @@ def stage_joyhobby(ctx: _Ctx) -> tuple[int, list[str]]:
     return fetched, failed
 
 
+def stage_mall(ctx: _Ctx) -> tuple[int, list[str]]:
+    """반다이남코코리아몰 목록(건프라·걸프라 카테고리)을 읽는다. 연결·가격 반영은 run()에서 조이하비 연결 뒤에 한다. → (읽은 상품 수, 오류들)."""
+    res = mall.scan(ctx.http)
+    ctx.mall_scan = res
+    return len(res["goods"]), res["errors"]
+
+
 STAGE_FUNCS = {"hobby_schedule": stage_schedule, "hobby_brand": stage_brand, "hobby_item": stage_item,
-               "joyhobby": stage_joyhobby, "hobby_backfill": stage_backfill}
+               "joyhobby": stage_joyhobby, "mall": stage_mall, "hobby_backfill": stage_backfill}
 
 
 def _run_stage(ctx: _Ctx, name: str) -> dict:
@@ -356,6 +364,16 @@ def run(opts: Options, http: HttpClient, *, now: datetime | None = None, anthrop
                                     "nameChanged": joy_rep["nameChanged"], "krAdded": joy_rep["krAdded"]})
         _report_joy(out, ctx, joy_rep, opts.report_dir, catalog)
 
+    if "mall" in stages and ctx.mall_scan is not None:       # 조이하비 이름 교체 뒤에 해야 몰 이름이 이긴다 (몰 > 조이하비 > AI)
+        mall_state = mall_link.MallState.load(data_dir)
+        seen, healthy = mall_state.absorb(ctx.mall_scan, now_iso)
+        mall_rep = mall_link.link_all(mall_state, catalog, seen, healthy, now_iso)
+        mall_state.save(data_dir, now_iso)
+        sources["mall"].update({"goods": len(mall_state.goods), "seen": len(seen), "links": len(mall_state.links), "newLinks": len(mall_rep["newLinks"]),
+                                "nameChanged": len(mall_rep["nameChanged"]), "ended": mall_rep["ended"], "complete": healthy,
+                                "requests": ctx.mall_scan["requests"], "pages": ctx.mall_scan["pages"]})
+        _report_mall(out, mall_rep, mall_state, ctx.mall_scan, opts.report_dir, catalog)
+
     if "translate" in stages:
         res = translate.translate_pending(catalog, now_iso, client=anthropic_client, max_items=opts.translate_max)
         sources["translate"] = {"ok": res["ok"], "at": iso(now_kst()), "items": res["done"], "error": res["error"],
@@ -423,6 +441,19 @@ def _links_table(arr: kr.Arrivals, catalog) -> str:
         lines.append(f"{e['score']} | {e['margin']} | {e['method']} | {'예' if e.get('nameApplied') else '-'} | {code} | "
                      f"{(latest.get(code) or {}).get('name', '?')} | {e['catalogId']} | {before} → {after}")
     return "\n".join(lines) + "\n"
+
+
+def _report_mall(out, rep: dict, state: mall_link.MallState, scan: dict, report_dir: Path | None, catalog, show: int = 10) -> None:
+    """몰 단계 요약(콘솔) + 전체 보고서(mall-report.json)."""
+    pct = f"{100 * len(state.links) / len(state.goods):.0f}%" if state.goods else "-"
+    out(f"[몰] 상품 {len(state.goods)}개(이번에 본 {rep['seen']}) · 연결 {len(state.links)} ({pct}) · 새 연결 {len(rep['newLinks'])} · 이름 교체 {len(rep['nameChanged'])} "
+        f"· 가격 갱신 {rep['priceUpdated']} · 판매 종료 표시 {rep['ended']} · 요청 {scan['requests']}회 {scan['pages']} · 미연결 사유 {rep['reasons']}"
+        + (f" · 오류 {scan['errors']}" if scan["errors"] else ""))
+    for n in rep["nameChanged"][:show]:
+        out(f"  [이름] {n['gno']} {n['id']}  {n['before']}  →  {n['after']}  ({n['was']})")
+    if report_dir:
+        Path(report_dir).mkdir(parents=True, exist_ok=True)
+        (Path(report_dir) / "mall-report.json").write_text(json.dumps(rep, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
 def _report_joy(out, ctx: _Ctx, rep: dict, report_dir: Path | None, catalog, show: int = 25) -> None:

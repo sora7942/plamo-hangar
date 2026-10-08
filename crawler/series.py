@@ -117,7 +117,7 @@ def apply(catalog: Catalog, known: dict[str, dict], overrides: dict[str, str] | 
     overrides = config.SERIES_KO_OVERRIDES if overrides is None else overrides
     changed = 0
     for it in catalog.items.values():
-        if not it.get("seriesKey"):
+        if not it.get("seriesKey") or it.get("seriesKoSource") == "bnkrmall":     # 몰 시리즈명이 사전·번역보다 우선
             continue
         ko = _ko_for(it, known, overrides)
         if ko and it.get("seriesKo") != ko:

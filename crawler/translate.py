@@ -229,7 +229,7 @@ def translate_pending(catalog: Catalog, now_iso: str, *, client=None, model: str
         rejected += len(r.rejected)
         for it in batch:
             ko = r.ok.get(it["id"])
-            if ko and it.get("nameKoSource") != "joyhobby":      # 조이하비 한글명으로 교체된 항목은 번역이 건드리지 않는다
+            if ko and not it.get("nameKoSource"):                # 조이하비·몰의 한글명으로 교체된 항목은 번역이 건드리지 않는다
                 it["nameKo"] = ko
                 it["updated"] = now_iso
                 done += 1

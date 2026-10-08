@@ -1,6 +1,6 @@
 name: crawl
 
-# 매일 KST 07:10(= UTC 22:10 전날)에 반다이 호비사이트·조이하비를 수집해 docs/data의 카탈로그·피드·kr-arrivals·series-ko·meta를 커밋한다.
+# 매일 KST 07:10(= UTC 22:10 전날)에 반다이 호비사이트·조이하비를 수집해 docs/data의 카탈로그·피드·kr-arrivals·series-ko·mall·meta를 커밋한다.
 # 수동 실행(workflow_dispatch)으로 최초 채우기(bootstrap)를 여러 번 돌릴 수 있고, 조이하비 과거 글만 채우는 실행(joy_backfill)도 있다.
 # collection.json·photos는 절대 건드리지 않는다 (아래 커밋 단계의 허용 목록 검사).
 # Actions cron은 UTC 기준이고 몇 분씩 늦게 돌며, 부하가 크면 건너뛰기도 한다.
@@ -122,12 +122,12 @@ jobs:
           # 사이트(소유자 저장)가 같은 브랜치에 커밋했을 수 있어 먼저 최신을 받아 둔다. 수집 결과는 autostash로 보존.
           git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
 
-          for f in catalog-gunpla catalog-girl catalog-pending feed meta kr-arrivals series-ko; do
+          for f in catalog-gunpla catalog-girl catalog-pending feed meta kr-arrivals series-ko mall; do
             if [ -f "docs/data/$f.json" ]; then git add -- "docs/data/$f.json"; fi
           done
 
           # 허용 목록 밖의 경로(collection.json, photos/ 등)가 올라가면 중단한다
-          bad=$(git diff --cached --name-only | grep -v -E '^docs/data/(catalog-gunpla|catalog-girl|catalog-pending|feed|meta|kr-arrivals|series-ko)\.json$' || true)
+          bad=$(git diff --cached --name-only | grep -v -E '^docs/data/(catalog-gunpla|catalog-girl|catalog-pending|feed|meta|kr-arrivals|series-ko|mall)\.json$' || true)
           if [ -n "$bad" ]; then
             echo "::error::허용 목록 밖의 변경이 staged 되었습니다: $bad"
             exit 1

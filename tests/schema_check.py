@@ -40,8 +40,10 @@ def check_catalog_item(it: dict, line: str | None) -> list[str]:
     for k in ("grade", "scale", "seriesKey", "series", "nameKo", "pbUrl", "channel"):
         if k not in it or not _opt_str(it[k]):
             errs.append(f"{w}: {k} 누락/형식")
-    if "seriesKo" in it and not (isinstance(it["seriesKo"], str) and it["seriesKo"] and it.get("seriesKey")):
-        errs.append(f"{w}: seriesKo는 seriesKey가 있는 항목의 비어 있지 않은 문자열이어야 함")
+    if "seriesKo" in it and not (isinstance(it["seriesKo"], str) and it["seriesKo"] and (it.get("seriesKey") or it.get("seriesKoSource") == "bnkrmall")):
+        errs.append(f"{w}: seriesKo는 seriesKey가 있는(또는 몰 시리즈명인) 항목의 비어 있지 않은 문자열이어야 함")
+    if "seriesKoSource" in it and (it["seriesKoSource"] != "bnkrmall" or "seriesKo" not in it):
+        errs.append(f"{w}: seriesKoSource")
     if it.get("channel") not in (None, "general", "online", "gbase"):
         errs.append(f"{w}: channel {it.get('channel')!r}")
     if not (isinstance(it.get("nameJa"), str) and it["nameJa"]):
@@ -65,8 +67,16 @@ def check_catalog_item(it: dict, line: str | None) -> list[str]:
                     and re.fullmatch(r"BD\d{7}", str(k.get("code", ""))) and (k.get("priceKrw") is None or isinstance(k["priceKrw"], int))
                     and ISO_KST.match(str(k.get("seenAt", "")))):
                 errs.append(f"{w}: kr 항목 형식 {k!r}")
-    if "nameKoSource" in it and (it["nameKoSource"] != "joyhobby" or "nameKoAi" not in it or not _opt_str(it["nameKoAi"])):
+    if "nameKoSource" in it and (it["nameKoSource"] not in ("joyhobby", "bnkrmall") or "nameKoAi" not in it or not _opt_str(it["nameKoAi"])):
         errs.append(f"{w}: nameKoSource/nameKoAi")
+    if "nameKoJoy" in it and not (it.get("nameKoSource") == "bnkrmall" and isinstance(it["nameKoJoy"], str) and it["nameKoJoy"]):
+        errs.append(f"{w}: nameKoJoy는 몰 이름으로 바뀐 항목의 조이하비 이름이어야 함")
+    if any(k in it for k in ("priceKrw", "priceKrwAt", "mallGno", "mallSoldOut", "mallEnded")):
+        if not (isinstance(it.get("priceKrw"), int) and it["priceKrw"] > 0 and ISO_KST.match(str(it.get("priceKrwAt", ""))) and re.fullmatch(r"\d+", str(it.get("mallGno", "")))):
+            errs.append(f"{w}: priceKrw/priceKrwAt/mallGno")
+        for k in ("mallSoldOut", "mallEnded"):
+            if k in it and it[k] is not True:
+                errs.append(f"{w}: {k}는 있으면 True")
     imgs = it.get("images")
     if not isinstance(imgs, list):
         errs.append(f"{w}: images")
@@ -189,6 +199,32 @@ def check_series(doc: dict) -> list[str]:
     return errs
 
 
+def check_mall(doc: dict) -> list[str]:
+    errs = []
+    if not ISO_KST.match(str(doc.get("updatedAt", ""))):
+        errs.append("mall updatedAt 형식")
+    goods, links = doc.get("goods"), doc.get("links")
+    if not isinstance(goods, dict) or not isinstance(links, dict):
+        return errs + ["goods/links는 객체여야 함"]
+    for gno, g in goods.items():
+        if not (re.fullmatch(r"\d+", gno) and isinstance(g.get("name"), str) and g["name"] and isinstance(g.get("price"), int) and g["price"] > 0
+                and isinstance(g.get("soldOut"), bool) and g.get("cate") and (g.get("series") is None or isinstance(g["series"], str))
+                and re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(g.get("first", ""))) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(g.get("seen", "")))):
+            errs.append(f"goods[{gno}] 형식 {g!r}")
+    for gno, e in links.items():
+        if gno not in goods:
+            errs.append(f"links[{gno}]에 해당하는 goods 없음")
+        if not (isinstance(e.get("catalogId"), str) and e.get("method") in ("fuzzy", "override") and isinstance(e.get("nameOk"), bool) and ISO_KST.match(str(e.get("at", "")))):
+            errs.append(f"links[{gno}] 형식 {e!r}")
+    ids = [e.get("catalogId") for e in links.values()]
+    if len(ids) != len(set(ids)):
+        errs.append("links: 한 카탈로그 항목에 몰 상품이 둘 이상 연결됨")
+    scan = doc.get("scan")
+    if not isinstance(scan, dict):
+        errs.append("scan 형식")
+    return errs
+
+
 def check_dir(d: Path) -> list[str]:
     d = Path(d)
     errs = []
@@ -200,6 +236,8 @@ def check_dir(d: Path) -> list[str]:
             errs.append(f"{name} 없음")
     if (d / "kr-arrivals.json").exists():
         errs += [f"kr-arrivals.json: {e}" for e in check_arrivals(json.loads((d / "kr-arrivals.json").read_text(encoding="utf-8")))]
+    if (d / "mall.json").exists():
+        errs += [f"mall.json: {e}" for e in check_mall(json.loads((d / "mall.json").read_text(encoding="utf-8")))]
     if (d / "series-ko.json").exists():
         errs += [f"series-ko.json: {e}" for e in check_series(json.loads((d / "series-ko.json").read_text(encoding="utf-8")))]
     for name, fn in (("feed.json", check_feed), ("meta.json", check_meta)):

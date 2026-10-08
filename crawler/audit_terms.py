@@ -122,7 +122,7 @@ def load_docs(data_dir: Path) -> list[Doc]:
     for name in (*config.CATALOG_FILES.values(),):
         for it in (read_json(data_dir / name, {}) or {}).get("items", []):
             if it.get("nameJa") and it.get("nameKo"):
-                docs.append(Doc(it["nameJa"], it["nameKo"], "shop" if it.get("nameKoSource") == "joyhobby" else "ai", it["id"]))
+                docs.append(Doc(it["nameJa"], it["nameKo"], "shop" if it.get("nameKoSource") in ("joyhobby", "bnkrmall") else "ai", it["id"]))
     for key, e in (read_json(data_dir / config.SERIES_FILE, {}) or {}).get("items", {}).items():
         docs.append(Doc(e["ja"], e["ko"], "series", "series:" + key))
     # 조이하비 입고 행: 연결된 카탈로그 항목의 일본어 이름에 국내 매장 한글명을 이어 붙인다 (국내에서 실제로 쓰는 표기)

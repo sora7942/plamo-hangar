@@ -235,7 +235,7 @@ def link_all(arr: Arrivals, catalog, now_iso: str, *, near_miss_limit: int = 40)
         if e.get("nameApplied") or not e.get("nameOk") or code not in latest:
             continue
         item = catalog.items[e["catalogId"]]
-        if item.get("nameKoSource") == "joyhobby" or item.get("line") != NAME_REPLACE_LINE:
+        if item.get("nameKoSource") or item.get("line") != NAME_REPLACE_LINE:      # 이미 조이하비·몰 이름이면 건드리지 않는다 (몰 > 조이하비 > AI)
             continue
         jn = match.parse_name(latest[code]["name"])
         if not jn.text:
