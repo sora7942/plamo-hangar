@@ -1,7 +1,7 @@
 """디스코드 알림 (SPEC 7장).
 
 - 이번 실행에서 새로 들어온 피드 항목을 묶어 보낸다. 항목 1개 = 임베드 1개, 메시지당 10개, 실행당 3메시지, 넘치면 "외 N건"
-- 순서: kr 항목(3단계) → pb-new → new (config.FEED_TYPES의 우선순위)
+- 순서: ① 내 프라(내 보유·위시와 catalogId가 같은 국내 입고, 맨 앞·강조 색) ② kr 항목 → ③ pb-new → ④ new (config.FEED_TYPES의 우선순위)
 - 최초 실행(이전 피드·카탈로그가 비었음)이거나 --bootstrap 중이면 보내지 않는다
 - `DISCORD_WEBHOOK_URL`이 없거나 --dry-run/--no-discord면 콘솔에 보낼 내용만 출력한다
 - 웹훅 URL은 코드·로그·출력 어디에도 남기지 않는다. 예외 메시지에 URL이 섞일 수 있어 예외는 종류만 기록한다
@@ -23,13 +23,26 @@ def _meta(item: dict) -> tuple[str, int, int]:
     return label, color, prio
 
 
-def embed_for(item: dict) -> dict:
+def mine_lists(item: dict, mine: dict[str, list[str]] | None) -> list[str]:
+    """내 프라인 국내 입고면 ['own'|'wish', ...], 아니면 []. 신제품·P-반다이는 내 프라 우선 대상이 아니다 (SPEC 7장)."""
+    if not mine or item.get("type") not in config.MINE_PRIORITY_TYPES:
+        return []
+    return mine.get(item.get("catalogId") or "", [])
+
+
+def embed_for(item: dict, mine: dict[str, list[str]] | None = None) -> dict:
     label, color, _ = _meta(item)
     when = item.get("date") or ""
+    own = mine_lists(item, mine)
+    desc = f"{label} · {when}" if when else label
+    title = (item.get("titleKo") or item["title"])
+    if own:
+        who = "·".join(config.MINE_LABELS[k] for k in ("own", "wish") if k in own)
+        title, desc, color = f"[내 프라] {title}", f"내 프라({who}) · {desc}", config.MINE_COLOR
     emb = {
-        "title": (item.get("titleKo") or item["title"])[:256],
+        "title": title[:256],
         "url": item["url"],
-        "description": f"{label} · {when}" if when else label,
+        "description": desc,
         "color": color,
     }
     if item.get("image"):                       # 안정 URL이 있을 때만 (피드가 서명 URL을 저장하지 않는다)
@@ -37,18 +50,23 @@ def embed_for(item: dict) -> dict:
     return emb
 
 
-def plan_messages(items: list[dict]) -> tuple[list[dict], int]:
-    """→ (메시지 페이로드 목록, 한도를 넘어 못 보낸 항목 수)."""
-    ordered = sorted(enumerate(items), key=lambda p: (_meta(p[1])[2], p[0]))
-    embeds = [embed_for(it) for _, it in ordered]
+def plan_messages(items: list[dict], mine: dict[str, list[str]] | None = None) -> tuple[list[dict], int]:
+    """→ (메시지 페이로드 목록, 한도를 넘어 못 보낸 항목 수). mine = {catalogId: ['own'|'wish']} (collection.json에서 읽음)."""
+    rank = lambda it: -1 if mine_lists(it, mine) else _meta(it)[2]            # 내 프라가 맨 앞 (한도를 넘어도 이쪽이 먼저 살아남는다)
+    ordered = sorted(enumerate(items), key=lambda p: (rank(p[1]), p[0]))
+    embeds = [embed_for(it, mine) for _, it in ordered]
+    n_mine = sum(1 for _, it in ordered if mine_lists(it, mine))
     cap = config.DISCORD_PER_MESSAGE * config.DISCORD_MAX_MESSAGES
     overflow = max(0, len(embeds) - cap)
     embeds = embeds[:cap]
     messages = [{"embeds": embeds[i:i + config.DISCORD_PER_MESSAGE],
                  "allowed_mentions": {"parse": []}}
                 for i in range(0, len(embeds), config.DISCORD_PER_MESSAGE)]
+    if n_mine and messages:
+        messages[0]["content"] = f"내 프라가 국내에 입고됐어요! ({min(n_mine, len(embeds))}건)"
     if overflow and messages:
-        messages[-1]["content"] = f"외 {overflow}건 — 사이트에서 보기: {config.SITE_URL}"
+        extra = f"외 {overflow}건 — 사이트에서 보기: {config.SITE_URL}"
+        messages[-1]["content"] = f"{messages[-1]['content']}\n{extra}" if messages[-1].get("content") else extra
     return messages, overflow
 
 

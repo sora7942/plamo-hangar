@@ -53,6 +53,9 @@ BRAND_MAX_PAGES = 60              # 브랜드 목록 쪽수 안전 상한
 FEED_MAX = 1000
 DISCORD_PER_MESSAGE = 10
 DISCORD_MAX_MESSAGES = 3
+MINE_PRIORITY_TYPES = ("kr-restock", "kr-new")     # '내 프라 우선'은 국내 입고만 (SPEC 7장: 내 보유·위시와 연결된 국내 입고)
+MINE_COLOR = 0xF1C40F                           # 내 프라 임베드 강조 색
+MINE_LABELS = {"own": "보유", "wish": "위시"}
 DISCORD_SEND_INTERVAL = 1.0       # 메시지 사이 대기(초)
 DISCORD_TIMEOUT = 10
 # 종류 → (표시 이름, 임베드 색, 알림 우선순위(작을수록 먼저)). kr-* 는 3단계에서 채워진다 (SPEC 7장 순서: kr → pb-new → new)

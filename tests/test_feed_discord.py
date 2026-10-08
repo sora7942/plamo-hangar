@@ -198,3 +198,73 @@ def test_notify_without_webhook_or_with_no_discord_only_prints(monkeypatch):
     assert n == 0 and post.calls == [] and any("DISCORD_WEBHOOK_URL 없음" in l for l in lines)
     n, post, lines = run_notify(Options(no_discord=True), [fitem(1, NOW_ISO)], webhook=WEBHOOK, monkeypatch=monkeypatch)
     assert n == 0 and post.calls == [] and any("--no-discord" in l for l in lines)
+
+
+# ---------------------------------------------------------------- 내 프라 우선 (SPEC 7장 ①)
+def kr_item(i, type_="kr-restock", cid="auto"):
+    f = fitem(i, NOW_ISO, type_=type_)
+    f.update(id=f"jh-1-BD{i}", date="2026-10-03", catalogId=f"bh-01_{i}" if cid == "auto" else cid, url="https://www.joyhobby.co.kr/mall/board_view.asp?B_iID=1")
+    return f
+
+
+def test_mine_kr_items_go_first_with_highlight_color_and_who_label():
+    items = [fitem(1, NOW_ISO), fitem(2, NOW_ISO, type_="pb-new"), kr_item(3), kr_item(4, "kr-new"), kr_item(5, cid=None), kr_item(6)]
+    mine = {"bh-01_4": ["wish"], "bh-01_6": ["own", "wish"], "bh-01_1": ["own"], "bh-01_2": ["wish"]}      # 신제품·P-반다이가 내 프라여도 우선 대상이 아니다
+    msgs, overflow = discord.plan_messages(items, mine)
+    embeds = msgs[0]["embeds"]
+    assert [e["title"] for e in embeds] == ["[내 프라] T4", "[내 프라] T6", "T3", "T5", "T2", "T1"]
+    assert [e["title"].startswith("[내 프라]") for e in embeds] == [True, True, False, False, False, False]
+    assert [e["url"] for e in embeds[:2]] == [items[3]["url"], items[5]["url"]]                           # 내 프라 안에서는 원래 순서
+    assert embeds[0]["color"] == config.MINE_COLOR == embeds[1]["color"] and embeds[2]["color"] != config.MINE_COLOR
+    assert embeds[0]["description"] == "내 프라(위시) · 국내 신규 입고 · 2026-10-03"
+    assert embeds[1]["description"] == "내 프라(보유·위시) · 국내 재입고 · 2026-10-03"
+    assert [e["title"] for e in embeds[2:]] == ["T3", "T5", "T2", "T1"]                                   # 나머지는 kr → pb-new → new
+    assert msgs[0]["content"] == "내 프라가 국내에 입고됐어요! (2건)" and overflow == 0
+
+
+def test_without_mine_or_mine_map_nothing_changes():
+    items = [fitem(1, NOW_ISO), kr_item(3)]
+    base, _ = discord.plan_messages(items)
+    assert discord.plan_messages(items, {})[0] == base and discord.plan_messages(items, None)[0] == base
+    assert "content" not in base[0] and not any(e["title"].startswith("[내 프라]") for e in base[0]["embeds"])
+    assert discord.plan_messages(items, {"bh-01_9": ["own"]})[0] == base                               # 관련 없는 내 프라
+
+
+def test_mine_items_survive_the_message_cap_and_overflow_note_is_kept():
+    items = [fitem(i, NOW_ISO) for i in range(100, 135)] + [kr_item(1), kr_item(2)]                      # 새 제품 35개 + 내 프라 2개 (한도 30)
+    msgs, overflow = discord.plan_messages(items, {"bh-01_1": ["own"], "bh-01_2": ["wish"]})
+    flat = [e["title"] for m in msgs for e in m["embeds"]]
+    assert len(flat) == 30 and flat[:2] == ["[내 프라] T1", "[내 프라] T2"] and not any(t.startswith("[내 프라]") for t in flat[2:])
+    assert overflow == 7 and msgs[0]["content"].startswith("내 프라가 국내에 입고됐어요! (2건)")
+    assert msgs[-1]["content"] == f"외 7건 — 사이트에서 보기: {config.SITE_URL}"
+    msgs1, _ = discord.plan_messages([kr_item(1)] + [fitem(i, NOW_ISO) for i in range(100, 108)], {"bh-01_1": ["own"]})
+    assert len(msgs1) == 1 and msgs1[0]["content"] == "내 프라가 국내에 입고됐어요! (1건)"
+
+
+def test_mine_lists_only_for_kr_types():
+    mine = {"bh-01_1": ["own"]}
+    assert discord.mine_lists(kr_item(1), mine) == ["own"] and discord.mine_lists(kr_item(1, "kr-new"), mine) == ["own"]
+    assert discord.mine_lists(fitem(1, NOW_ISO), mine) == [] and discord.mine_lists(fitem(1, NOW_ISO, "pb-new"), mine) == []
+    assert discord.mine_lists({"type": "kr-new", "catalogId": None}, mine) == []
+
+
+def test_notify_dry_run_prints_mine_embed_and_pipeline_reads_collection_read_only(monkeypatch, tmp_path):
+    lines = []
+    n = _notify(Options(dry_run=True), [kr_item(1)], prev_feed_empty=False, prev_catalog_empty=False, post=None, out=lines.append, mine_map={"bh-01_1": ["wish"]})
+    text = "\n".join(lines)
+    assert n == 0 and "[내 프라]" in text and "내 프라(위시)" in text and "내 프라가 국내에 입고됐어요!" in text
+
+
+def test_run_reads_collection_for_mine_and_never_writes_it(tmp_path, monkeypatch):
+    import json as _json
+    from test_pipeline import World, go
+    from conftest import joy_board_html  # noqa: F401  (World의 게시판 fixture와 같은 모듈)
+
+    coll = _json.dumps({"version": 3, "settings": {}, "kits": [{"id": "k1", "name": "내 프라", "list": "wish", "catalogId": "bh-01_7001"}]}) + "\n"
+    (tmp_path / "collection.json").write_text(coll, encoding="utf-8")
+    seen = {}
+    real = discord.plan_messages
+    monkeypatch.setattr(discord, "plan_messages", lambda items, mine=None: (seen.setdefault("mine", mine), real(items, mine))[1])
+    go(World(), tmp_path, Options(bootstrap=True, from_month="2026-09"))
+    assert seen["mine"] == {"bh-01_7001": ["wish"]}
+    assert (tmp_path / "collection.json").read_text(encoding="utf-8") == coll

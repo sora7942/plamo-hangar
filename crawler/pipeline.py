@@ -349,7 +349,8 @@ def run(opts: Options, http: HttpClient, *, now: datetime | None = None, anthrop
 
     # 조이하비 항목은 글 날짜가 KR_NOTIFY_DAYS일 이내인 것만 알린다 (피드 노출은 KR_FEED_DAYS일)
     to_notify = [a for a in added if not a["id"].startswith("jh-") or a["id"] in notify_kr]
-    notified = _notify(opts, to_notify, prev_feed_empty=not prev_feed, prev_catalog_empty=catalog.was_empty, post=post, out=out)
+    notified = _notify(opts, to_notify, prev_feed_empty=not prev_feed, prev_catalog_empty=catalog.was_empty, post=post, out=out,
+                       mine_map=mine.owned_map(data_dir))      # collection.json은 읽기만 한다
     return {"meta": meta, "catalog": counts, "newItems": len(ctx.new_ids), "feedAdded": len(added),
             "details": ctx.detail_counts, "notified": notified}
 
@@ -392,11 +393,11 @@ def _report_joy(out, ctx: _Ctx, rep: dict, report_dir: Path | None, catalog, sho
             (Path(report_dir) / "joy-report.json").write_text(json.dumps(report, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
-def _notify(opts: Options, added: list[dict], *, prev_feed_empty: bool, prev_catalog_empty: bool, post, out) -> int:
+def _notify(opts: Options, added: list[dict], *, prev_feed_empty: bool, prev_catalog_empty: bool, post, out, mine_map: dict | None = None) -> int:
     """디스코드. 반환: 실제로 보낸 메시지 수 (dry-run·건너뜀은 0)."""
     reason = discord.skip_reason(prev_feed_empty=prev_feed_empty, prev_catalog_empty=prev_catalog_empty,
                                  bootstrap=opts.bootstrap)
-    messages, overflow = discord.plan_messages(added)
+    messages, overflow = discord.plan_messages(added, mine_map)
     webhook = os.environ.get("DISCORD_WEBHOOK_URL")
     if opts.dry_run:
         # dry-run은 형식을 눈으로 볼 수 있게 항상 보낼 내용을 출력한다 (규칙상 건너뛰는 경우는 그 사실을 먼저 알린다)
