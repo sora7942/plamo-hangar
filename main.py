@@ -5,6 +5,7 @@
     python main.py --only hobby_item       # 일부 단계만 (hobby, hobby_schedule, hobby_brand, hobby_item, joyhobby, translate)
     python main.py --bootstrap --only joyhobby   # 조이하비 과거 글 채우기 (실행당 --joy-pages쪽, 진행 위치는 meta.crawl.joyNext)
     python main.py --bootstrap --from 2025-10 --data-dir /tmp/data   # 최초 채우기(범위를 줄여 확인용으로)
+    python main.py --discord-test          # 수집 없이 디스코드 테스트 알림 1건(feed.json 최근 3개). docs/data는 바꾸지 않는다. --dry-run이면 내용만 출력
 """
 from __future__ import annotations
 
@@ -33,6 +34,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap.add_argument("--max-backlog", type=int, default=config.DETAIL_BACKLOG_MAX, help="실행당 상세: 밀린 상품 상한")
     ap.add_argument("--joy-pages", type=int, default=None, help=f"--bootstrap 때 조이하비 과거 목록을 훑을 쪽 수 (기본 {config.JOY_BACKFILL_PAGES})")
     ap.add_argument("--data-dir", type=Path, default=None, help=f"데이터 폴더 (기본 {config.DATA_DIR})")
+    ap.add_argument("--discord-test", action="store_true", help="수집 없이 디스코드 테스트 알림 1건만 보낸다 (feed.json 최근 3개, 내 프라 연결 항목 포함)")
     args = ap.parse_args(argv)
     if args.from_month and not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", args.from_month):
         ap.error("--from은 YYYY-MM 형식이어야 합니다")
@@ -40,6 +42,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ap.error("--max-new/--max-backlog는 0 이상이어야 합니다")
     if args.joy_pages is not None and args.joy_pages < 1:
         ap.error("--joy-pages는 1 이상이어야 합니다")
+    if args.discord_test and (args.bootstrap or args.only or args.from_month or args.joy_pages is not None):
+        ap.error("--discord-test는 수집 옵션(--bootstrap, --only, --from, --joy-pages)과 함께 쓸 수 없습니다")
     return args
 
 
@@ -79,6 +83,10 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     for noisy in ("httpx", "httpx2", "anthropic", "urllib3"):
         logging.getLogger(noisy).setLevel(logging.WARNING)       # SDK 요청 로그에 URL·키 정보가 섞이지 않게
+
+    if args.discord_test:                                           # 수집·파일 쓰기 없이 알림 형식만 확인
+        from crawler import discord_test
+        return discord_test.run(args.data_dir or config.DATA_DIR, dry_run=args.dry_run)
 
     opts = Options(
         dry_run=args.dry_run, no_discord=args.no_discord,
