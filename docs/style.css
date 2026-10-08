@@ -235,3 +235,7 @@ img{max-width:100%}
 .pk-item .btn{flex:0 0 auto}
 .pm-tag{position:absolute;right:0;top:0;background:var(--fg);color:var(--bg);font-family:var(--f-display);font-weight:700;font-size:11px;padding:2px 7px}
 .pm-official .pm-img{background:var(--sunken)}
+
+/* 재판 공백 (4b) */
+.gapline{font-size:12px;color:var(--muted);line-height:1.35;overflow-wrap:anywhere}
+.gapline.recent{color:var(--st-built);font-weight:600}

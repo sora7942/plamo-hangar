@@ -252,6 +252,102 @@ def run(browser, base):
 COLL_PATH = M.COLL
 
 
+def gap_checks(browser, base):
+    """재판 공백: 카탈로그 응답에 입고 날짜·발매일을 주입(route)해서 문구·정렬을 결정적으로 확인한다."""
+    import datetime
+
+    today = datetime.date.today()
+    d = lambda n: (today + datetime.timedelta(days=n)).isoformat()
+    kits = COLL["kits"]
+    ids = [kits[i]["id"] for i in range(6)]
+    patch = {
+        MANY[0]["id"]: {"kr": [{"date": d(-7), "type": "restock"}], "release": {"month": "2023-05", "date": "2023-05-01"}},
+        MANY[1]["id"]: {"kr": [{"date": d(-400), "type": "restock"}, {"date": d(-30), "type": "restock"}], "release": {"month": "2023-05", "date": "2023-05-01"}},
+        MANY[2]["id"]: {"kr": [], "release": {"month": "2022-10", "date": None}},
+        MANY[3]["id"]: {"kr": [], "release": {"month": "2027-03", "date": None}},
+        NOIMG["id"]: {"kr": [{"date": d(5), "type": "new"}], "release": {"month": "2023-05", "date": "2023-05-01"}},
+    }
+
+    def serve(route):
+        body = json.loads(route.fetch().text())
+        for it in body["items"]:
+            if it["id"] in patch:
+                it.update(patch[it["id"]])
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(body, ensure_ascii=False))
+
+    section("재판 공백 표시·정렬 (카탈로그에 입고 날짜 주입)")
+    ctx = M.new_context(browser, token=False)
+    ctx.route("**/data/catalog-*.json*", serve)
+    page = M.open_page(ctx, base)
+    poll(page, "document.querySelectorAll('.gapline').length >= 5", timeout=15000)
+    line = lambda i: page.locator(f'.card[data-id="{ids[i]}"] .gapline').inner_text()
+    check(line(0) == "마지막 입고 " + d(-7) + " · 7일 전", f"카드(최근 입고): {line(0)}")
+    check("recent" in page.locator(f'.card[data-id="{ids[0]}"] .gapline').get_attribute("class"), "30일 이내 입고는 강조")
+    check(line(1) == "마지막 입고 " + d(-30) + " · 30일 전", f"카드(가장 최근 입고를 씀): {line(1)}")
+    check(line(2) == "입고 기록 없음 · 일본 발매 2022-10", f"카드(월만 아는 발매일은 월까지만): {line(2)}")
+    check(line(3) == "일본 발매 예정 2027-03", f"카드(발매 예정): {line(3)}")
+    check(line(4) == "입고 예정 " + d(5), f"카드(입고 예정): {line(4)}")
+    check(page.locator(f'.card[data-id="{ids[5]}"] .gapline').count() == 0 and page.locator(f'.card[data-id="{kits[20]["id"]}"] .gapline').count() == 0, "카탈로그에 없는 연결·미연결 프라는 공백 줄 없음")
+    shot(page, "cat-gap-list.png")
+
+    card_for(page, ids[2]).click()
+    page.wait_for_selector(".specs", timeout=5000)
+    spec = page.locator(".specs").inner_text()
+    check("국내 입고 기록 없음 (2024-01-04 이후 기준) · 일본 발매 2022-10" in spec, "상세: 기준일(joyOldest)이 들어간 문구")
+    page.keyboard.press("Escape")
+    card_for(page, ids[1]).click()
+    page.wait_for_selector(".specs", timeout=5000)
+    check("국내 마지막 입고 " + d(-30) + " · 30일 전" in page.locator(".specs").inner_text(), "상세: 국내 마지막 입고 · N일 전")
+    page.keyboard.press("Escape")
+    card_for(page, ids[4]).click()
+    page.wait_for_selector(".specs", timeout=5000)
+    check("국내 입고 예정 " + d(5) in page.locator(".specs").inner_text(), "상세: 국내 입고 예정")
+    page.keyboard.press("Escape")
+
+    page.select_option("#f-sort", "gap")
+    page.wait_for_timeout(300)
+    order = page.evaluate("Array.from(document.querySelectorAll('.card')).map(c => c.dataset.id)")
+    exp = [ids[1], ids[0], ids[2], ids[4], ids[3]]
+    check(order[:5] == exp, f"재판 공백 긴 순: 입고 오래된 순 → 기록 없음(일본 발매 오래된 순) {[ids.index(x) if x in ids else x for x in order[:5]]}")
+    rest = order[5:]
+    check(ids[5] in rest and len(order) == 131, "카탈로그에 없는 연결·미연결은 맨 뒤 묶음")
+    ctx.close()
+
+    section("빈 칸 모아보기: 반다이 제품 미연결 (소유자)")
+    seed = {COLL_PATH: COLL_TEXT + "\n", "docs/data/feed.json": '{"n":1}', "docs/data/meta.json": "{}"}
+    ctx = M.new_context(browser, fake={"seed": seed})
+    ctx.route("**/data/catalog-*.json*", serve)
+    page = M.open_page(ctx, base)
+    opts = page.evaluate("Array.from(document.querySelectorAll('#f-gap option')).map(o => o.textContent)")
+    check(any(o.startswith("반다이 제품 미연결") for o in opts), f"옵션에 '반다이 제품 미연결' {opts}")
+    n_unlinked = sum(1 for k in kits if not k.get("catalogId"))
+    check(any(o == f"반다이 제품 미연결 ({n_unlinked})" for o in opts), f"개수 {n_unlinked}")
+    page.select_option("#f-gap", "unlinked")
+    page.wait_for_timeout(300)
+    check(page.locator(".card").count() == n_unlinked and page.locator(".gapline").count() == 0, f"미연결 {n_unlinked}개만 표시")
+    page.click('[data-tab="wish"]')
+    check(any(o.startswith("반다이 제품 미연결") for o in page.evaluate("Array.from(document.querySelectorAll('#f-gap option')).map(o => o.textContent)")), "위시리스트 탭에도 옵션이 있다")
+    check(not ctx.errors, f"콘솔 에러 없음 {ctx.errors[:3]}")
+    ctx.close()
+
+    section("400px · 다크: 재판 공백 줄")
+    for scheme in ("light", "dark"):
+        ctx = M.new_context(browser, w=400, h=860, scheme=scheme, token=False)
+        ctx.route("**/data/catalog-*.json*", serve)
+        page = M.open_page(ctx, base)
+        poll(page, "document.querySelectorAll('.gapline').length >= 5", timeout=15000)
+        page.select_option("#f-sort", "gap")
+        page.wait_for_timeout(500)
+        check(M.no_overflow(page), f"400px {scheme}: 가로 넘침 없음 (재판 공백 정렬)")
+        shot(page, f"cat-gap-400-{scheme}.png")
+        card_for(page, ids[2]).click()
+        page.wait_for_selector(".specs", timeout=5000)
+        page.wait_for_timeout(400)
+        check(M.no_overflow(page) and page.evaluate("document.querySelector('.panel').scrollWidth <= document.querySelector('.panel').clientWidth + 1"), f"400px {scheme}: 상세 가로 넘침 없음")
+        shot(page, f"cat-gap-detail-400-{scheme}.png")
+        ctx.close()
+
+
 def owner_flows(browser, base):
     """소유자 모드: 찾기 → 연결 → 채우기 → 공식 대표 사진 → 저장(커밋 1개). 저장되는 건 catalogId·cover 뿐 (이미지 URL은 저장 안 함)."""
     import collections
@@ -428,6 +524,7 @@ def main():
         try:
             run(browser, base)
             owner_flows(browser, base)
+            gap_checks(browser, base)
         finally:
             browser.b.close()
             srv.shutdown()

@@ -55,6 +55,8 @@ function ensureCatalog() {
   return catPromise;
 }
 function scaleChoices(cur) { var a = SCALES.slice(); if (cur && a.indexOf(cur) < 0) a.splice(a.length - 1, 0, cur); return a; } // 카탈로그의 1/72 등도 잃지 않게
+// 재판 공백: 연결된 프라 + 카탈로그를 읽은 뒤에만 (표시 문구·정렬 키는 catalog.js gapInfo)
+function gapOf(k) { var it = catItem(k); return it ? C.gapInfo(it, today(), cat.since) : null; }
 function hasLinked() { return data.kits.some(function (k) { return k.catalogId; }); }
 function official(k) { return cat ? C.officialImages(cat, k, data.settings) : []; }
 function catItem(k) { return cat && k && k.catalogId ? (cat.byId[k.catalogId] || null) : null; }
@@ -217,6 +219,7 @@ function showSaveError(err) {
 /* ---------- render ---------- */
 function sortOptions() {
   var o = ui.tab === 'own' ? [['recent','최근 구매순'],['done','최근 완성순'],['name','이름순'],['grade','등급순']] : [['recent','최근 추가순'],['name','이름순'],['grade','등급순']];
+  if (hasLinked()) o.push(['gap', '재판 공백 긴 순']);
   if (showPurchase()) o.push(['price', '가격 높은순']);
   if (!o.some(function (x) { return x[0] === ui.sort; })) ui.sort = 'recent';
   return o;
@@ -286,19 +289,20 @@ function renderStats() {
   var gapSel = document.getElementById('f-gap');
   if (gapSel) {
     if (ui.gap !== 'all' && !GAPS[ui.gap]) ui.gap = 'all';
-    gapSel.innerHTML = opt('all', '빈 칸 모아보기', ui.gap) + Object.keys(GAPS).filter(function (g) { return ui.tab === 'own' || g === 'photo' || g === 'series'; }).map(function (g) {
+    gapSel.innerHTML = opt('all', '빈 칸 모아보기', ui.gap) + Object.keys(GAPS).filter(function (g) { return ui.tab === 'own' || g === 'photo' || g === 'series' || g === 'unlinked'; }).map(function (g) {
       return opt(g, GAPS[g].l + ' (' + list.filter(GAPS[g].t).length + ')', ui.gap); }).join('');
     if (ui.tab === 'wish' && (ui.gap === 'purchase' || ui.gap === 'done')) { ui.gap = 'all'; gapSel.value = 'all'; }
   }
 }
 
+function gapLine(k) { var g = gapOf(k); return g ? '<span class="gapline' + (g.recent ? ' recent' : '') + '">' + esc(g.short) + '</span>' : ''; }
 function cardHTML(k) {
   var g = gname(k.grade), on = sel && sel.has(k.id), cover = P.photoOrder(k, official(k)).cover;
   return '<button class="card' + (on ? ' selected' : '') + '" data-id="' + esc(k.id) + '" aria-label="' + esc(k.name) + (sel ? (on ? ' 선택됨' : ' 선택하기') : ' 자세히 보기') + '"' + (sel ? ' aria-pressed="' + !!on + '"' : '') + '>' +
    '<div class="ph">' + (cover ? '<img src="' + esc(imgUrl(cover, true)) + '"' + imgAlt(cover, true) + ' alt="" loading="lazy" referrerpolicy="no-referrer" data-g="' + esc(g) + '">' : '<div class="ghost">' + esc(g) + '</div>') +
    '<span class="grade g-' + gk(k.grade) + '">' + esc(P.glabel(k.grade)) + '</span>' + (k.sample ? '<span class="sample-tag">예시</span>' : '') +
    (sel ? '<span class="selbox" aria-hidden="true">' + (on ? '✓' : '') + '</span>' : '') + '</div>' +
-   '<div class="meta">' + (k.series ? '<span class="series">' + esc(k.series) + '</span>' : '') + '<h3>' + esc(k.name) + '</h3>' +
+   '<div class="meta">' + (k.series ? '<span class="series">' + esc(k.series) + '</span>' : '') + '<h3>' + esc(k.name) + '</h3>' + gapLine(k) +
    (k.tags.length ? '<span class="tagline">' + k.tags.slice(0, 3).map(function (t) { return '#' + esc(t); }).join(' ') + '</span>' : '') +
    '<div class="row"><span class="scale">' + esc(k.scale || '') + '</span>' +
    (k.list === 'own' ? '<span class="pill st-' + k.status + '">' + esc(STLABEL[k.status]) + '</span>' : (showPurchase() && k.price ? '<span class="scale">' + won(k.price) + '</span>' : '')) +
@@ -307,7 +311,7 @@ function cardHTML(k) {
 
 var lastList = [];
 function renderList() {
-  lastList = P.filterSort(allKits(), ui);
+  lastList = P.filterSort(allKits(), ui, { gap: gapOf });
   document.getElementById('countline').textContent = lastList.length + '개 표시 중';
   var cl = document.getElementById('countline');
   if (catState === 'error' && hasLinked()) cl.textContent += ' · 카탈로그를 불러오지 못해 공식 사진이 빠져 있어요';
@@ -463,6 +467,7 @@ function openDetail(id) {
   if (!own && showPurchase()) rows.push(['예상 가격', k.price ? won(k.price) : '']);
   if (own) { var d = days(k.startDate, k.doneDate); rows.push(['조립 시작', k.startDate], ['완성', k.doneDate ? k.doneDate + (d ? ' (' + d + '일 걸림)' : '') : '']); }
   if (k.tags.length) rows.push(['태그', k.tags.map(function (t) { return '#' + t; }).join(' ')]);
+  var gi = gapOf(k); if (gi) rows.splice(5, 0, ['재판 공백', gi.text]);
   var show = rows.filter(function (r) { return r[1] || (canWrite && !k.sample); });
   var order = P.photoOrder(k, official(k)).list, g = gname(k.grade), ci = catItem(k), pu = ci && C.pageUrl(ci);
   var gallery = order.length ? '<div class="detail-photo"><img id="d-main" src="' + esc(imgUrl(order[0], false)) + '" alt="' + esc(k.name) + ' 사진" referrerpolicy="no-referrer" data-g="' + esc(g) + '" data-note="' + (order[0].kind === 'off' ? '' : '1') + '">' +
