@@ -67,6 +67,14 @@
 - [x] MG ∀ガンダム(MG 1/100 WD-M01 ターンエーガンダム, `01_1663`, 2007-08): 호비사이트에는 있으나 상품 페이지에 브랜드 키가 없어 브랜드 목록(mg)에 안 나온다 → brand_backfill로는 안 들어옴. 연결하려면 사이트에서 URL 붙여넣기(manual)
 - [x] MG 비다르(bh-01_5469) 확인: 한자 리셋 후 재번역 대기(상세는 완료, 안정 이미지 없음) — 그대로 둠
 
+## 7a 반다이남코코리아몰 — 가격·한국 공식 이름 (7b 사진은 사용자가 약관 확인 후 따로 지시, 이미지 규칙·CSP 그대로)
+- [x] 7a-1 수집 `crawler/sources/mall.py`: 목록 페이지만(건프라 cate=1576 8쪽 + 애니프라 cate=1577 brandIdx=205 3쪽·202,203,407,386 1쪽, 요청 12회 + robots), 구조 변경은 소스 실패로 기록, `config.MALL_*`
+- [x] 7a-2 매칭 `crawler/mall_link.py`: 등급 낱말 → `match.best_match` + 가격 비율(`MALL_PRICE_RATIO`) + 항목당 몰 상품 하나, `docs/data/mall.json`, crawl.yml 허용 목록에 mall 추가, `MALL_OVERRIDES`
+- [x] 7a-3 카탈로그 필드 `priceKrw`·`priceKrwAt`·`mallGno`·`mallSoldOut`·`mallEnded`, 몰 이름(`nameKoSource:"bnkrmall"`, 몰 > 조이하비 > AI, `nameKoAi`/`nameKoJoy` 보존)·`seriesKo`(`seriesKoSource`) — 조이하비·번역·용어집·한자 재번역이 몰 이름을 건드리지 않게
+- [x] 7a-4 사이트: 상세 "정가" 줄(₩ 몰 링크 / 품절 / 판매 종료(마지막 확인) / ¥ 일본 정가), 연결 후보 목록에 작은 가격, 카드에는 없음
+- 로컬 dry-run(`--dry-run --only mall --data-dir <임시 사본>`): 몰 상품 397, 연결 76(19%) · 이름 교체 75 · 연결된 76개 모두 가격 비율 10.91 · 미연결 사유 no-grade 133(30MM 86 포함)·low-score 125·guard 62·ambiguous 1
+- [ ] 남은 것: push 후 Actions 실행 → `meta.sources.mall` 확인, 미연결 중 맞는 것은 `MALL_OVERRIDES`·용어집으로 보강(예: 발바토스)
+
 ## 다음에 할 일
 - 6단계 1~6번 + 보정·문서 끝(로컬 커밋). **6-0b 몰 연동은 사용자가 이용약관 확인 후 따로 지시.** push는 사용자가.
 - push 후 사용자 확인 거리: (1) Actions `discord_test`로 embed 3개가 따로 보이는지 (2) Actions `brand_backfill`(약 8분, 알림 없음) → 이후 매일 실행이 상세·번역을 나눠 채움(번역 약 $1.2) (3) 한자 혼입 `비达르` 2건이 다음 실행에서 재번역되는지 (4) 사이트 연결 도우미·검색 별칭.

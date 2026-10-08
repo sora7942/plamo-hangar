@@ -24,9 +24,10 @@
 
 ## Structure
 - 사이트가 쓰는 파일: `docs/data/collection.json`, `docs/photos/**` — 크롤러는 읽기만 한다
-- 크롤러가 쓰는 파일: `docs/data/catalog-*.json`, `feed.json`, `kr-arrivals.json`, `series-ko.json`, `meta.json` — 사이트는 읽기만 한다. **이 파일들은 Actions만 커밋한다** — 로컬 `--dry-run`/`--bootstrap` 결과는 `git restore`로 되돌리고 커밋하지 않는다
+- 크롤러가 쓰는 파일: `docs/data/catalog-*.json`, `feed.json`, `kr-arrivals.json`, `series-ko.json`, `mall.json`, `meta.json` — 사이트는 읽기만 한다. **이 파일들은 Actions만 커밋한다** — 로컬 `--dry-run`/`--bootstrap` 결과는 `git restore`로 되돌리고 커밋하지 않는다
 - 크롤러는 `docs/data/collection.json`을 **읽기만 한다**(`crawler/mine.py`) — 연결된 `catalogId`로 미등록 상품의 상세를 받고(`manual:true`, 제외 브랜드는 `line:"other"`), 디스코드에서 "내 프라"를 먼저 보낸다
 - 시리즈 한국어: `crawler/series.py`가 seriesKey별로 한 번만 번역해 `series-ko.json`에 보관하고 카탈로그 항목의 `seriesKo`를 채운다. 틀린 번역은 `config.SERIES_KO_OVERRIDES`에 한 줄 추가
+- 반다이남코코리아몰(7a): `crawler/sources/mall.py`가 **목록 페이지만** 읽고(상세·이미지 요청 없음, 실행당 `MALL_MAX_REQUESTS`) `crawler/mall_link.py`가 gno ↔ catalogId 연결·가격(`priceKrw`)·몰 이름(`nameKoSource:"bnkrmall"`, 몰 > 조이하비 > AI)·시리즈·판매 종료(`mallEnded`)를 카탈로그에 반영하고 `docs/data/mall.json`에 상태를 둔다. 틀린 연결은 `config.MALL_OVERRIDES`. **몰 이미지는 저장도 사용도 하지 않는다 — 7b(사진)는 사용자가 약관을 확인한 뒤 따로 지시**
 - 검색 별칭은 `docs/aliases.js`(사이트 쪽 사전 — config가 아니다; 일본어 가나는 묶음에서만, 한국어 표기와 짝으로. `∀`는 `norm`이 `ターンエー`로 읽는다): 철자·줄임말 묶음, 무시할 꼬리말(클리어·코팅 — 가산만), 일반어. 연결 도우미의 진행 상태는 순수 로직 `docs/assist.js`, 화면은 app.js `openAssist`
 - 상세 받는 순서: ① 사이트에서 연결한 미등록 상품(`manual`, 실행당 `MANUAL_DETAIL_MAX`) ② 새 상품 ③ 밀린 상품은 **발매월 최신순**(같은 달이면 line이 있는 항목 먼저)
 - URL·대상 라인·주기·개수 제한·알림 규칙·모델명·매칭 임계값은 `crawler/config.py` 한 곳에만 둔다. 사람이 고치는 표(`BRAND_LINE`, `JOY_BRACKET_GRADES`, `KR_CODE_OVERRIDES` …)도 거기 있다
@@ -62,6 +63,7 @@
 - **이름 점수만으로는 틀린 연결을 못 막는다**(델타↔제타 80점, 자쿠 III↔자쿠 II 91점, 더블오라이저↔잔라이저 92점이 첫 실행에서 연결됐다). `match.guard`가 영문·숫자 덩어리와 낱말 차이를 본다. 임계값(`MATCH_LINK_SCORE`/`MATCH_NAME_SCORE`/`MATCH_TOKEN_RATIO`)을 고칠 때는 `crawler/out/joy-report.json`의 `newLinks`·`nearMiss`로 틀린 연결이 없는지 본다
 - 조이하비 글 중 **조회수가 32767을 넘은 글은 사이트 버그로 HTTP 500**(smallint 오버플로 메시지)이다. 재시도해도 소용없고 `state: broken`으로 한 번만 기록한다(차단 판정과 별개)
 - 호비사이트는 재판(再販) 정보가 없다. 일정은 최초 발매 기준이고 같은 상품이 다시 올라오지 않는다
+- 몰 목록은 쪽당 40개이고 건프라(`cate=1576`)는 8쪽(약 283개)뿐이라 카탈로그 전체의 일부만 연결된다. 몰 판매가(원) ÷ 호비 정가(엔, 세금 포함)는 연결이 맞으면 거의 항상 10.91이라 `MALL_PRICE_RATIO` 밖이면 연결하지 않는다. 몰은 일부 상품(30MM 등)을 이름에 등급 낱말 없이 올리고, 호비사이트 상품 중에는 브랜드 키가 아예 없어 브랜드 목록·`brand_backfill`에 안 잡히는 것(MG ∀ガンダム 기본판 `01_1663`)이 있다. 몰 이름이 카탈로그 AI 번역과 철자가 달라(`발바토스`/`바르바토스`) 보호 규칙에 막힌 쌍은 `MALL_OVERRIDES`로 지정하거나 `TRANSLATE_GLOSSARY`에 표기를 정한다
 - 호비 2025년 이후 상품 이미지는 CloudFront 서명 URL(만료 40~299초). 안정 호스트는 `bandai-a.akamaihd.net`, `bandai-hobby.net/images/`
 - 호비 og:image는 전 상품 공통 ogp.png라 쓸 수 없다
 - 같은 등급이 브랜드 키 여러 개로 갈린다(`hg`/`hg-c`/`pb_hg`) → config 매핑표
