@@ -2,13 +2,15 @@
    검색·URL 파싱·채우기·공식 사진은 DOM 없이 계산하고, 읽기(load)만 fetch 함수를 받아 쓴다.
    브라우저에서는 window.PlamoCatalog, node에서는 require()로 쓴다 (tests/site_catalog.test.mjs). */
 (function (root, factory) {
-  var P = (typeof module === 'object' && module.exports) ? require('./pure.js') : root.PlamoPure;
-  if (typeof module === 'object' && module.exports) module.exports = factory(P);
-  else root.PlamoCatalog = factory(P);
-})(typeof self !== 'undefined' ? self : this, function (P) {
+  var node = typeof module === 'object' && module.exports;
+  var P = node ? require('./pure.js') : root.PlamoPure, A = node ? require('./aliases.js') : root.PlamoAliases;
+  if (node) module.exports = factory(P, A);
+  else root.PlamoCatalog = factory(P, A);
+})(typeof self !== 'undefined' ? self : this, function (P, A) {
 'use strict';
 
 var FILES = ['catalog-gunpla.json', 'catalog-girl.json'];
+var ALIAS = null; // 별칭 사전 (norm이 정의된 뒤 한 번 만든다)
 var SEARCH_LIMIT = 30;
 var AKAMAI = 'bandai-a.akamaihd.net', HOBBY = 'bandai-hobby.net';
 
@@ -22,6 +24,10 @@ function stripPrefix(name, grade, scale) {
   if (grade) {
     var g = String(grade);
     if (s.slice(0, g.length).toLowerCase() === g.toLowerCase() && /^\s/.test(s.slice(g.length) + ' ')) s = s.slice(g.length).trim();
+  }
+  if (grade) {                                           // HGCE·HGUC·HGBD:R 같은 등급 변형 머리말 (등급 글자로 시작하는 영문 낱말)
+    var g2 = String(grade).replace(/[^A-Za-z]/g, ''), m = g2 && new RegExp('^' + g2 + '[A-Za-z]{1,4}(?::[A-Za-z])?(?=\\s)', 'i').exec(s);
+    if (m) s = s.slice(m[0].length).trim();
   }
   if (scale) {
     var c = String(scale);
@@ -75,7 +81,8 @@ function normalizeItem(raw) {
   it.jn = norm(stripPrefix(it.nameJa, it.rawGrade, it.scale));
   it.seriesText = it.seriesKo || it.series;   // 화면·채우기에는 한국어(seriesKo)를 먼저 쓴다
   it.sn = norm(it.seriesKo) + norm(it.series);
-  it.all = norm(it.nameKo) + '|' + norm(it.nameJa) + '|' + it.sn + '|' + norm(it.rawGrade) + '|' + norm(it.scale);
+  it.meta = norm(it.rawGrade) + '|' + norm(it.scale);                  // 등급·스케일은 낱말이 맞아도 '이름이 맞았다'로 치지 않는다
+  it.all = norm(it.nameKo) + '|' + norm(it.nameJa) + '|' + it.sn + '|' + it.meta;
   return it;
 }
 function build(lists, meta) {
@@ -95,24 +102,46 @@ function build(lists, meta) {
 /* ---------- 검색 ---------- */
 // 모든 낱말이 들어 있는 항목만(AND). 하나도 없으면 절반 이상 맞는 항목을 partial로.
 // 점수: 이름 전체 일치 > 접두 > 연속 포함 > 낱말별 이름·작품·등급 일치. 같으면 이름이 짧은 쪽, 사진 있는 쪽, 최신 발매.
+function aliasSet() { return ALIAS || (ALIAS = A ? A.build(norm) : null); }
+// 낱말 AND 검색 + 별칭(aliases.js). 규칙:
+//  - 낱말은 별칭으로 넓혀 하나라도 맞으면 맞은 것. "클리어·코팅" 같은 꼬리말은 필수가 아니라 **있으면 가산**.
+//  - 이름(또는 시리즈)에서 일반어가 아닌 낱말이 하나는 맞아야 후보 ("발길 클리어"가 "[클리어 컬러] 한정판"에 연결되지 않게). 검색어가 전부 일반어면 그대로.
+//  - 낱말을 모두 못 맞추면 절반 이상 맞는 후보를 partial로. o.aliases === false면 별칭 없이(개선 전 비교용).
+//  - 점수: 이름 전체 일치 > 접두 > 연속 포함 > 낱말별 일치. 같으면 이름이 짧은 쪽, 사진 있는 쪽, 최신 발매.
 function search(cat, query, o) {
   o = o || {};
-  var tokens = String(query || '').split(/\s+/).map(norm).filter(Boolean);
-  if (!tokens.length) return { results: [], partial: false, total: 0 };
+  var raw = String(query || '').split(/\s+/).map(norm).filter(Boolean);
+  if (!raw.length) return { results: [], partial: false, total: 0 };
+  var al = o.aliases === false ? null : aliasSet();
+  var sp = al ? al.splitTails(raw) : { core: raw, tails: [] };
+  var tokens = sp.core.length ? sp.core : raw, tails = sp.core.length ? sp.tails : [];  // 꼬리말만 입력했으면 그대로 검색
+  var altsOf = tokens.map(function (t) { return al ? al.alts(t) : [t]; });
+  var tailBonus = tails.map(function (t) { return { all: t.all, words: t.words }; });
+  var needDistinct = !!al && tokens.some(function (t) { return !al.isGeneric(t); });
   var q = tokens.join(''), grade = o.grade && o.grade !== 'all' ? o.grade : null, limit = o.limit || SEARCH_LIMIT;
   var strict = [], loose = [], need = Math.ceil(tokens.length / 2);
+  var has = function (str, list) { for (var i = 0; i < list.length; i++) if (str.indexOf(list[i]) >= 0) return true; return false; };
   cat.items.forEach(function (it) {
     if (grade && it.grade !== grade) return;
-    var hit = 0, score = 0;
-    tokens.forEach(function (t) {
-      if (it.kn.indexOf(t) >= 0 || it.jn.indexOf(t) >= 0) { hit++; score += 3; }
-      else if (it.all.indexOf(t) >= 0) { hit++; score += 1; }
+    var hit = 0, score = 0, distinct = 0;
+    tokens.forEach(function (t, i) {
+      var alts = altsOf[i], real = !(al && al.isGeneric(t));
+      if (has(it.kn, alts) || has(it.jn, alts)) { hit++; score += 3; if (real) distinct++; }
+      else if (has(it.sn, alts)) { hit++; score += 1; if (real) distinct++; }
+      else if (has(it.all, alts)) { hit++; score += 1; }
     });
-    if (!hit || (hit < tokens.length && (tokens.length < 2 || hit < need))) return;
-    var core = it.kn.indexOf(q) >= 0 ? it.kn : it.jn;
-    if (it.kn === q || it.jn === q) score += 100;
-    else if (it.kn.indexOf(q) === 0 || it.jn.indexOf(q) === 0) score += 40;
-    else if (it.kn.indexOf(q) >= 0 || it.jn.indexOf(q) >= 0) score += 20;
+    if (!hit || (needDistinct && !distinct) || (hit < tokens.length && (tokens.length < 2 || hit < need))) return;
+    var qs = [q];
+    if (tokens.length === 1) qs = altsOf[0];
+    var eq = function (s) { return qs.some(function (x) { return s === x; }); }, pre = function (s) { return qs.some(function (x) { return s.indexOf(x) === 0; }); }, inc = function (s) { return qs.some(function (x) { return s.indexOf(x) >= 0; }); };
+    var core = inc(it.kn) ? it.kn : it.jn;
+    if (eq(it.kn) || eq(it.jn)) score += 100;
+    else if (pre(it.kn) || pre(it.jn)) score += 40;
+    else if (inc(it.kn) || inc(it.jn)) score += 20;
+    tailBonus.forEach(function (tb) {
+      if (it.kn.indexOf(tb.all) >= 0 || it.jn.indexOf(tb.all) >= 0 || it.all.indexOf(tb.all) >= 0) score += 75;
+      else if (tb.words.some(function (w) { return it.kn.indexOf(w) >= 0 || it.jn.indexOf(w) >= 0; })) score += 65;   // '철혈 코팅' → 카탈로그엔 '[아이언 블러드 코팅]'
+    });
     score -= Math.min(core.length, 60) * 0.05;
     if (it.images.length) score += 0.5;
     if (o.scale && it.scale === o.scale) score += 2; // 내 프라의 스케일과 같은 쪽을 앞으로 (등급 '기타'일 때 특히)

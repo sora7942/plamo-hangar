@@ -31,7 +31,9 @@ test('norm: 공백·구두점·전각 무시', () => {
 test('stripPrefix: 등급·스케일 머리말만 뗀다', () => {
   assert.equal(C.stripPrefix('HG 1/144 건담 에어리얼', 'HG', '1/144'), '건담 에어리얼');
   assert.equal(C.stripPrefix('MGSD 에어리얼', 'MGSD', null), '에어리얼');
-  assert.equal(C.stripPrefix('HGUC 건담', 'HG', '1/144'), 'HGUC 건담');
+  assert.equal(C.stripPrefix('HGUC 1/144 건담', 'HG', '1/144'), '건담');            // HGUC·HGCE·HGBD:R 같은 등급 변형 머리말도 뗀다
+  assert.equal(C.stripPrefix('HGBD:R 1/144 네프테이트 웨폰즈', 'HG', '1/144'), '네프테이트 웨폰즈');
+  assert.equal(C.stripPrefix('HG건담', 'HG', null), 'HG건담', '공백 없이 붙은 이름은 건드리지 않는다');
   assert.equal(C.stripPrefix('FULL MECHANICS 1/100 건담', 'FULL MECHANICS', '1/100'), '건담');
   assert.equal(C.stripPrefix(null, 'HG', null), '');
 });
@@ -68,7 +70,7 @@ test('search: 등급 필터', () => {
 });
 
 test('search: 낱말을 모두 못 맞추면 절반 이상 맞는 후보를 partial로, 하나도 아니면 비움', () => {
-  const r = C.search(cat, '발바토스 루프스 클리어');
+  const r = C.search(cat, '발바토스 루프스 유니크');
   assert.equal(r.partial, true);
   assert.deepEqual(r.results.map((x) => x.id), ['bh-01_3', 'bh-01_4']);
   const none = C.search(cat, '존재하지않는이름');

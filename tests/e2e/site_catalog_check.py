@@ -641,7 +641,7 @@ def owner_flows(browser, base):
     page.click(f'[data-pick="{A["id"]}"]')
     check(page.input_value("#f-grade") == A["grade"], f"등급 채움 {A['grade']}")
     check(page.input_value("#f-scale") == A["scale"], f"스케일 채움 {A['scale']}")
-    check(page.input_value("#f-series") == A["series"], "시리즈 채움")
+    check(page.input_value("#f-series") == (A.get("seriesKo") or A["series"]), "시리즈 채움 (한국어 시리즈가 있으면 그것)")
     name = page.input_value("#f-name")
     check(bool(name) and not name.startswith(A["grade"] + " "), f"이름 채움(등급 머리말 없이): {name}")
     check("채운 항목" in page.locator("#pk-note").inner_text(), "채운 항목 안내")

@@ -50,7 +50,7 @@
 - [x] 6-1 디스코드 embed url 구별 (`discord.embed_url`, 조이하비 `&bd=BD…`, 겹치면 `#id`) — 발송 확인은 사용자가 Actions `discord_test`로
 - [x] 6-7 한자 혼입: translate.stray_han·bad_translation(가나+원문에 없는 한자), 기존 nameKo/series-ko 비워 같은 실행에서 재번역(`fixups.strayHanReset`), 용어집 ヴィダール→비다르. 현재 데이터에서 걸린 것: bh-01_5469·bh-01_753 (`비达르`) 2건, 시리즈 0건
 - [x] 6-4 2015년 이전 카탈로그: `hobby_backfill` 단계(옵션 단계, 기본 실행에 안 들어감) + `python main.py --brand-backfill` + workflow 입력 `brand_backfill`. 커서 `meta.crawl.brandBackfill`, 대상 `config.OLD_BRANDS`(hg·hguc·hgce·hg-c·mg·mgka·rg·mgsd·sdgundamseries·sdcs·sdex, bb 제외), 목록 카드만(약 366쪽≈8분), 피드·알림 제외. 상세 순서를 발매월 최신순(같은 달이면 line 있는 것 먼저)으로 변경, 연결된 프라는 manual 경로가 먼저. 번역 비용 추정: 20제목 샘플 입력 2,506/출력 846 토큰 → 2,000건 ≈ 입력 17만·출력 8.4만 토큰 ≈ $1.2 (Sonnet 5.5 $2/$10 per 1M), 실행당 600건 상한이라 4번에 나눠 번역. (문서는 7번 시작 전까지 SPEC/README/CLAUDE.md를 바꾸지 않기로 해서 여기에만 적음: README 수동 실행 표에 brand_backfill 추가 필요)
-- [ ] 6-3 검색 별칭 docs/aliases.js (미연결 124개 눈 판정 전/후)
+- [x] 6-3 검색 별칭 `docs/aliases.js`(묶음·줄임말·꼬리말·일반어) + catalog.js search 개편(별칭·꼬리말 가산·일반어만 맞으면 탈락·등급/스케일 낱말은 이름 일치로 안 침) + stripPrefix가 HGCE·HGUC·HGBD:R 머리말도 뗌. 미연결 124개 눈 판정 (정답/애매/오답/후보없음): 전 41/10/38/35 → 후 46/22/25/31, 연결된 7개는 7/7 유지. tests/site_aliases.test.mjs
 - [ ] 6-5 빈 칸 채우기
 - [ ] 6-2 연결 도우미
 - [ ] (보류) 6-0b 몰 연동 — spike/mall-report.md 참고
