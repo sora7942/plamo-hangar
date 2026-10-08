@@ -258,3 +258,15 @@ img{max-width:100%}
 .fd-act{flex:0 0 auto}
 .fd-more{text-align:center;margin:14px 0}
 @media (max-width:520px){.fd-item{flex-wrap:wrap}.fd-thumb{flex-basis:72px;height:54px}.fd-act{flex:1 1 100%}.fd-act .btn{width:100%}}
+
+/* 자동 연결·리뷰 링크 (4d) */
+.reviews{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;margin:0 0 12px;font-size:14px}
+.reviews .lk{font-size:13px;font-weight:600;color:var(--muted)}
+.reviews a{color:inherit;text-underline-offset:3px}
+.al-sec{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+.al-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.al-head h3{margin:0;font-family:var(--f-display);font-size:14px;font-weight:700;letter-spacing:.06em}
+.al-head .n{font-family:var(--f-mono);font-weight:400;color:var(--muted);margin-left:4px}
+.al-list{max-height:none;overflow:visible}
+.al-check{display:flex;align-items:center;padding:6px 2px;cursor:pointer}
+.al-check input{width:18px;height:18px}

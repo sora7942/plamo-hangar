@@ -31,11 +31,11 @@
 
 ## 4d 하위 단계
 - [x] 4d-1 사이트 순수 로직: catalog.js `autoLinks`·`seriesKoSuggestions`·`applyAuto`·`reviewLinks`·seriesKo(`seriesText`), pure.js 엑셀 catalogId 열·'autolink' 커밋 메시지 + 테스트
-- [ ] 4d-2 사이트 UI: 설정 '자동 연결 후보 보기'(연결 + 시리즈 한국어, 커밋 1개), 상세 리뷰 링크, 상세 linkbox에 시리즈, e2e
+- [x] 4d-2 사이트 UI: 설정 '자동 연결 후보 보기'(연결 + 시리즈 한국어, 커밋 1개), 상세 리뷰 링크, 상세 linkbox에 시리즈, e2e
 - [ ] 4d-3 크롤러 seriesKo: crawler/series.py (고유 seriesKey만 번역, docs/data/series-ko.json 사전 + config.SERIES_KO_OVERRIDES), 카탈로그 항목에 seriesKo, crawl.yml 허용 목록, 테스트(Claude 호출 차단), --sample 10개
 - [ ] 4d-4 크롤러 미등록 catalogId: collection.json 읽기만 → 카탈로그에 없는 bh- id 상세 받기 (manual:true, 제외 브랜드면 line:"other" → catalog-gunpla.json, 재분류 건너뜀, 제외 목록 id 되살림, pb-는 안내만)
 - [ ] 4d-5 디스코드 '내 프라 우선' (collection.json 읽기만, 국내 입고 항목, 강조 색, 맨 앞)
 - [ ] 4d-6 SPEC·CLAUDE.md 갱신 + 보고(번역 샘플 10개 포함)
 
 ## 다음에 할 일
-4d-2: app.js openSettings에 '자동 연결 후보 보기' 버튼(소유자) → openAutoLink(): ensureCatalog 후 C.autoLinks/seriesKoSuggestions 목록(체크박스 기본 켜짐) → commit(mutate: C.applyAuto, kind 'autolink'). openDetail에 reviewLinks 줄, linkbox에 seriesText.
+4d-3 크롤러 seriesKo: crawler/series.py 새로 만들기. 고유 seriesKey(현재 74개)만 Claude로 번역 → docs/data/series-ko.json {"updatedAt","items":{key:{"ja","ko"}}} 사전 + config.SERIES_KO_OVERRIDES(사람이 고치는 표, 우선) → 카탈로그 항목 seriesKo 채움. translate 단계 안에서 실행(키 없으면 건너뜀, dry-run은 기본 제외). 가나 검사·용어집은 translate.py 재사용. crawl.yml 허용 목록(2곳)에 series-ko 추가. `python -m crawler.series --sample 10`.

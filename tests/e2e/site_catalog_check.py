@@ -502,6 +502,117 @@ def feed_checks(browser, base):
     MODE.pop("text", None)
 
 
+def autolink_checks(browser, base):
+    """설정 '자동 연결 후보 보기' + 시리즈 한국어 + 상세 리뷰 링크. 카탈로그 응답에 seriesKo 를 주입한다(크롤러가 만들기 전 단계)."""
+    import collections
+    import re
+    import unicodedata
+
+    def pynorm(s):
+        return re.sub(r"[\W_]+", "", unicodedata.normalize("NFKC", s or "").lower())
+
+    def pytitle(it):
+        s = (it.get("nameKo") or "").strip()
+        for tok in (it.get("grade"), it.get("scale")):
+            if tok and s.startswith(tok + " "):
+                s = s[len(tok) + 1:].strip()
+        return s
+
+    cnt = collections.Counter((pynorm(pytitle(x)), x["grade"], x["scale"] or "논스케일") for x in ITEMS if x.get("nameKo") and x["grade"] in ("HG", "MG", "RG"))
+    ok = [x for x in ITEMS if x.get("nameKo") and x["grade"] in ("HG", "MG", "RG") and x["scale"] and x.get("series") and cnt[(pynorm(pytitle(x)), x["grade"], x["scale"])] == 1 and pytitle(x)]
+    dup = next(x for x in ITEMS if x.get("nameKo") and x["grade"] in ("HG", "MG", "RG") and x["scale"] and cnt[(pynorm(pytitle(x)), x["grade"], x["scale"])] > 1 and pytitle(x))
+    X, Y = ok[0], ok[1]
+    KO = {X["id"]: "테스트 시리즈 한국어 X", Y["id"]: "테스트 시리즈 한국어 Y"}
+
+    def serve(route):
+        body = json.loads(route.fetch().text())
+        for it in body["items"]:
+            if it["id"] in KO:
+                it["seriesKo"] = KO[it["id"]]
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(body, ensure_ascii=False))
+
+    coll = json.loads(json.dumps(REAL))
+    k = coll["kits"]
+    k[0].update(name=pytitle(X), grade=X["grade"], scale=X["scale"], series="", catalogId=None)                      # 연결 후보 (빈 시리즈칸)
+    k[1].update(name="시리즈 제안 대상", catalogId=Y["id"], series=Y["series"])                                       # 일본어 그대로 → 한국어 제안
+    k[2].update(name="직접 적은 시리즈", catalogId=Y["id"], series="내가 직접 쓴 시리즈")                              # 제안 안 함
+    k[3].update(name=pytitle(dup), grade=dup["grade"], scale=dup["scale"], catalogId=None)                          # 후보 2개 → 제안 안 함
+    k[4].update(name=pytitle(X), grade="기타", scale=X["scale"], catalogId=None)                                      # 등급 기타 → 제안 안 함
+    ids = [x["id"] for x in k[:5]]
+    text = json.dumps(coll, ensure_ascii=False)
+    seed = {COLL_PATH: text + "\n", "docs/data/feed.json": '{"n":1}', "docs/data/meta.json": "{}"}
+
+    section("설정 → 자동 연결 후보 보기")
+    ctx = M.new_context(browser, fake={"seed": seed})
+    ctx.route("**/data/catalog-*.json*", serve)
+    page = M.open_page(ctx, base)
+    page.locator('[data-act="settings"]').first.click()
+    page.wait_for_selector("#s-auto", timeout=5000)
+    page.click("#s-auto")
+    page.wait_for_selector("#al-body input[data-kind]", timeout=20000)
+    link_ids = page.evaluate("Array.from(document.querySelectorAll('input[data-kind=\"link\"]')).map(i => i.dataset.id)")
+    ser_ids = page.evaluate("Array.from(document.querySelectorAll('input[data-kind=\"series\"]')).map(i => i.dataset.id)")
+    check(ids[0] in link_ids, "이름·등급·스케일이 같은 프라가 연결 후보에 있다")
+    check(ids[3] not in link_ids and ids[4] not in link_ids, "후보가 2개인 이름·등급이 기타인 프라는 제안하지 않는다")
+    check(ser_ids == [ids[1]], f"시리즈 한국어 제안은 일본어 그대로인 프라 1개만 {len(ser_ids)}개")
+    row = page.locator(f'input[data-kind="link"][data-id="{ids[0]}"]').locator("xpath=ancestor::li")
+    check("채워질 항목" in row.inner_text() and "시리즈" in row.inner_text(), "행에 채워질 항목 안내")
+    srow = page.locator(f'input[data-kind="series"][data-id="{ids[1]}"]').locator("xpath=ancestor::li").inner_text()
+    check(Y["series"] in srow and KO[Y["id"]] in srow, "일본어 → 한국어 미리보기")
+    check(page.locator("#al-go").inner_text() != "적용" and not page.locator("#al-go").is_disabled(), f"적용 버튼: {page.locator('#al-go').inner_text()}")
+    shot(page, "cat-autolink-1280.png")
+    # 우리가 확인하려는 두 개만 남긴다
+    page.click('[data-all="link"]')
+    page.click('[data-all="series"]')
+    page.check(f'input[data-kind="link"][data-id="{ids[0]}"]')
+    page.check(f'input[data-kind="series"][data-id="{ids[1]}"]')
+    check(page.locator("#al-go").inner_text() == "1개 연결 · 시리즈 1개 변경 적용", f"선택 수가 버튼에 반영: {page.locator('#al-go').inner_text()}")
+    before = len(M.history(page)); M.reset_log(page)
+    page.click("#al-go")
+    M.settle(page)
+    M.one_commit(page, "자동 연결", before, msg_re=r"collection: 반다이 제품 1개 자동 연결 · 시리즈 1개 한국어로", collection_only=True)
+    after = {x["id"]: x for x in M.collection(page)["kits"]}
+    check(after[ids[0]]["catalogId"] == X["id"] and after[ids[0]]["name"] == k[0]["name"], "연결됨, 내 이름은 그대로")
+    check(after[ids[0]]["series"] == KO[X["id"]], f"빈 시리즈칸은 한국어 시리즈로 채움: {after[ids[0]]['series']}")
+    check(after[ids[1]]["series"] == KO[Y["id"]] and after[ids[1]]["catalogId"] == Y["id"], "일본어 시리즈를 한국어로 바꿈")
+    others = [i for i in after if i not in ids[:2]]
+    check(all(after[i] == next(x for x in k if x["id"] == i) for i in others), f"나머지 프라 {len(others)}개는 하나도 바뀌지 않음 (직접 적은 시리즈 포함)")
+
+    section("상세: 리뷰 찾아보기 · 시리즈 · 다시 열면 제안이 없다")
+    card_for(page, ids[0]).click()
+    page.wait_for_selector(".reviews", timeout=5000)
+    hrefs = page.evaluate("Array.from(document.querySelectorAll('.reviews a')).map(a => [a.href, a.rel, a.target, a.textContent])")
+    check(len(hrefs) == 2 and hrefs[0][0].startswith("https://www.youtube.com/results?search_query=") and hrefs[1][0].startswith("https://search.naver.com/search.naver?where=blog&query="), f"리뷰 링크: {[h[3] for h in hrefs]}")
+    check(all("noopener" in h[1] and h[2] == "_blank" for h in hrefs), "새 탭 · noopener")
+    q = f"{X['grade']} {k[0]['name']} 리뷰"
+    check(page.evaluate("decodeURIComponent(document.querySelector('.reviews a').href.split('search_query=')[1])") == q, f"검색어 '{q}'")
+    poll(page, f"document.querySelector('.linkbox') && document.querySelector('.linkbox').innerText.includes('{KO[X['id']]}')", timeout=15000)
+    check(True, "연결 줄에 한국어 시리즈 표시")
+    page.keyboard.press("Escape")
+    page.locator('[data-act="settings"]').first.click()
+    page.click("#s-auto")
+    page.wait_for_selector("#al-body", timeout=5000)
+    poll(page, "document.querySelector('#al-body') && !/불러오는 중/.test(document.querySelector('#al-body').innerText)", timeout=15000)
+    left = page.evaluate("Array.from(document.querySelectorAll('input[data-kind]')).map(i => i.dataset.kind + ':' + i.dataset.id)")
+    check(f"link:{ids[0]}" not in left and f"series:{ids[1]}" not in left, "적용한 항목은 제안에서 사라진다")
+    page.keyboard.press("Escape")
+    check(not ctx.errors, f"콘솔 에러 없음 {ctx.errors[:3]}")
+    ctx.close()
+
+    section("자동 연결 후보: 400px · 다크")
+    for scheme in ("light", "dark"):
+        ctx = M.new_context(browser, w=400, h=860, scheme=scheme, fake={"seed": seed})
+        ctx.route("**/data/catalog-*.json*", serve)
+        page = M.open_page(ctx, base)
+        page.locator('[data-act="settings"]').first.click()
+        page.click("#s-auto")
+        page.wait_for_selector("#al-body input[data-kind]", timeout=20000)
+        page.wait_for_timeout(1000)
+        check(page.evaluate("(() => { const p = document.querySelector('.panel'); return p.scrollWidth <= p.clientWidth + 1 && document.documentElement.scrollWidth <= innerWidth + 1; })()"), f"400px {scheme}: 가로 넘침 없음")
+        shot(page, f"cat-autolink-400-{scheme}.png")
+        ctx.close()
+
+
 def owner_flows(browser, base):
     """소유자 모드: 찾기 → 연결 → 채우기 → 공식 대표 사진 → 저장(커밋 1개). 저장되는 건 catalogId·cover 뿐 (이미지 URL은 저장 안 함)."""
     import collections
@@ -680,6 +791,7 @@ def main():
             owner_flows(browser, base)
             gap_checks(browser, base)
             feed_checks(browser, base)
+            autolink_checks(browser, base)
         finally:
             browser.b.close()
             srv.shutdown()

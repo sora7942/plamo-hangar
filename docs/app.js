@@ -461,6 +461,63 @@ function openLink(k) {
   });
 }
 
+/* ---------- 설정: 자동 연결 후보 보기 (이름·등급·스케일이 모두 같고 카탈로그 후보가 1개뿐인 것만) ---------- */
+function openAutoLink() {
+  var body = '<div id="al-body"><p class="hint">카탈로그를 불러오는 중이에요…</p></div>';
+  var foot = '<span class="hint" style="align-self:center">저장하면 저장소에 커밋이 하나 생겨요.</span><div class="r"><button class="btn" data-close>취소</button><button class="btn primary" id="al-go" disabled>적용</button></div>';
+  var m = openModal('자동 연결 후보', body, foot);
+  var box = m.querySelector('#al-body'), go = m.querySelector('#al-go'), links = [], sers = [];
+  function thumbHTML(it) {
+    var im = it.images[0], t = im ? C.thumbUrl(im) : '';
+    return '<div class="pk-thumb">' + (im ? '<img src="' + esc(t) + '"' + (t !== im ? ' data-alt="' + esc(im) + '"' : '') + ' alt="" loading="lazy" referrerpolicy="no-referrer" data-g="' + esc(P.glabel(it.grade)) + '">' : '<div class="ghost">' + esc(P.glabel(it.grade)) + '</div>') + '</div>';
+  }
+  function section(title, hint, rows, kind) {
+    if (!rows.length) return '';
+    return '<div class="al-sec"><div class="al-head"><h3>' + esc(title) + ' <span class="n">' + rows.length + '</span></h3><button type="button" class="linkbtn" data-all="' + kind + '">전체 해제</button></div>' +
+      '<p class="hint">' + esc(hint) + '</p><ul class="pk-results al-list">' + rows.join('') + '</ul></div>';
+  }
+  function paint() {
+    if (!cat) { box.innerHTML = '<p class="hint">카탈로그를 불러오지 못했어요. <button type="button" class="linkbtn" id="al-retry">다시 시도</button></p>'; return; }
+    links = C.autoLinks(data.kits, cat); sers = C.seriesKoSuggestions(data.kits, cat);
+    if (!links.length && !sers.length) {
+      box.innerHTML = '<p class="hint" style="font-size:14px">제안할 게 없어요. 이름·등급·스케일이 모두 같고 카탈로그 후보가 하나뿐인 미연결 프라가 없고, 시리즈를 한국어로 바꿀 연결 프라도 없어요. (이름이 조금이라도 다르거나 등급이 "기타"인 프라는 상세에서 직접 연결해 주세요.)</p>';
+      go.disabled = true; return;
+    }
+    var lrows = links.map(function (x) {
+      return '<li class="pk-item"><label class="al-check"><input type="checkbox" data-kind="link" data-id="' + esc(x.kit.id) + '" checked></label>' + thumbHTML(x.item) +
+        '<div class="pk-body"><b>' + esc(x.kit.name) + '</b><span class="hint">→ ' + esc(x.item.title) + '</span><span class="hint">' + esc([x.item.grade, x.item.scale, relText(x.item)].filter(Boolean).join(' · ')) +
+        (x.filled.length ? ' · 채워질 항목: ' + esc(x.filled.join(', ')) : '') + '</span></div></li>';
+    });
+    var srows = sers.map(function (x) {
+      return '<li class="pk-item"><label class="al-check"><input type="checkbox" data-kind="series" data-id="' + esc(x.kit.id) + '" checked></label>' +
+        '<div class="pk-body"><b>' + esc(x.kit.name) + '</b><span class="hint">' + esc(x.from) + '</span><span class="hint">→ ' + esc(x.to) + '</span></div></li>';
+    });
+    box.innerHTML = '<p class="hint" style="font-size:14px">체크한 것만 적용해요. 연결하면 이름·등급·스케일은 그대로 두고 비어 있는 칸(시리즈 등)만 채워요.</p>' +
+      section('반다이 제품에 연결', '이름·등급·스케일이 모두 같은 제품이 카탈로그에 하나뿐인 프라예요.', lrows, 'link') +
+      section('시리즈를 한국어로 바꾸기', '시리즈 칸이 카탈로그의 일본어 시리즈와 똑같은 프라만 보여요. 직접 적은 값은 건드리지 않아요.', srows, 'series');
+    count();
+  }
+  function picked(kind) { return Array.prototype.slice.call(box.querySelectorAll('input[data-kind="' + kind + '"]:checked')).map(function (i) { return i.dataset.id; }); }
+  function count() {
+    var a = picked('link').length, b = picked('series').length;
+    go.disabled = !(a + b); go.textContent = !(a + b) ? '적용' : [a ? a + '개 연결' : '', b ? '시리즈 ' + b + '개 변경' : ''].filter(Boolean).join(' · ') + ' 적용';
+  }
+  box.addEventListener('change', function (e) { if (e.target.matches('input[data-kind]')) count(); });
+  box.addEventListener('click', function (e) {
+    if (e.target.closest('#al-retry')) { ensureCatalog().then(paint); return; }
+    var all = e.target.closest('[data-all]'); if (!all) return;
+    var boxes = box.querySelectorAll('input[data-kind="' + all.dataset.all + '"]'), on = all.textContent === '전체 선택';
+    boxes.forEach(function (i) { i.checked = on; }); all.textContent = on ? '전체 해제' : '전체 선택'; count();
+  });
+  go.addEventListener('click', function () {
+    var linkMap = {}; picked('link').forEach(function (id) { var x = links.filter(function (l) { return l.kit.id === id; })[0]; if (x) linkMap[id] = x.item.id; });
+    var serIds = picked('series'), result = { links: 0, series: 0 };
+    commit(function (d) { result = C.applyAuto(d.kits, cat, linkMap, serIds); }, 'autolink', { links: Object.keys(linkMap).length, series: serIds.length },
+      { okMsg: [Object.keys(linkMap).length ? '반다이 제품 ' + Object.keys(linkMap).length + '개를 연결' : '', serIds.length ? '시리즈 ' + serIds.length + '개를 한국어로 변경' : ''].filter(Boolean).join(', ') + '했어요.' });
+  });
+  ensureCatalog().then(function () { if (m.isConnected) paint(); });
+}
+
 function openDetail(id) {
   var k = findKit(id); if (!k) return;
   var own = k.list === 'own', rows = [['목록', own ? '보유' : '위시리스트'], ['등급', gname(k.grade)], ['스케일', k.scale], ['시리즈', k.series], ['브랜드', k.brand]];
@@ -480,9 +537,11 @@ function openDetail(id) {
       '<p class="hint official-link">' + (data.settings.hideOfficialPhotos ? '공식 사진 숨김 설정이 켜져 있어요. ' : '이 제품은 쓸 수 있는 공식 사진이 없어요. ') +
       (pu ? '<a class="btn" href="' + esc(pu) + '" target="_blank" rel="noopener noreferrer">공식 사진 보기</a>' : '') + '</p>' : '');
   var linkInfo = !k.catalogId ? '' : '<div class="linkbox"><span class="lk">반다이 제품</span>' + (ci
-      ? '<span>' + esc(ci.title) + ' <span class="hint">' + esc([ci.grade, ci.scale].filter(Boolean).join(' · ')) + '</span>' + (pu ? ' · <a href="' + esc(pu) + '" target="_blank" rel="noopener noreferrer">공식 페이지</a>' : '') + '</span>'
+      ? '<span>' + esc(ci.title) + ' <span class="hint">' + esc([ci.grade, ci.scale, ci.seriesText].filter(Boolean).join(' · ')) + '</span>' + (pu ? ' · <a href="' + esc(pu) + '" target="_blank" rel="noopener noreferrer">공식 페이지</a>' : '') + '</span>'
       : '<span class="hint">' + (catState === 'ready' ? '카탈로그에 아직 없는 제품이에요 (' + esc(k.catalogId) + '). 다음 수집 때 채워져요.' : catState === 'error' ? '카탈로그를 불러오지 못했어요.' : '카탈로그를 불러오는 중이에요…') + '</span>') + '</div>';
-  var body = gallery + linkInfo +
+  var rv = k.sample ? null : C.reviewLinks(k);
+  var reviews = rv ? '<p class="reviews"><span class="lk">리뷰 찾아보기</span><a href="' + esc(rv.youtube) + '" target="_blank" rel="noopener noreferrer">유튜브</a><a href="' + esc(rv.naver) + '" target="_blank" rel="noopener noreferrer">네이버 블로그</a></p>' : '';
+  var body = gallery + linkInfo + reviews +
     '<dl class="specs">' + show.map(function (r) { return '<dt>' + r[0] + '</dt>' + (r[1] ? '<dd' + (/가격/.test(r[0]) ? ' class="mono"' : '') + '>' + esc(r[1]) + '</dd>' : '<dd class="missing">미입력</dd>'); }).join('') + '</dl>' +
     (k.memo ? '<p class="memo">' + esc(k.memo) + '</p>' : '');
   var foot = (canWrite && !k.sample) ? '<button class="btn danger" id="del">삭제</button><div class="r">' + '<button class="btn" id="relink">' + (k.catalogId ? '제품 연결 변경' : '반다이 제품 연결') + '</button>' + (k.catalogId ? '<button class="btn" id="unlink">연결 해제</button>' : '') +
@@ -760,6 +819,7 @@ function openSettings() {
   var body = (canWrite ? '<div class="settings-sec"><div class="field"><label for="s-name">컬렉션 이름</label><input id="s-name" value="' + esc(data.settings.name) + '"></div>' +
      '<label class="check"><input type="checkbox" id="s-hide"' + (data.settings.hidePurchase ? ' checked' : '') + '><span>방문자 화면에서 구매일·구매처·가격 숨기기<br><span class="hint">화면에서만 숨겨요. 저장소가 공개라서 data/collection.json에는 그대로 보여요. 꼭 비공개여야 하는 정보는 적지 마세요.</span></span></label>' +
      '<label class="check"><input type="checkbox" id="s-offhide"' + (data.settings.hideOfficialPhotos ? ' checked' : '') + '><span>공식 사진 숨기기<br><span class="hint">반다이 제품과 연결된 프라에 공식 사진을 붙이지 않아요. 내가 올린 사진만 나와요.</span></span></label></div>' : '') +
+   (canWrite ? '<div class="settings-sec"><h3>반다이 제품 연결</h3><p class="hint">이름·등급·스케일이 카탈로그와 똑같은 프라를 한꺼번에 연결해 줘요. 확인한 것만 한 번에 저장해요.</p><div class="row-btns"><button class="btn" id="s-auto">자동 연결 후보 보기</button></div></div>' : '') +
    '<div class="settings-sec"><h3>GITHUB 토큰</h3><p id="s-tstatus" style="font-size:14px">' + tokenStatus + '</p>' +
      '<div class="field"><label for="s-token">fine-grained 토큰</label><input id="s-token" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="' + (canWrite ? '다른 토큰으로 바꾸려면 붙여넣기' : 'github_pat_…') + '"></div>' +
      '<p class="hint">이 저장소(' + esc(REPO) + ')만, Contents: Read and write 권한으로 만든 토큰이어야 해요. 토큰은 이 브라우저에만 저장되고 화면에 다시 보여주지 않아요. 공용 PC에서는 쓰지 마세요.</p>' +
@@ -778,6 +838,7 @@ function openSettings() {
       toast('소유자 모드로 연결했어요. 저장할 때 토큰 권한을 한 번 더 확인해요.' + (persisted ? '' : ' (이 브라우저는 토큰을 저장하지 못해 이번 방문 동안만 유지돼요.)'));
     });
   });
+  var sa = $('s-auto'); if (sa) sa.addEventListener('click', openAutoLink);
   var fg = $('s-forget');
   if (fg) fg.addEventListener('click', function () {
     clearToken(); store = null; canWrite = false; sel = null;
