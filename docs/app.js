@@ -385,7 +385,7 @@ function pickerHTML(o) {
 function pickRow(it, exceptId) {
   var im = it.images[0], used = usedBy(it.id, exceptId);
   return '<li class="pk-item" data-id="' + esc(it.id) + '"><div class="pk-thumb">' + (im ? '<img src="' + esc(C.thumbUrl(im)) + '"' + (C.thumbUrl(im) !== im ? ' data-alt="' + esc(im) + '"' : '') + ' alt="" loading="lazy" referrerpolicy="no-referrer" data-g="' + esc(P.glabel(it.grade)) + '">' : '<div class="ghost">' + esc(P.glabel(it.grade)) + '</div>') + '</div>' +
-    '<div class="pk-body"><b>' + esc(it.title) + '</b><span class="hint">' + esc([it.grade, it.scale, relText(it), it.series].filter(Boolean).join(' · ')) + '</span>' +
+    '<div class="pk-body"><b>' + esc(it.title) + '</b><span class="hint">' + esc([it.grade, it.scale, relText(it), it.seriesText].filter(Boolean).join(' · ')) + '</span>' +
     (used.length ? '<span class="hint pk-used">이미 ' + esc(used.slice(0, 2).map(function (x) { return '"' + x.name + '"'; }).join(', ')) + (used.length > 2 ? ' 외 ' + (used.length - 2) + '개' : '') + '에 연결돼 있어요</span>' : '') + '</div>' +
     '<button type="button" class="btn" data-pick="' + esc(it.id) + '">선택</button></li>';
 }

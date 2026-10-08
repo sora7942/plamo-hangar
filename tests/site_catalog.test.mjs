@@ -265,3 +265,73 @@ test('gapInfo: 국내 입고 예정(미래 kr.date) 문구', () => {
 test('gapInfo: 이상한 kr 날짜는 무시', () => {
   assert.match(gi({ kr: [{ date: 'x' }, { date: '2026-13-45x' }, { date: null }] }).text, /^국내 입고 기록 없음/);
 });
+
+// ---------- 자동 연결 후보 · 시리즈 한국어 · 리뷰 링크 ----------
+const SER_JA = '機動戦士ガンダム 水星の魔女', SER_KO = '기동전사 건담 수성의 마녀';
+const acat = C.build([{ items: [
+  raw('bh-02_1', { nameKo: 'HG 1/144 건담 에어리얼', series: SER_JA, seriesKo: SER_KO }),
+  raw('bh-02_2', { grade: 'MG', scale: '1/100', nameKo: 'MG 1/100 발바토스 루프스' }),
+  raw('bh-02_3', { grade: 'MG', scale: '1/100', nameKo: 'MG 1/100 발바토스 루프스' }),
+  raw('bh-02_4', { grade: 'MGSD', scale: null, nameKo: 'MGSD 에어리얼' }),
+  raw('bh-02_5', { grade: '30MS', line: 'girl', scale: '1/144', nameKo: '30MS 시시리아' }),
+] }], null);
+const kitOf = (over) => P.normKit({ id: 'k' + Math.random().toString(36).slice(2, 6), list: 'own', name: '건담 에어리얼', grade: 'HG', scale: '1/144', series: '', brand: '반다이', ...over });
+
+test('autoLinks: 이름·등급·스케일이 같고 후보가 정확히 1개일 때만', () => {
+  const ok = kitOf({ name: '건담 에어리얼' }), prefixed = kitOf({ name: 'HG 1/144 건담  에어리얼' });
+  const r = C.autoLinks([ok, prefixed], acat);
+  assert.deepEqual(r.map((x) => x.item.id), ['bh-02_1', 'bh-02_1'], '머리말·띄어쓰기는 무시');
+  assert.deepEqual(r[0].filled, ['시리즈'], '채워지는 항목 안내(빈 시리즈칸은 한국어 시리즈로)');
+});
+
+test('autoLinks: 애매하면 연결하지 않는다 (이름 다름·등급 기타·스케일 다름·후보 2개·이미 연결)', () => {
+  const none = (k) => assert.deepEqual(C.autoLinks([k], acat), [], JSON.stringify([k.name, k.grade, k.scale]));
+  none(kitOf({ name: '에어리얼' }));
+  none(kitOf({ grade: '기타' }));
+  none(kitOf({ scale: '1/100' }));
+  none(kitOf({ name: '발바토스 루프스', grade: 'MG', scale: '1/100' })); // 같은 이름·등급·스케일 후보가 2개
+  none(kitOf({ catalogId: 'bh-02_1' }));
+  none(kitOf({ name: '시시리아', grade: '30MM' }));
+  assert.deepEqual(C.autoLinks([kitOf({ name: '에어리얼', grade: 'MGSD', scale: '논스케일' })], acat).map((x) => x.item.id), ['bh-02_4'], '카탈로그에 스케일이 없으면 논스케일끼리');
+  assert.deepEqual(C.autoLinks([kitOf({ name: '시시리아', grade: '30MS' })], acat).map((x) => x.item.id), ['bh-02_5']);
+  assert.deepEqual(C.autoLinks([kitOf()], null), []);
+});
+
+test('seriesKoSuggestions: 시리즈 칸이 카탈로그 일본어와 정확히 같을 때만', () => {
+  const same = kitOf({ catalogId: 'bh-02_1', series: SER_JA }), mine = kitOf({ catalogId: 'bh-02_1', series: '내가 쓴 시리즈' });
+  const ko = kitOf({ catalogId: 'bh-02_1', series: SER_KO }), blank = kitOf({ catalogId: 'bh-02_1', series: '' }), unlinked = kitOf({ series: SER_JA });
+  const noKo = kitOf({ catalogId: 'bh-02_2', series: 'x' });
+  const r = C.seriesKoSuggestions([same, mine, ko, blank, unlinked, noKo], acat);
+  assert.deepEqual(r.map((x) => [x.kit.id, x.from, x.to]), [[same.id, SER_JA, SER_KO]]);
+});
+
+test('applyAuto: 선택한 것만 연결(빈 칸만 채움)·시리즈 변경, 이름은 그대로', () => {
+  const a = kitOf({ name: '건담 에어리얼' }), b = kitOf({ name: '건담 에어리얼', series: '내 값' }), s = kitOf({ catalogId: 'bh-02_1', series: SER_JA }), s2 = kitOf({ catalogId: 'bh-02_1', series: SER_JA });
+  const n = C.applyAuto([a, b, s, s2], acat, { [a.id]: 'bh-02_1', [b.id]: 'bh-02_1' }, [s.id]);
+  assert.deepEqual(n, { links: 2, series: 1 });
+  assert.equal(a.catalogId, 'bh-02_1'); assert.equal(a.series, SER_KO); assert.equal(a.name, '건담 에어리얼');
+  assert.equal(b.series, '내 값', '이미 적은 시리즈는 그대로');
+  assert.equal(s.series, SER_KO); assert.equal(s2.series, SER_JA, '선택하지 않은 것은 그대로');
+  const t = kitOf({ catalogId: 'bh-02_1', series: '사용자가 고침' });
+  assert.deepEqual(C.applyAuto([t], acat, {}, [t.id]), { links: 0, series: 0 }, '그 사이 값이 바뀌었으면 건드리지 않는다');
+});
+
+test('fillPatch·검색: 시리즈는 한국어(seriesKo)를 먼저, 일본어로도 찾아진다', () => {
+  const it = acat.byId['bh-02_1'];
+  assert.equal(it.seriesText, SER_KO);
+  assert.equal(C.fillPatch(it, { name: 'x', grade: 'HG', scale: '1/144', series: '', brand: 'b' }).patch.series, SER_KO);
+  assert.equal(C.normalizeItem(raw('bh-02_9', { series: SER_JA })).seriesText, SER_JA, 'seriesKo가 없으면 일본어 series');
+  assert.equal(C.search(acat, '수성의 마녀').results[0].id, 'bh-02_1');
+  assert.equal(C.search(acat, '水星の魔女').results[0].id, 'bh-02_1');
+});
+
+test('reviewLinks: "<등급> <이름> 리뷰" 유튜브·네이버 블로그', () => {
+  const r = C.reviewLinks({ name: '건담 에어리얼', grade: 'HG' });
+  assert.equal(r.query, 'HG 건담 에어리얼 리뷰');
+  assert.equal(r.youtube, 'https://www.youtube.com/results?search_query=' + encodeURIComponent('HG 건담 에어리얼 리뷰'));
+  assert.equal(r.naver, 'https://search.naver.com/search.naver?where=blog&query=' + encodeURIComponent('HG 건담 에어리얼 리뷰'));
+  assert.equal(C.reviewLinks({ name: '에어리얼', grade: '기타' }).query, '에어리얼 리뷰');
+  assert.equal(C.reviewLinks({ name: 'HG 건담 에어리얼', grade: 'HG' }).query, 'HG 건담 에어리얼 리뷰', '이름이 이미 등급으로 시작하면 중복하지 않는다');
+  assert.equal(C.reviewLinks({ name: '"&<x>', grade: 'MG' }).youtube.includes('<'), false);
+  assert.equal(C.reviewLinks(null).query, '리뷰');
+});

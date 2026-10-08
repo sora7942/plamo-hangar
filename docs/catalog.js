@@ -63,7 +63,7 @@ function normalizeItem(raw) {
   var rel = raw.release && typeof raw.release === 'object' ? raw.release : {};
   var it = {
     id: raw.id, url: str(raw.url), pbUrl: str(raw.pbUrl), line: str(raw.line), channel: str(raw.channel),
-    grade: P.catalogGrade(raw.grade), rawGrade: str(raw.grade), scale: str(raw.scale), series: str(raw.series),
+    grade: P.catalogGrade(raw.grade), rawGrade: str(raw.grade), scale: str(raw.scale), series: str(raw.series), seriesKo: str(raw.seriesKo),
     nameJa: str(raw.nameJa), nameKo: str(raw.nameKo), priceJpy: Number(raw.priceJpy) || 0,
     release: { month: str(rel.month), date: str(rel.date) },
     kr: (Array.isArray(raw.kr) ? raw.kr : []).filter(function (e) { return e && typeof e.date === 'string'; }),
@@ -73,7 +73,8 @@ function normalizeItem(raw) {
   it.title = displayName(it);
   it.kn = norm(stripPrefix(it.nameKo, it.rawGrade, it.scale));
   it.jn = norm(stripPrefix(it.nameJa, it.rawGrade, it.scale));
-  it.sn = norm(it.series);
+  it.seriesText = it.seriesKo || it.series;   // 화면·채우기에는 한국어(seriesKo)를 먼저 쓴다
+  it.sn = norm(it.seriesKo) + norm(it.series);
   it.all = norm(it.nameKo) + '|' + norm(it.nameJa) + '|' + it.sn + '|' + norm(it.rawGrade) + '|' + norm(it.scale);
   return it;
 }
@@ -149,7 +150,7 @@ function fillPatch(item, cur, o) {
   if (name && (!cur.name || o.replaceName) && name !== cur.name) set('name', name, '이름');
   if (item.grade && item.grade !== '기타' && item.grade !== cur.grade && (o.fillAll || !cur.grade || cur.grade === '기타')) set('grade', item.grade, '등급');
   if (item.scale && item.scale !== cur.scale && (o.fillAll || !cur.scale || cur.scale === '논스케일')) set('scale', item.scale, '스케일');
-  if (item.series && item.series !== cur.series && (o.fillAll || !cur.series)) set('series', item.series, '시리즈');
+  if (item.seriesText && item.seriesText !== cur.series && (o.fillAll || !cur.series)) set('series', item.seriesText, '시리즈');
   if (!cur.brand) set('brand', '반다이', '브랜드');
   return { patch: patch, filled: filled };
 }
@@ -205,6 +206,60 @@ function gapInfo(item, today, since) {
   return out;
 }
 
+/* ---------- 자동 연결 후보 · 시리즈 한국어 · 리뷰 링크 ---------- */
+// 연결 후보 키: 정규화한 이름(등급·스케일 머리말 뗌) + 등급 + 스케일. 카탈로그에 스케일이 없으면 '논스케일'로 본다
+function linkKey(name, grade, scale) { return norm(name) + '|' + grade + '|' + (scale || '논스케일'); }
+// 아직 연결 안 된 프라 중 이름·등급·스케일이 모두 같고 카탈로그 후보가 정확히 1개인 것만. 등급 '기타'는 제외 (애매하면 연결하지 않는다).
+// → [{kit, item, filled}] (filled: 연결하면 빈 칸이 채워지는 항목)
+function autoLinks(kits, cat) {
+  if (!cat) return [];
+  var index = {};
+  cat.items.forEach(function (it) {
+    if (it.grade === '기타' || !it.title) return;
+    var k = linkKey(it.title, it.grade, it.scale);
+    (index[k] = index[k] || []).push(it);
+  });
+  var out = [];
+  (kits || []).forEach(function (kit) {
+    if (kit.catalogId) return;
+    var g = P.gname(kit.grade); if (g === '기타') return;
+    var c = index[linkKey(stripPrefix(kit.name, kit.grade, kit.scale), g, kit.scale)];
+    if (c && c.length === 1) out.push({ kit: kit, item: c[0], filled: fillPatch(c[0], kit).filled });
+  });
+  return out;
+}
+// 이미 연결된 프라 중 시리즈 칸이 카탈로그의 일본어 series 와 정확히 같고 한국어(seriesKo)가 있는 것 → 한국어로 바꾸자는 제안.
+// 사용자가 직접 적은 값(일본어 원문과 다른 값)은 건드리지 않는다.
+function seriesKoSuggestions(kits, cat) {
+  if (!cat) return [];
+  var out = [];
+  (kits || []).forEach(function (kit) {
+    var it = kit.catalogId ? cat.byId[kit.catalogId] : null;
+    if (it && it.series && it.seriesKo && kit.series === it.series && it.seriesKo !== kit.series) out.push({ kit: kit, item: it, from: kit.series, to: it.seriesKo });
+  });
+  return out;
+}
+// 고른 제안을 next(데이터 사본)의 kits 에 적용한다. links: [kitId→catalogId], series: [kitId]. 적용한 수를 돌려준다.
+function applyAuto(kits, cat, links, seriesIds) {
+  var n = { links: 0, series: 0 };
+  (kits || []).forEach(function (k) {
+    var it = links && links[k.id] ? cat.byId[links[k.id]] : null;
+    if (it && !k.catalogId) { Object.assign(k, fillPatch(it, k).patch); k.catalogId = it.id; n.links++; }
+    if (seriesIds && seriesIds.indexOf(k.id) >= 0) {
+      var cur = k.catalogId ? cat.byId[k.catalogId] : null;
+      if (cur && cur.seriesKo && k.series === cur.series) { k.series = cur.seriesKo; n.series++; }
+    }
+  });
+  return n;
+}
+// 리뷰 찾아보기: "<등급> <이름> 리뷰" 검색 링크 (유튜브·네이버 블로그). 등급을 모르면(기타) 이름만, 이름이 이미 등급으로 시작하면 중복하지 않는다
+function reviewLinks(kit) {
+  var name = String(kit && kit.name || '').trim(), g = P.gname(kit && kit.grade);
+  var q = ((g !== '기타' && name.toLowerCase().indexOf(g.toLowerCase()) !== 0 ? g + ' ' : '') + name + ' 리뷰').trim();
+  var e = encodeURIComponent(q);
+  return { query: q, youtube: 'https://www.youtube.com/results?search_query=' + e, naver: 'https://search.naver.com/search.naver?where=blog&query=' + e };
+}
+
 /* ---------- 읽기 ---------- */
 // meta.json(작음)을 먼저 받아 updatedAt을 캐시 키(?v=)로 쓴다: 다음 수집 전까지는 브라우저 캐시를 그대로 쓴다.
 // fetchFn(url, init) → Promise<Response>. 실패하면 reject (화면은 보유·위시만 보여 주고 다시 시도 버튼을 준다)
@@ -225,6 +280,6 @@ return {
   FILES: FILES, SEARCH_LIMIT: SEARCH_LIMIT,
   norm: norm, stripPrefix: stripPrefix, displayName: displayName, isStableImage: isStableImage, thumbUrl: thumbUrl, pageUrl: pageUrl,
   normalizeItem: normalizeItem, build: build, search: search, parseRef: parseRef, fillPatch: fillPatch,
-  officialImages: officialImages, setCatalogId: setCatalogId, gapInfo: gapInfo, dayNum: dayNum, monthEnd: monthEnd, releaseLabel: releaseLabel, releaseSortKey: releaseSortKey, cacheKey: cacheKey, load: load
+  officialImages: officialImages, setCatalogId: setCatalogId, gapInfo: gapInfo, autoLinks: autoLinks, seriesKoSuggestions: seriesKoSuggestions, applyAuto: applyAuto, reviewLinks: reviewLinks, dayNum: dayNum, monthEnd: monthEnd, releaseLabel: releaseLabel, releaseSortKey: releaseSortKey, cacheKey: cacheKey, load: load
 };
 });

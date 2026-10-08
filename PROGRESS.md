@@ -29,7 +29,13 @@
 - [x] 4c-2 app.js 연결: 3번째 탭, feed-root 마운트, 위시 추가(openForm prefill/openPicker), CSS
 - [x] 4c-3 e2e(site_catalog_check.py 157개 통과, e2e는 실제 컬렉션의 catalogId를 지운 사본으로 시험) + 400px·다크 + 보고 (사용자가 4d 진행하라고 하면 시작)
 
+## 4d 하위 단계
+- [x] 4d-1 사이트 순수 로직: catalog.js `autoLinks`·`seriesKoSuggestions`·`applyAuto`·`reviewLinks`·seriesKo(`seriesText`), pure.js 엑셀 catalogId 열·'autolink' 커밋 메시지 + 테스트
+- [ ] 4d-2 사이트 UI: 설정 '자동 연결 후보 보기'(연결 + 시리즈 한국어, 커밋 1개), 상세 리뷰 링크, 상세 linkbox에 시리즈, e2e
+- [ ] 4d-3 크롤러 seriesKo: crawler/series.py (고유 seriesKey만 번역, docs/data/series-ko.json 사전 + config.SERIES_KO_OVERRIDES), 카탈로그 항목에 seriesKo, crawl.yml 허용 목록, 테스트(Claude 호출 차단), --sample 10개
+- [ ] 4d-4 크롤러 미등록 catalogId: collection.json 읽기만 → 카탈로그에 없는 bh- id 상세 받기 (manual:true, 제외 브랜드면 line:"other" → catalog-gunpla.json, 재분류 건너뜀, 제외 목록 id 되살림, pb-는 안내만)
+- [ ] 4d-5 디스코드 '내 프라 우선' (collection.json 읽기만, 국내 입고 항목, 강조 색, 맨 앞)
+- [ ] 4d-6 SPEC·CLAUDE.md 갱신 + 보고(번역 샘플 10개 포함)
+
 ## 다음에 할 일
-- 4c 끝. **사용자가 4d를 지시하면 시작.** push는 사용자가 한다.
-- 4d 목록: (사이트) 설정 '자동 연결 후보 보기'(이름·등급·스케일이 확실히 같고 후보 1개일 때만, 저장 1회=커밋 1개), 리뷰 찾아보기 링크(유튜브·네이버 블로그 검색), 엑셀 백업·가져오기 catalogId 열. (크롤러) 디스코드 '내 프라 우선'(collection.json 읽기만), 카탈로그에 없는 catalogId 상세 받기(`manual:true`, `line:"other"`, SPEC 4장 결정; 재분류 건너뜀, 제외 목록 id 되살림).
-- 참고: 사용자가 실제 사이트에서 이미 프라 2개를 연결해 둠(collection.json) — e2e는 sanitize 사본 사용.
+4d-2: app.js openSettings에 '자동 연결 후보 보기' 버튼(소유자) → openAutoLink(): ensureCatalog 후 C.autoLinks/seriesKoSuggestions 목록(체크박스 기본 켜짐) → commit(mutate: C.applyAuto, kind 'autolink'). openDetail에 reviewLinks 줄, linkbox에 seriesText.

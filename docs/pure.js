@@ -223,7 +223,7 @@ function applyBulk(kits, ids, spec) {
 
 /* ---------- 엑셀·CSV 가져오기/백업 ---------- */
 var COLS = [['list','목록'],['name','이름'],['grade','등급'],['scale','스케일'],['series','시리즈'],['brand','브랜드'],['status','상태'],['date','구매일'],['shop','구매처'],['price','가격'],
-  ['tags','태그'],['startDate','조립 시작일'],['doneDate','완성일'],['memo','메모']];
+  ['tags','태그'],['startDate','조립 시작일'],['doneDate','완성일'],['memo','메모'],['catalogId','반다이 제품 ID']];
 function exportRows(kits) {
   return [COLS.map(function (c) { return c[1]; })].concat(kits.map(function (k) {
     return COLS.map(function (c) {
@@ -239,7 +239,7 @@ function exportRows(kits) {
 var ALIASES = { list: ['목록','구분'], name: ['이름','제품명','모델명','킷','상품명','name','제품'], grade: ['등급','grade','그레이드'], scale: ['스케일','scale','비율'],
   series: ['시리즈','작품','series','작품명'], brand: ['브랜드','제조사','brand','메이커'], status: ['상태','status','진행'],
   date: ['구매일','구입일','날짜','date','구매날짜'], shop: ['구매처','구입처','shop','판매처','매장'], price: ['가격','구매가','구입가','price','금액','예상 가격'],
-  tags: ['태그','tag','tags'], startDate: ['조립 시작일','시작일'], doneDate: ['완성일','조립 완료일','완료일'], memo: ['메모','비고','note','memo'] };
+  tags: ['태그','tag','tags'], startDate: ['조립 시작일','시작일'], doneDate: ['완성일','조립 완료일','완료일'], memo: ['메모','비고','note','memo'], catalogId: ['반다이 제품 id','반다이제품id','catalogid','카탈로그 id'] };
 var DEFAULT_ORDER = ['name','grade','scale','series','status','date','shop','price','memo'];
 
 function parseDelimited(text) {
@@ -311,7 +311,7 @@ function rowsToKits(rows, opts) {
     var grade = normGrade(get('grade'), name), wish = /위시|wish|희망/i.test(get('list'));
     out.push(normKit({ id: idFn() + i, created: new Date(now + i).toISOString(), list: wish ? 'wish' : 'own', name: name, grade: grade, scale: normScale(get('scale'), grade), series: get('series'), brand: get('brand') || '반다이',
       status: wish ? 'unbuilt' : normStatus(get('status')), date: wish ? '' : normDate(get('date')), shop: wish ? '' : get('shop'), price: Number(get('price').replace(/[^0-9]/g, '')) || 0,
-      tags: splitTags(get('tags')), startDate: normDate(get('startDate')), doneDate: normDate(get('doneDate')), memo: get('memo') }));
+      tags: splitTags(get('tags')), startDate: normDate(get('startDate')), doneDate: normDate(get('doneDate')), memo: get('memo'), catalogId: get('catalogId') }));
   });
   return { kits: out, skipped: skipped };
 }
@@ -346,6 +346,7 @@ function commitMessage(kind, o) {
   var base = {
     add: '추가 ' + clip(o.name, 40), edit: '수정 ' + clip(o.name, 40), move: '보유로 이동 ' + clip(o.name, 40), delete: '삭제 ' + clip(o.name, 40),
     link: '반다이 제품 연결 ' + clip(o.name, 40), unlink: '반다이 제품 연결 해제 ' + clip(o.name, 40),
+    autolink: (o.links ? '반다이 제품 ' + o.links + '개 자동 연결' : '') + (o.links && o.series ? ' · ' : '') + (o.series ? '시리즈 ' + o.series + '개 한국어로' : ''),
     'bulk-edit': (o.n || 0) + '개 일괄 수정', 'bulk-delete': (o.n || 0) + '개 일괄 삭제', 'import': (o.n || 0) + '개 가져오기', settings: '설정'
   }[kind] || '변경';
   var ph = [];

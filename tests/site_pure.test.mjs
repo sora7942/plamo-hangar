@@ -291,3 +291,24 @@ test('빈 칸 모아보기: 반다이 제품 미연결', () => {
   const kits = [P.normKit({ id: 'a', name: 'a' }), P.normKit({ id: 'b', name: 'b', catalogId: 'bh-01_1' })];
   assert.deepEqual(P.filterSort(kits, { q: '', grade: 'all', status: 'all', sort: 'name', tab: 'own', tag: 'all', gap: 'unlinked' }).map((k) => k.id), ['a']);
 });
+
+test('엑셀: catalogId 열 내보내기·가져오기 왕복, 잘못된 값은 버린다', () => {
+  const kits = [P.normKit({ id: 'k1', name: '건담 에어리얼', grade: 'HG', catalogId: 'bh-01_4257' }), P.normKit({ id: 'k2', name: '미연결', grade: 'MG' })];
+  const rows = P.exportRows(kits);
+  const h = rows[0].indexOf('반다이 제품 ID');
+  assert.ok(h >= 0, '헤더');
+  assert.equal(rows[1][h], 'bh-01_4257'); assert.equal(rows[2][h], '');
+  const back = P.rowsToKits(rows).kits;
+  assert.deepEqual(back.map((k) => k.catalogId), ['bh-01_4257', null]);
+  const bad = rows.map((r) => r.slice()); bad[1][h] = '<script>';
+  assert.equal(P.rowsToKits(bad).kits[0].catalogId, null);
+  const old = P.rowsToKits([['이름', '등급'], ['건담 에어리얼', 'HG']]).kits;
+  assert.equal(old[0].catalogId, null, 'catalogId 열이 없는 예전 백업도 그대로 가져온다');
+  assert.equal(P.rowsToKits([['이름', '등급', 'catalogId'], ['a', 'HG', 'bh-01_1']]).kits[0].catalogId, 'bh-01_1', '영문 헤더도 인식');
+});
+
+test('커밋 메시지: 자동 연결', () => {
+  assert.equal(P.commitMessage('autolink', { links: 3, series: 2 }), 'collection: 반다이 제품 3개 자동 연결 · 시리즈 2개 한국어로');
+  assert.equal(P.commitMessage('autolink', { links: 0, series: 2 }), 'collection: 시리즈 2개 한국어로');
+  assert.equal(P.commitMessage('autolink', { links: 1, series: 0 }), 'collection: 반다이 제품 1개 자동 연결');
+});
