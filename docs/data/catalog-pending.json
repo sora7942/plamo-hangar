@@ -1,5 +1,5 @@
 {
-"updatedAt":"2026-10-08T10:51:44+09:00",
+"updatedAt":"2026-10-08T23:31:18+09:00",
 "items":[
 {"id":"bh-01_7361","url":"https://bandai-hobby.net/item/01_7361/","line":null,"brandKeys":[],"grade":null,"scale":null,"seriesKey":null,"series":null,"nameJa":"30MF クラスアップアーマー (サヴェージハンター)","nameKo":null,"priceJpy":1100,"channel":"general","pbUrl":null,"release":{"month":"2027-01"},"kr":[],"images":[],"firstSeen":"2026-10-06T23:01:34+09:00","updated":"2026-10-06T23:01:34+09:00","detailAt":null},
 {"id":"bh-01_7360","url":"https://bandai-hobby.net/item/01_7360/","line":null,"brandKeys":[],"grade":null,"scale":null,"seriesKey":null,"series":null,"nameJa":"30MF ダークネビルアークナイト","nameKo":null,"priceJpy":3300,"channel":"general","pbUrl":null,"release":{"month":"2027-01"},"kr":[],"images":[],"firstSeen":"2026-10-06T23:01:34+09:00","updated":"2026-10-06T23:01:34+09:00","detailAt":null},
@@ -1389,6 +1389,7 @@
 "bh-01_1096":"brand:figurerise-bust",
 "bh-01_2870":"brand:tokyo2020_official",
 "bh-01_2871":"brand:tokyo2020_official",
+"bh-01_5331":"brand:pb_charapla",
 "bh-01_581":"brand:figurerise-bust",
 "bh-01_583":"brand:figurerise-bust",
 "bh-01_673":"brand:figurerise-bust",
