@@ -26,8 +26,10 @@
 
 ## 4c 하위 단계 (신제품·입고 탭)
 - [x] 4c-1 docs/feed.js 순수 로직(normalize·safeLink·build·filter·sort·문구·wishPrefill) + tests/site_feed.test.mjs
-- [ ] 4c-2 app.js 연결: 3번째 탭, feed-root 마운트, 위시 추가(openForm prefill), CSS
-- [ ] 4c-3 e2e(site_catalog_check.py에 feed 시나리오) + 400px·다크 + 보고
+- [x] 4c-2 app.js 연결: 3번째 탭, feed-root 마운트, 위시 추가(openForm prefill/openPicker), CSS
+- [x] 4c-3 e2e(site_catalog_check.py 157개 통과, e2e는 실제 컬렉션의 catalogId를 지운 사본으로 시험) + 400px·다크 + 보고 (사용자가 4d 진행하라고 하면 시작)
 
 ## 다음에 할 일
-4c-2: index.html에 feed.js 추가, renderAll에서 ui.tab==='feed'일 때 stats/controls/grid 대신 #feed-root, bindShell을 탭 전용으로 분기, openForm(null,{prefill,openPicker}) 지원, '+ 추가'의 list 기본값은 wish/own만.
+- 4c 끝. **사용자가 4d를 지시하면 시작.** push는 사용자가 한다.
+- 4d 목록: (사이트) 설정 '자동 연결 후보 보기'(이름·등급·스케일이 확실히 같고 후보 1개일 때만, 저장 1회=커밋 1개), 리뷰 찾아보기 링크(유튜브·네이버 블로그 검색), 엑셀 백업·가져오기 catalogId 열. (크롤러) 디스코드 '내 프라 우선'(collection.json 읽기만), 카탈로그에 없는 catalogId 상세 받기(`manual:true`, `line:"other"`, SPEC 4장 결정; 재분류 건너뜀, 제외 목록 id 되살림).
+- 참고: 사용자가 실제 사이트에서 이미 프라 2개를 연결해 둠(collection.json) — e2e는 sanitize 사본 사용.

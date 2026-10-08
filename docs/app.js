@@ -2,7 +2,7 @@
 (function () {
 'use strict';
 
-var P = window.PlamoPure, GH = window.PlamoGitHub, C = window.PlamoCatalog;
+var P = window.PlamoPure, GH = window.PlamoGitHub, C = window.PlamoCatalog, FD = window.PlamoFeed;
 var REPO = 'sora7942/plamo-hangar';
 var TOKEN_KEY = 'plamo-token', UI_KEY = 'plamo-ui';
 var XLSX_SRC = { url: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
@@ -230,15 +230,16 @@ function renderAll() {
   document.title = name;
   var all = allKits(), nOwn = all.filter(function (k) { return k.list === 'own'; }).length, nWish = all.length - nOwn;
   if (!canWrite) ui.gap = 'all';
-  app.innerHTML = '<div class="wrap' + (sel ? ' has-selbar' : '') + '">' +
+  app.innerHTML = '<div class="wrap' + (sel && ui.tab !== 'feed' ? ' has-selbar' : '') + '">' +
    '<header class="top"><div><p class="eyebrow">GUNPLA INVENTORY</p><h1>' + esc(name) + '</h1></div>' +
    (canWrite ? '<div class="actions"><button class="btn primary" data-act="add">+ 추가</button>' +
-     (isSample() ? '' : '<button class="btn" data-act="select">' + (sel ? '선택 끝내기' : '여러 개 선택') + '</button>') +
+     (isSample() || ui.tab === 'feed' ? '' : '<button class="btn" data-act="select">' + (sel ? '선택 끝내기' : '여러 개 선택') + '</button>') +
      '<button class="btn" data-act="import">가져오기</button><button class="btn" data-act="export">엑셀 백업</button><button class="btn" data-act="settings">설정</button></div>' : '') +
    '</header>' +
    '<nav class="tabs" role="tablist" aria-label="목록"><button class="tab" role="tab" data-tab="own" aria-selected="' + (ui.tab === 'own') + '">보유<span class="n">' + nOwn + '</span></button>' +
-     '<button class="tab" role="tab" data-tab="wish" aria-selected="' + (ui.tab === 'wish') + '">위시리스트<span class="n">' + nWish + '</span></button></nav>' +
-   '<section class="stats" id="stats" aria-label="현황"></section>' +
+     '<button class="tab" role="tab" data-tab="wish" aria-selected="' + (ui.tab === 'wish') + '">위시리스트<span class="n">' + nWish + '</span></button>' +
+     '<button class="tab" role="tab" data-tab="feed" aria-selected="' + (ui.tab === 'feed') + '">신제품·입고</button></nav>' +
+   (ui.tab === 'feed' ? '<div id="feed-root"></div>' : '<section class="stats" id="stats" aria-label="현황"></section>' +
    '<section class="controls" aria-label="필터">' +
      '<div class="ctl-row"><input class="search" id="q" type="search" placeholder="이름·시리즈·태그·메모로 찾기" value="' + esc(ui.q) + '" aria-label="검색">' +
      (ui.tab === 'own' ? '<select class="sel" id="f-status" aria-label="상태">' + opt('all', '모든 상태', ui.status) + STATUSES.map(function (s) { return opt(s.k, s.l, ui.status); }).join('') + '</select>' : '') +
@@ -248,8 +249,9 @@ function renderAll() {
    '</section>' +
    (isSample() ? '<div class="banner">아래는 예시 데이터예요. ' + (canWrite ? '첫 프라를 추가하거나 엑셀 목록을 가져오면 사라져요.' : '소유자가 프라를 추가하면 사라져요.') + '</div>' : '') +
    '<p class="count-line" id="countline"></p>' +
-   '<div class="grid" id="grid"></div>' +
+   '<div class="grid" id="grid"></div>') +
   '</div>' + (canWrite ? '' : '<footer class="foot"><button class="linkbtn" data-act="settings">소유자 설정</button></footer>');
+  if (ui.tab === 'feed') { bindShell(); feedView.mount(document.getElementById('feed-root')); return; }
   bindShell(); renderStats(); renderList(); renderSelbar();
   // 연결된 프라가 있으면 첫 화면을 그린 뒤에 카탈로그를 받아 공식 사진을 붙인다
   if (catState === 'idle' && !isSample() && hasLinked()) ensureCatalog().then(function () { if (!loading && document.getElementById('grid')) renderList(); });
@@ -334,13 +336,13 @@ function renderSelbar() {
 
 function bindShell() {
   var q = document.getElementById('q');
-  q.addEventListener('input', function () { ui.q = q.value; renderList(); });
+  if (q) q.addEventListener('input', function () { ui.q = q.value; renderList(); });
   var on = function (id, key, full) { var el = document.getElementById(id); if (el) el.addEventListener('change', function () { ui[key] = el.value; saveUI(); if (full) renderStats(); renderList(); }); };
   on('f-status', 'status'); on('f-sort', 'sort'); on('f-gap', 'gap');
   app.querySelector('.tabs').addEventListener('click', function (e) { var t = e.target.closest('[data-tab]'); if (!t || t.dataset.tab === ui.tab) return; ui.tab = t.dataset.tab; ui.grade = 'all'; ui.tag = 'all'; if (sel) sel.clear(); saveUI(); renderAll(); });
-  document.getElementById('chips').addEventListener('click', function (e) { var b = e.target.closest('.chip'); if (!b) return; ui.grade = b.dataset.grade; saveUI(); renderStats(); renderList(); });
-  document.getElementById('tagchips').addEventListener('click', function (e) { var b = e.target.closest('.chip'); if (!b) return; ui.tag = b.dataset.tag; saveUI(); renderStats(); renderList(); });
-  document.getElementById('grid').addEventListener('click', function (e) { var c = e.target.closest('.card'); if (!c) return;
+  if (ui.tab !== 'feed') document.getElementById('chips').addEventListener('click', function (e) { var b = e.target.closest('.chip'); if (!b) return; ui.grade = b.dataset.grade; saveUI(); renderStats(); renderList(); });
+  if (ui.tab !== 'feed') document.getElementById('tagchips').addEventListener('click', function (e) { var b = e.target.closest('.chip'); if (!b) return; ui.tag = b.dataset.tag; saveUI(); renderStats(); renderList(); });
+  if (ui.tab !== 'feed') document.getElementById('grid').addEventListener('click', function (e) { var c = e.target.closest('.card'); if (!c) return;
     if (sel) { var id = c.dataset.id; if (sel.has(id)) sel.delete(id); else sel.add(id); renderList(); renderSelbar(); var n = document.querySelector('.card[data-id="' + CSS.escape(id) + '"]'); if (n) n.focus(); }
     else openDetail(c.dataset.id); });
   app.querySelectorAll('[data-act]').forEach(function (b) { b.addEventListener('click', function () {
@@ -529,7 +531,8 @@ function suggHTML() { return '<div class="sugg">' + tagSuggest().map(function (t
 
 function openForm(k, o) {
   o = o || {}; var isNew = !k, move = !!o.moveToOwn;
-  k = k || { name: '', grade: 'HG', scale: '1/144', series: '', brand: '반다이', status: 'unbuilt', date: ui.tab === 'wish' ? '' : today(), shop: '', price: '', memo: '', tags: [], startDate: '', doneDate: '', list: ui.tab, photos: [], cover: null, catalogId: null };
+  k = k || { name: '', grade: 'HG', scale: '1/144', series: '', brand: '반다이', status: 'unbuilt', date: ui.tab === 'wish' ? '' : today(), shop: '', price: '', memo: '', tags: [], startDate: '', doneDate: '', list: ui.tab === 'wish' ? 'wish' : 'own', photos: [], cover: null, catalogId: null };
+  if (isNew && o.prefill) k = Object.assign(k, o.prefill); // 신제품·입고 탭의 '위시리스트에 추가'
   var kitId = isNew ? uid() : k.id;
   var list = move ? 'own' : k.list, status = move ? 'unbuilt' : k.status, date = move ? (k.date || today()) : k.date;
   var dupOk = false;
@@ -642,7 +645,7 @@ function openForm(k, o) {
   });
   paintLinked();
   if (link && catState !== 'ready') ensureCatalog().then(function () { if (m.isConnected) { paintLinked(); paintPhotos(); } });
-  if (isNew && !k.name) togglePicker(true);
+  if (isNew && (!k.name || o.openPicker)) togglePicker(true);
 
   /* 사진 관리: 추가·순서·대표·삭제는 저장 누를 때 한 커밋으로 */
   var pm = $('pm'), status$ = $('pm-status'), fileIn = $('f-photo');
@@ -876,6 +879,13 @@ function openImport() {
     })();
   });
 }
+
+/* ---------- 신제품·입고 탭 (feed.js) ---------- */
+var feedView = FD.createView({
+  esc: esc, getKits: function () { return data.kits; }, getCat: function () { return cat; }, ensureCatalog: ensureCatalog, canWrite: function () { return canWrite && !!store; }, today: today,
+  fetchJson: function (u) { return window.fetch(u).then(function (r) { if (!r.ok) throw new Error('http'); return r.json(); }); },
+  onWish: function (row, w) { openForm(null, { prefill: w.prefill, openPicker: w.openPicker }); }
+});
 
 /* ---------- boot ---------- */
 renderAll();

@@ -239,3 +239,22 @@ img{max-width:100%}
 /* 재판 공백 (4b) */
 .gapline{font-size:12px;color:var(--muted);line-height:1.35;overflow-wrap:anywhere}
 .gapline.recent{color:var(--st-built);font-weight:600}
+
+/* 신제품·입고 탭 (4c) */
+.fd-controls{margin-bottom:12px}
+.fd-list{display:flex;flex-direction:column;gap:8px}
+.fd-item{display:flex;gap:12px;align-items:center;padding:10px 12px;background:var(--surface);border:1px solid var(--line)}
+.fd-item.mine{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--surface))}
+.fd-thumb{flex:0 0 88px;height:66px;background:var(--sunken);overflow:hidden;display:grid;place-items:center}
+.fd-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.fd-thumb .ghost{font-family:var(--f-display);font-weight:700;font-size:18px;letter-spacing:.06em;color:var(--muted)}
+.fd-body{flex:1 1 140px;min-width:0;display:flex;flex-direction:column;gap:3px}
+.fd-tags{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.fd-type{--c:var(--st-unbuilt);font-size:11px;font-weight:700;padding:1px 7px;border:1px solid var(--c);color:var(--c)}
+.fd-type.t-pb-new{--c:var(--st-custom)}.fd-type.t-kr-restock{--c:var(--st-built)}.fd-type.t-kr-new{--c:var(--st-building)}
+.fd-mine{background:var(--accent);color:var(--accent-ink);font-size:11px;font-weight:700;padding:1px 7px}
+.fd-new{background:var(--danger);color:#fff;font-family:var(--f-display);font-size:11px;font-weight:700;padding:1px 6px;letter-spacing:.04em}
+.fd-title{font-weight:600;font-size:15px;line-height:1.35;color:inherit;text-underline-offset:3px;overflow-wrap:anywhere}
+.fd-act{flex:0 0 auto}
+.fd-more{text-align:center;margin:14px 0}
+@media (max-width:520px){.fd-item{flex-wrap:wrap}.fd-thumb{flex-basis:72px;height:54px}.fd-act{flex:1 1 100%}.fd-act .btn{width:100%}}

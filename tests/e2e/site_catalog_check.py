@@ -28,6 +28,11 @@ def load(name):
 
 
 REAL = load("collection.json")
+# 사용자가 실제 사이트에서 연결해 둔 값(catalogId·cover)은 이 확인과 무관하게 지운 사본으로 시험한다 (저장소 파일은 그대로)
+for _k in REAL["kits"]:
+    _k["catalogId"] = None
+    _k["cover"] = None
+UNLINKED_TEXT = json.dumps(REAL, ensure_ascii=False)
 ITEMS = load("catalog-gunpla.json")["items"] + load("catalog-girl.json")["items"]
 MANY = [x for x in ITEMS if len(x["images"]) >= 4][:6]
 NOIMG = next(x for x in ITEMS if x.get("detailAt") and not x["images"])
@@ -65,8 +70,8 @@ class Handler(SimpleHTTPRequestHandler):
         path = self.path.split("?")[0]
         if self.headers.get("X-Plain") is None and path.startswith("/data/"):
             REQUESTS.append(self.path)
-        if path == "/data/collection.json" and MODE["linked"]:
-            body = COLL_TEXT.encode("utf-8")
+        if path == "/data/collection.json":
+            body = (MODE.get("text") or (COLL_TEXT if MODE["linked"] else UNLINKED_TEXT)).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(body)))
@@ -348,6 +353,155 @@ def gap_checks(browser, base):
         ctx.close()
 
 
+def feed_checks(browser, base):
+    """신제품·입고 탭: 지연 로딩, 내 프라 맨 위, 종류·라인·등급 필터, 위시리스트에 추가(연결된 채로)."""
+    feed = load("feed.json")["items"]
+    by_id = {x["id"]: x for x in ITEMS}
+    cat_of = lambda f: by_id.get(f["catalogId"]) if f.get("catalogId") else None
+    my_kr = next(f for f in feed if f["type"] == "kr-restock" and cat_of(f))
+    my_new = next(f for f in feed if f["type"] == "new" and cat_of(f))
+    coll = json.loads(json.dumps(REAL))
+    coll["kits"][0]["catalogId"] = my_new["catalogId"]
+    coll["kits"][1]["catalogId"] = my_kr["catalogId"]
+    coll["kits"][1]["list"] = "wish"
+    text = json.dumps(coll, ensure_ascii=False)
+    n_mine = sum(1 for f in feed if f.get("catalogId") in (my_new["catalogId"], my_kr["catalogId"]))
+    MODE["text"] = text
+
+    section("신제품·입고 탭 (방문자)")
+    REQUESTS.clear()
+    ctx = M.new_context(browser, token=False)
+    page = M.open_page(ctx, base)
+    check(not [r for r in REQUESTS if "feed.json" in r], "탭을 열기 전에는 feed.json 을 읽지 않는다")
+    check(page.locator('.tab[data-tab="feed"]').count() == 1, "세 번째 탭 '신제품·입고'")
+    page.click('.tab[data-tab="feed"]')
+    page.wait_for_selector(".fd-item", timeout=15000)
+    check(len([r for r in REQUESTS if "feed.json" in r]) == 1 and all("?v=" in r for r in REQUESTS if "feed.json" in r), "feed.json 1회, ?v= 캐시 키")
+    check(page.locator(".fd-item").count() == 60, f"처음 60개만 그린다 (전체 {len(feed)}개)")
+    check(f"({len(feed) - 60}개 남음)" in page.locator("[data-more]").inner_text(), "더 보기 버튼")
+    check(page.locator(".fd-item.mine").count() == n_mine and page.locator(".fd-item").first.get_attribute("class").endswith("mine"), f"내 프라 {n_mine}개가 맨 위·강조")
+    tags = page.locator(".fd-item.mine .fd-mine").all_inner_texts()
+    check(sorted(tags) == sorted(["내 프라 · 보유", "내 프라 · 위시"]) or n_mine != 2, f"내 프라 표시: {tags}")
+    check(page.locator(".fd-item.mine").first.get_attribute("data-id") == my_kr["id"], "내 프라 안에서는 최근 발견 순 (국내 입고가 먼저)")
+    check(page.locator("[data-wish]").count() == 0, "방문자에게는 '위시리스트에 추가' 버튼이 없다")
+    hrefs = page.evaluate("Array.from(document.querySelectorAll('.fd-title[href]')).map(a => [a.href, a.rel, a.target])")
+    ok = all(h.startswith("https://") and "noopener" in r and t == "_blank" and any(d in h for d in ("bandai-hobby.net", "p-bandai.jp", "joyhobby.co.kr")) for h, r, t in hrefs)
+    check(ok and len(hrefs) == 60, "제목 링크: 공식·조이하비 https, noopener, 새 탭")
+    n_img = page.evaluate("document.querySelectorAll('.fd-thumb img').length")
+    check(n_img > 0 and page.evaluate("Array.from(document.querySelectorAll('.fd-thumb img')).every(i => i.src.startsWith('https://bandai-'))"), f"썸네일은 카탈로그의 공식 사진({n_img}개)")
+    shot(page, "cat-feed-1280-light.png")
+
+    cnt = lambda: int(page.locator(".count-line").inner_text().split("개 표시")[0])
+    def click_chip(group, val):
+        page.click(f'[data-fk="{group}"][data-fv="{val}"]')
+        page.wait_for_timeout(150)
+    click_chip("type", "kr-restock")
+    exp = sum(1 for f in feed if f["type"] == "kr-restock")
+    check(cnt() == exp and page.evaluate("Array.from(document.querySelectorAll('.fd-item .fd-type')).every(t => t.classList.contains('t-kr-restock'))"), f"종류 '국내 재입고' {exp}개")
+    click_chip("type", "all")
+    click_chip("line", "girl")
+    exp = sum(1 for f in feed if cat_of(f) and cat_of(f)["line"] == "girl")
+    check(cnt() == exp, f"라인 '걸프라' {exp}개 (연결 안 된 입고 글은 라인을 몰라 빠진다)")
+    click_chip("line", "all")
+    click_chip("grade", "MG")
+    exp = sum(1 for f in feed if cat_of(f) and cat_of(f)["grade"] == "MG")
+    check(cnt() == exp and exp > 0, f"등급 'MG' {exp}개")
+    click_chip("type", "kr-new")
+    exp2 = sum(1 for f in feed if f["type"] == "kr-new" and cat_of(f) and cat_of(f)["grade"] == "MG")
+    check(cnt() == exp2, f"필터 조합(국내 신규 + MG) {exp2}개")
+    click_chip("type", "all"); click_chip("grade", "all")
+    click_chip("mine", "toggle")
+    check(cnt() == n_mine and page.locator(".fd-item.mine").count() == n_mine, "내 프라만 보기")
+    click_chip("mine", "toggle")
+    page.click("[data-more]")
+    check(page.locator(".fd-item").count() == min(120, len(feed)), "더 보기: 60개 더")
+    check(M.no_overflow(page) and not ctx.errors, f"가로 넘침·콘솔 에러 없음 {ctx.errors[:3]}")
+    # 탭을 오갔다 와도 다시 받지 않는다
+    page.click('.tab[data-tab="own"]'); page.click('.tab[data-tab="feed"]')
+    page.wait_for_selector(".fd-item")
+    check(len([r for r in REQUESTS if "feed.json" in r]) == 1, "탭을 다시 열어도 feed.json 은 1회")
+    ctx.close()
+
+    section("신제품·입고 탭: 읽기 실패 → 다시 시도")
+    ctx = M.new_context(browser, token=False)
+    box = {"fail": True}
+    ctx.route("**/data/feed.json*", lambda r: r.abort() if box["fail"] else r.continue_())
+    page = M.open_page(ctx, base)
+    page.click('.tab[data-tab="feed"]')
+    page.wait_for_selector("[data-retry]", timeout=10000)
+    check("불러오지 못했어요" in page.locator("#feed-root").inner_text(), "실패 안내 + 다시 시도")
+    box["fail"] = False
+    page.click("[data-retry]")
+    page.wait_for_selector(".fd-item", timeout=10000)
+    check(page.locator(".fd-item").count() > 0, "다시 시도하면 목록이 뜬다")
+    ctx.close()
+
+    section("신제품·입고 탭 (소유자): 위시리스트에 추가")
+    seed = {COLL_PATH: text + "\n", "docs/data/feed.json": '{"n":1}', "docs/data/meta.json": "{}"}
+    ctx = M.new_context(browser, fake={"seed": seed})
+    page = M.open_page(ctx, base)
+    page.click('.tab[data-tab="feed"]')
+    page.wait_for_selector(".fd-item", timeout=15000)
+    check(page.locator(".fd-item.mine [data-wish]").count() == 0, "내 프라에는 추가 버튼이 없다")
+    target = next(f for f in feed if f["type"] == "kr-new" and cat_of(f) and f["catalogId"] not in (my_new["catalogId"], my_kr["catalogId"]))
+    page.click('.tab[data-tab="feed"]')
+    tcat = cat_of(target)
+    # 필터로 대상을 화면에 올린다 (60개 제한)
+    page.click(f'[data-fk="type"][data-fv="kr-new"]')
+    page.click(f'[data-fk="grade"][data-fv="{tcat["grade"]}"]')
+    before = len(M.history(page)); M.reset_log(page)
+    page.locator(f'.fd-item[data-id="{target["id"]}"] [data-wish]').click()
+    page.wait_for_selector("#kit-form", timeout=5000)
+    check(page.input_value("#f-list") == "wish", "위시리스트로 열린다")
+    check("연결됨" in page.locator("#pk-linked").inner_text(), "카탈로그에 연결된 채로 열린다")
+    check(page.input_value("#f-grade") == tcat["grade"] and page.input_value("#f-name") != "", f"이름·등급이 채워진다: {page.input_value('#f-name')}")
+    check(not page.locator("#pk-box").is_visible(), "연결된 항목은 찾기 영역이 접혀 있다")
+    page.click("#save")
+    if page.locator("#modal").count() and page.locator("#dup").is_visible():  # 같은 이름이 이미 있으면 한 번 더 눌러야 추가 (기존 중복 경고)
+        page.click("#save")
+    M.settle(page)
+    M.one_commit(page, "위시리스트 추가", before, msg_re=r"collection: 추가 ", collection_only=True)
+    saved = M.collection(page)["kits"][-1]
+    check(saved["list"] == "wish" and saved["catalogId"] == target["catalogId"], f"저장: wish + catalogId {saved['catalogId']}")
+    check(page.locator(f'.fd-item[data-id="{target["id"]}"]').get_attribute("class").endswith("mine") and page.locator(f'.fd-item[data-id="{target["id"]}"] [data-wish]').count() == 0, "추가 후 그 항목이 '내 프라'로 바뀐다")
+    page.click('[data-fk="type"][data-fv="all"]'); page.click('[data-fk="grade"][data-fv="all"]')
+    page.click('.tab[data-tab="wish"]')
+    check(page.locator(".card").count() == 2, "위시리스트 탭에 2개 (기존 1 + 추가 1)")
+    page.click('.tab[data-tab="feed"]')
+    un = next(f for f in feed if not f.get("catalogId"))
+    page.click('[data-fk="type"][data-fv="' + un["type"] + '"]')
+    page.locator(f'.fd-item[data-id="{un["id"]}"] [data-wish]').click()
+    page.wait_for_selector("#kit-form")
+    check(page.locator("#pk-box").is_visible() and page.input_value("#f-list") == "wish" and page.input_value("#f-name") == un["titleKo"], "연결 안 된 입고 글: 이름만 채우고 찾기가 열린다")
+    check("연결 안 됨" in page.locator("#pk-linked").inner_text(), "연결 없이 열린다")
+    page.keyboard.press("Escape")
+    page.click('[data-act="add"]')
+    page.wait_for_selector("#kit-form")
+    check(page.input_value("#f-list") == "own", "신제품·입고 탭에서 '+ 추가'는 보유 목록으로 열린다")
+    page.keyboard.press("Escape")
+    check(not ctx.errors, f"콘솔 에러 없음 {ctx.errors[:3]}")
+    ctx.close()
+
+    section("신제품·입고 탭: 400px · 다크")
+    for scheme in ("light", "dark"):
+        ctx = M.new_context(browser, w=400, h=860, scheme=scheme, token=False)
+        page = M.open_page(ctx, base)
+        page.click('.tab[data-tab="feed"]')
+        page.wait_for_selector(".fd-item", timeout=15000)
+        page.wait_for_timeout(1500)
+        check(M.no_overflow(page), f"400px {scheme}: 가로 넘침 없음 (탭 3개·필터·목록)")
+        shot(page, f"cat-feed-400-{scheme}.png")
+        ctx.close()
+    ctx = M.new_context(browser, w=400, h=860, token=False)
+    ctx.route("**/data/catalog-*.json*", lambda r: r.abort())
+    page = M.open_page(ctx, base)
+    page.click('.tab[data-tab="feed"]')
+    page.wait_for_selector(".fd-item", timeout=15000)
+    check("카탈로그를 불러오지 못해" in page.locator("#feed-root").inner_text() and page.locator(".fd-item").count() > 0, "카탈로그 없이도 소식 목록은 뜨고 안내가 나온다")
+    ctx.close()
+    MODE.pop("text", None)
+
+
 def owner_flows(browser, base):
     """소유자 모드: 찾기 → 연결 → 채우기 → 공식 대표 사진 → 저장(커밋 1개). 저장되는 건 catalogId·cover 뿐 (이미지 URL은 저장 안 함)."""
     import collections
@@ -525,6 +679,7 @@ def main():
             run(browser, base)
             owner_flows(browser, base)
             gap_checks(browser, base)
+            feed_checks(browser, base)
         finally:
             browser.b.close()
             srv.shutdown()
