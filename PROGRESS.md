@@ -42,8 +42,9 @@
 
 ## 5단계 (마무리)
 - [x] 5a 디스코드 테스트 발송: `python main.py --discord-test`(crawler/discord_test.py), crawl.yml 입력 discord_test + 커밋 단계 건너뜀, tests/test_discord_test.py(9개). 로컬에서는 `--dry-run`으로만 확인(실제 발송은 Actions 수동 실행 `discord_test`로, 사용자가 요청할 때만)
-- [ ] 5b README.md 새로 쓰기 (구조·소유자 토큰·수동 실행 입력·로컬 개발·운영 메모·출처 원칙·Secrets)
-- [ ] 5c SPEC 12장 5단계 상태 + 보고
+- [x] 5b README.md 새로 쓰기 (구조·소유자 토큰·수동 실행 입력·로컬 개발·운영 메모·출처 원칙·Secrets)
+- [x] 5c SPEC 8·9·12장 5단계 반영 + 보고
 
 ## 다음에 할 일
-5b: README.md 전면 개편. 기존 README(1단계 시절)의 Pages 켜기·토큰 만들기·사이트 사용법은 살려서 합친다. 토큰 만료일 2027-10-06 → 갱신 방법. 목차를 보고에 포함.
+- 5단계 코드·문서 끝. push 후 사용자가: (1) Actions 수동 실행 `discord_test` 켜서 실제 알림 1건 확인(요청할 때만) (2) 다음 날 예약 실행으로 `마지막 관측`·meta 갱신 확인 (3) 이전 Claude 아티팩트 정리 여부 결정.
+- 토큰 만료 2027-10-06 (README 4장에 갱신 방법).

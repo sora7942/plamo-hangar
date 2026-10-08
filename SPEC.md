@@ -267,10 +267,11 @@ plamo-hangar/
   - `--joy-pages N`: `--bootstrap` 때 조이하비 과거 목록을 훑을 쪽 수(기본 25). 조이하비 과거 글만 채우려면 `--bootstrap --only joyhobby`
   - `--data-dir DIR`: `docs/data` 대신 다른 폴더에 읽고 쓴다(로컬에서 부분 채우기를 저장소와 섞지 않으려고)
   - `--no-discord`: 발송만 끈다. `--dry-run`은 파일은 쓰고 디스코드는 보내지 않으며 **보낼 내용을 항상 출력**하고, API 비용이 드는 번역은 `--only translate`로 명시할 때만 돌린다
+  - `--discord-test` *(5단계)*: 수집 없이 테스트 알림 **1메시지**만 보낸다. `feed.json` 최근 3개(내 프라 연결 항목이 있으면 그중 1개 포함)를 실제 알림과 같은 형식으로 묶고 맨 앞에 `[테스트] 프라 격납고 알림 확인용`을 붙인다. `docs/data`는 바꾸지 않고(커밋도 없음) 웹훅은 `DISCORD_WEBHOOK_URL`(Actions Secret)만 쓴다 — 없으면 "웹훅 없음"만 출력하고 성공 종료, 발송 실패는 종료 코드 1. `--dry-run`을 같이 주면 내용만 출력. 수집 옵션과는 함께 쓸 수 없다
 - 로컬 미리보기: `python -m http.server -d docs 8000`
 
 ## 9. GitHub Actions (`crawl.yml`)
-- 트리거: `schedule: cron "10 22 * * *"` (KST 07:10), `workflow_dispatch`(입력: `bootstrap`, `max_backlog`(기본 150), `joy_backfill`(조이하비 과거 글만: `--bootstrap --only joyhobby`), `joy_pages`(기본 25))
+- 트리거: `schedule: cron "10 22 * * *"` (KST 07:10), `workflow_dispatch`(입력: `bootstrap`, `max_backlog`(기본 150), `joy_backfill`(조이하비 과거 글만: `--bootstrap --only joyhobby`), `joy_pages`(기본 25), `discord_test`(기본 꺼짐: 수집·커밋 없이 테스트 알림 1건만 — 8장 `--discord-test`))
 - `concurrency: { group: crawl }`, 권한 `contents: write`
 - 단계: checkout → Python 3.12 + pip 캐시 → `python main.py` → 요청 로그 artifact(7일) → `git pull --rebase --autostash` → **허용 목록 7개만 add**(`catalog-gunpla/girl/pending.json`, `feed.json`, `kr-arrivals.json`, `series-ko.json`, `meta.json`; 그 밖의 경로가 staged면 실패해 `collection.json`·`photos/`를 지킨다) → 변경이 있으면 커밋(`data: crawl YYYY-MM-DD`) → push(충돌 시 `pull --rebase` 후 최대 3회). `timeout-minutes: 45`
 - 조이하비 과거 글 채우기: 수동 실행에서 `joy_backfill`을 켠다(한 번에 끝남, 약 320요청 ≈ 6.5분 — 후보 글의 2/3가 BD 행이 없는 글이라 대부분이 "봤음"용 요청이다). 호비사이트 채우기와 독립이다
@@ -308,3 +309,4 @@ plamo-hangar/
    - **상태 (2026-10-08): 코드·테스트 완료.** 4a 카탈로그 로딩·검색·연결·공식 사진, 4b 재판 공백·정렬, 4c 신제품·입고 탭, 4d 자동 연결·시리즈 한국어·리뷰 링크·엑셀 `catalogId`·크롤러(내 프라 우선 알림, 미등록 `catalogId` 상세, `seriesKo`). 남은 것: push 후 Actions 수동 실행으로 `seriesKo` 번역(API 키 필요)·미등록 `catalogId` 상세 확인, 사이트에서 실제 연결·알림 확인
    - 사이트 로딩: `collection.json`만으로 먼저 그리고, 연결된 프라가 있을 때(또는 찾기·신제품 탭을 열 때) `meta.json` → `catalog-gunpla/girl.json?v=<meta.updatedAt>`을 뒤에서 받는다. `kr-arrivals`·`pending`은 읽지 않는다(pending은 4d에서 URL 붙여넣기 확인용으로만 검토)
 5. 마무리 — 실제 알림 1회(사용자 요청 시), README, 이전 아티팩트 정리 여부 확인
+   - **상태 (2026-10-08)**: 5a 디스코드 테스트 발송(`--discord-test`, 수동 실행 입력 `discord_test`) **코드·테스트 완료**, 5b README **완료**. 남은 것: push 후 Actions 수동 실행(`discord_test` 켜기)으로 실제 알림 1건 확인(사용자가 요청할 때만), 다음 날 예약 실행 확인(11장 5단계), 이전 Claude 아티팩트 정리 여부 확인
