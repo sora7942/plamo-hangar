@@ -1,5 +1,5 @@
 {
-"updatedAt":"2026-10-09T14:05:46+09:00",
+"updatedAt":"2026-10-09T15:07:57+09:00",
 "posts":{
 "139506":{"date":"2026-10-02","title":"10/3(토) 판매예정 반다이 제품리스트 안내","state":"done","sale":"2026-10-03","restock":false,"rows":5},
 "139459":{"date":"2026-09-28","title":"9/29(화) 판매예정 반다이 제품리스트 안내","state":"done","sale":"2026-09-29","restock":true,"rows":19},
@@ -377,6 +377,7 @@
 "BD5058783":{"catalogId":"bh-01_935","method":"fuzzy","score":100.0,"margin":100.0,"nameOk":true,"nameApplied":true,"post":"138762","at":"2026-10-09T11:04:36+09:00"},
 "BD5058784":{"catalogId":"bh-01_952","method":"fuzzy","score":100.0,"margin":100.0,"nameOk":true,"nameApplied":true,"post":"136983","at":"2026-10-09T14:05:46+09:00"},
 "BD5058788":{"catalogId":"bh-01_5919","method":"fuzzy","score":100.0,"margin":100.0,"nameOk":true,"nameApplied":true,"post":"136011","at":"2026-10-09T11:04:36+09:00"},
+"BD5058789":{"catalogId":"bh-01_39","method":"fuzzy","score":95.5,"margin":95.5,"nameOk":true,"nameApplied":false,"post":"136059","at":"2026-10-09T15:07:57+09:00"},
 "BD5058790":{"catalogId":"bh-01_53","method":"fuzzy","score":100.0,"margin":100.0,"nameOk":true,"nameApplied":true,"post":"138701","at":"2026-10-09T11:04:36+09:00"},
 "BD5058791":{"catalogId":"bh-01_75","method":"fuzzy","score":100.0,"margin":100.0,"nameOk":true,"nameApplied":true,"post":"138951","at":"2026-10-09T11:04:36+09:00"},
 "BD5058796":{"catalogId":"bh-01_335","method":"fuzzy","score":100.0,"margin":100.0,"nameOk":true,"nameApplied":true,"post":"133333","at":"2026-10-08T15:40:41+09:00"},
