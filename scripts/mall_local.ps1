@@ -23,7 +23,7 @@
 #>
 [CmdletBinding()]
 param(
-  [string]$RepoRoot = (Split-Path -Parent $PSScriptRoot),
+  [string]$RepoRoot = '',
   [string]$Python = $env:PLAMO_PYTHON,
   [string]$EnvName = 'plamo',
   [string]$Branch = 'main',
@@ -32,6 +32,10 @@ param(
 )
 
 $ErrorActionPreference = 'Continue'
+if (-not $RepoRoot) {       # 파라미터 기본값에서는 $PSScriptRoot 가 비는 경우가 있어(Windows PowerShell 5.1) 여기서 계산한다: scripts\ 의 부모 = 저장소 루트
+  $self = $MyInvocation.MyCommand.Path
+  $RepoRoot = Split-Path -Parent (Split-Path -Parent $self)
+}
 $ScanRel = 'docs/data/mall-scan.json'
 $LogPath = Join-Path $RepoRoot 'crawler\out\mall_local.log'
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $LogPath) | Out-Null
