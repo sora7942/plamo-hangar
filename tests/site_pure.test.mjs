@@ -113,6 +113,14 @@ test('빈 칸 모아보기: 사진 없음은 photos 기준', () => {
   assert.equal(P.GAPS.done.t(kit({ status: 'built' })), true);
 });
 
+test('filterSort: 가격순은 ctx.price(정가 기준 포함)가 있으면 그 값으로', () => {
+  const kits = [kit({ id: '1', name: '가', price: 10000 }), kit({ id: '2', name: '나', price: 0 }), kit({ id: '3', name: '다', price: 0 })];
+  const ui = { tab: 'own', q: '', grade: 'all', status: 'all', tag: 'all', gap: 'all', sort: 'price' };
+  assert.deepEqual(P.filterSort(kits, ui).map((k) => k.id)[0], '1');
+  const list = { 2: 33600 };
+  assert.deepEqual(P.filterSort(kits, ui, { price: (k) => (k.price || list[k.id] || 0) }).map((k) => k.id), ['2', '1', '3']);
+});
+
 test('filterSort: 탭·등급·상태·검색·정렬', () => {
   const kits = [
     kit({ id: '1', name: '가', grade: 'HG', date: '2026-01-01', status: 'built', tags: ['재판'] }),

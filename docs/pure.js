@@ -196,7 +196,7 @@ function filterSort(kits, ui, ctx) {
       return ra - rb || (ga && gb ? (ga.key < gb.key ? -1 : ga.key > gb.key ? 1 : 0) : 0) || byName(a, b);
     }
     if (ui.sort === 'grade') return gi(a.grade) - gi(b.grade) || byName(a, b);
-    if (ui.sort === 'price') return (Number(b.price) || 0) - (Number(a.price) || 0);
+    if (ui.sort === 'price') { var pa = ctx && ctx.price ? ctx.price(a) : Number(a.price) || 0, pb = ctx && ctx.price ? ctx.price(b) : Number(b.price) || 0; return pb - pa; }
     if (ui.sort === 'done') return String(b.doneDate || '').localeCompare(String(a.doneDate || '')) || byName(a, b);
     if (ui.tab === 'wish') return String(b.created || '').localeCompare(String(a.created || ''));
     return String(b.date || '').localeCompare(String(a.date || '')) || String(b.created || '').localeCompare(String(a.created || ''));

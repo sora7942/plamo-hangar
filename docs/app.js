@@ -59,6 +59,8 @@ function scaleChoices(cur) { var a = SCALES.slice(); if (cur && a.indexOf(cur) <
 function gapOf(k) { var it = catItem(k); return it ? C.gapInfo(it, today(), cat.since) : null; }
 function hasLinked() { return data.kits.some(function (k) { return k.catalogId; }); }
 function official(k) { return cat ? C.officialImages(cat, k, data.settings) : []; }
+// 구매 가격: 직접 입력 > 연결된 제품의 몰 정가(화면 계산값, collection.json에는 저장하지 않는다). 엔 정가만 있으면 null (환산 안 함)
+function priceOf(k) { return C.purchasePrice(k, catItem(k)); }
 function catItem(k) { return cat && k && k.catalogId ? (cat.byId[k.catalogId] || null) : null; }
 // 사진 항목 → 이미지 주소. 공식 사진의 카드·썸네일은 작은 이미지(/m/)를 먼저 쓰고, 안 뜨면 원본으로 (error 위임 핸들러의 data-alt)
 function imgUrl(p, thumb) { return p.kind === 'off' ? (thumb ? C.thumbUrl(p.src) : p.src) : photoSrc(thumb ? p.thumb : p.src); }
@@ -254,18 +256,20 @@ function renderAll() {
   if (ui.tab === 'feed') { bindShell(); feedView.mount(document.getElementById('feed-root')); return; }
   bindShell(); renderStats(); renderList(); renderSelbar();
   // 연결된 프라가 있으면 첫 화면을 그린 뒤에 카탈로그를 받아 공식 사진을 붙인다
-  if (catState === 'idle' && !isSample() && hasLinked()) ensureCatalog().then(function () { if (!loading && document.getElementById('grid')) renderList(); });
+  if (catState === 'idle' && !isSample() && hasLinked()) ensureCatalog().then(function () { if (!loading && document.getElementById('grid')) { renderList(); renderStats(); } });
 }
 
+// 합계에 정가 기준(직접 입력 안 한 연결 제품의 몰 정가)이 몇 개 들어갔는지 작게 알린다
+function listedNote(n) { return n ? '<span class="sub">정가 기준 ' + n + '개 포함</span>' : ''; }
 function renderStats() {
   var list = tabKits(), n = list.length, el = document.getElementById('stats');
   if (ui.tab === 'wish') {
-    var sum = 0; list.forEach(function (k) { sum += Number(k.price) || 0; });
+    var wsum = C.purchaseTotal(list, catItem);
     el.innerHTML = '<div class="tiles"><div class="stat"><span class="k">사고 싶은 프라</span><span class="v">' + n + '<small>개</small></span></div>' +
-     (showPurchase() ? '<div class="stat"><span class="k">예상 합계</span><span class="v mono" style="font-size:22px">' + won(sum) + '</span></div>' : '') + '</div>';
+     (showPurchase() ? '<div class="stat"><span class="k">예상 합계</span><span class="v mono" style="font-size:22px">' + won(wsum.total) + '</span>' + listedNote(wsum.listed) + '</div>' : '') + '</div>';
   } else {
-    var c = { unbuilt: 0, building: 0, built: 0, custom: 0 }, spent = 0, yr = String(new Date().getFullYear()), doneYr = 0, dur = [];
-    list.forEach(function (k) { c[k.status]++; spent += Number(k.price) || 0;
+    var c = { unbuilt: 0, building: 0, built: 0, custom: 0 }, spent = C.purchaseTotal(list, catItem), yr = String(new Date().getFullYear()), doneYr = 0, dur = [];
+    list.forEach(function (k) { c[k.status]++;
       if (k.doneDate && k.doneDate.slice(0, 4) === yr) doneYr++; var d = days(k.startDate, k.doneDate); if (d) dur.push(d); });
     var avg = dur.length ? Math.round(dur.reduce(function (a, b) { return a + b; }, 0) / dur.length) : null;
     var pct = function (x) { return n ? (x / n * 100) : 0; };
@@ -276,7 +280,7 @@ function renderStats() {
      '<div class="stat"><span class="k">조립 중</span><span class="v">' + c.building + '<small>개</small></span></div>' +
      '<div class="stat"><span class="k">완성 · 도색</span><span class="v">' + (c.built + c.custom) + '<small>개</small></span></div>' +
      '<div class="stat"><span class="k">' + yr + '년 완성' + (avg ? ' · 평균 ' + avg + '일' : '') + '</span><span class="v">' + doneYr + '<small>개</small></span></div>' +
-     (showPurchase() ? '<div class="stat"><span class="k">총 구매액</span><span class="v mono" style="font-size:22px">' + won(spent) + '</span></div>' : '') + '</div>' +
+     (showPurchase() ? '<div class="stat"><span class="k">총 구매액</span><span class="v mono" style="font-size:22px">' + won(spent.total) + '</span>' + listedNote(spent.listed) + '</div>' : '') + '</div>' +
      '<div class="bar"><div class="bar-track" role="img" aria-label="상태 비율">' + STATUSES.map(function (s) { return '<span style="width:' + pct(c[s.k]) + '%;background:' + colors[s.k] + '"></span>'; }).join('') + '</div>' +
      '<div class="legend">' + STATUSES.map(function (s) { return '<span><i style="background:' + colors[s.k] + '"></i>' + s.l + ' <span class="mono">' + c[s.k] + '</span></span>'; }).join('') + '</div></div>';
   }
@@ -307,13 +311,13 @@ function cardHTML(k) {
    '<div class="meta">' + (k.series ? '<span class="series">' + esc(k.series) + '</span>' : '') + '<h3>' + esc(k.name) + '</h3>' + gapLine(k) +
    (k.tags.length ? '<span class="tagline">' + k.tags.slice(0, 3).map(function (t) { return '#' + esc(t); }).join(' ') + '</span>' : '') +
    '<div class="row"><span class="scale">' + esc(k.scale || '') + '</span>' +
-   (k.list === 'own' ? '<span class="pill st-' + k.status + '">' + esc(STLABEL[k.status]) + '</span>' : (showPurchase() && k.price ? '<span class="scale">' + won(k.price) + '</span>' : '')) +
+   (k.list === 'own' ? '<span class="pill st-' + k.status + '">' + esc(STLABEL[k.status]) + '</span>' : (showPurchase() && priceOf(k) ? '<span class="scale">' + (priceOf(k).listed ? '정가 ' : '') + won(priceOf(k).amount) + '</span>' : '')) +
    '</div></div></button>';
 }
 
 var lastList = [];
 function renderList() {
-  lastList = P.filterSort(allKits(), ui, { gap: gapOf });
+  lastList = P.filterSort(allKits(), ui, { gap: gapOf, price: function (k) { var p = priceOf(k); return p ? p.amount : 0; } });
   document.getElementById('countline').textContent = lastList.length + '개 표시 중';
   var gt = document.getElementById('gap-tools');
   if (gt) {
@@ -622,10 +626,10 @@ function openAssist(kitsList, o) {
 
 function openDetail(id) {
   var k = findKit(id); if (!k) return;
-  var own = k.list === 'own', rows = [['목록', own ? '보유' : '위시리스트'], ['등급', gname(k.grade)], ['스케일', k.scale], ['시리즈', k.series], ['브랜드', k.brand]];
+  var pp = priceOf(k), own = k.list === 'own', rows = [['목록', own ? '보유' : '위시리스트'], ['등급', gname(k.grade)], ['스케일', k.scale], ['시리즈', k.series], ['브랜드', k.brand]];
   if (own) rows.push(['상태', STLABEL[k.status]]);
-  if (own && showPurchase()) rows.push(['구매일', k.date], ['구매처', k.shop], ['가격', k.price ? won(k.price) : '']);
-  if (!own && showPurchase()) rows.push(['예상 가격', k.price ? won(k.price) : '']);
+  if (own && showPurchase()) rows.push(['구매일', k.date], ['구매처', k.shop], ['가격', pp ? won(pp.amount) : '', pp && pp.listed ? '정가 기준' : '']);
+  if (!own && showPurchase()) rows.push(['예상 가격', pp ? won(pp.amount) : '', pp && pp.listed ? '정가 기준' : '']);
   if (own) { var d = days(k.startDate, k.doneDate); rows.push(['조립 시작', k.startDate], ['완성', k.doneDate ? k.doneDate + (d ? ' (' + d + '일 걸림)' : '') : '']); }
   if (k.tags.length) rows.push(['태그', k.tags.map(function (t) { return '#' + t; }).join(' ')]);
   var gi = gapOf(k); if (gi) rows.splice(5, 0, ['재판 공백', gi.text]);
@@ -647,7 +651,7 @@ function openDetail(id) {
   var rv = k.sample ? null : C.reviewLinks(k);
   var reviews = rv ? '<p class="reviews"><span class="lk">리뷰 찾아보기</span><a href="' + esc(rv.youtube) + '" target="_blank" rel="noopener noreferrer">유튜브</a><a href="' + esc(rv.naver) + '" target="_blank" rel="noopener noreferrer">네이버 블로그</a></p>' : '';
   var body = gallery + linkInfo + priceLine + reviews +
-    '<dl class="specs">' + show.map(function (r) { return '<dt>' + r[0] + '</dt>' + (r[1] ? '<dd' + (/가격/.test(r[0]) ? ' class="mono"' : '') + '>' + esc(r[1]) + '</dd>' : '<dd class="missing">미입력</dd>'); }).join('') + '</dl>' +
+    '<dl class="specs">' + show.map(function (r) { return '<dt>' + r[0] + '</dt>' + (r[1] ? '<dd' + (/가격/.test(r[0]) ? ' class="mono"' : '') + '>' + esc(r[1]) + (r[2] ? ' <span class="hint src">' + esc(r[2]) + '</span>' : '') + '</dd>' : '<dd class="missing">미입력</dd>'); }).join('') + '</dl>' +
     (k.memo ? '<p class="memo">' + esc(k.memo) + '</p>' : '');
   var foot = (canWrite && !k.sample) ? '<button class="btn danger" id="del">삭제</button><div class="r">' + '<button class="btn" id="relink">' + (k.catalogId ? '제품 연결 변경' : '반다이 제품 연결') + '</button>' + (k.catalogId ? '<button class="btn" id="unlink">연결 해제</button>' : '') +
     (own ? '' : '<button class="btn" id="move">샀어요 · 보유로 옮기기</button>') + '<button class="btn primary" id="edit">수정</button></div>' : '';
@@ -759,7 +763,8 @@ function openForm(k, o) {
     var it = linkItem(); return it && +c.slice(4) >= it.images.length ? null : c;
   }
   function paintLinked() {
-    var it = linkItem(), box = $('pk-linked');
+    var it = linkItem(), box = $('pk-linked'), pi = it && C.priceInfo(it);
+    $('f-price').placeholder = pi && pi.kind === 'krw' ? '정가 ' + pi.amount : '0';        // 비워 두면 연결된 제품의 몰 정가가 구매 가격으로 보인다 (저장하지 않음)
     if (!link) { box.innerHTML = '<p class="hint">연결 안 됨 — 연결하면 비어 있는 등급·스케일·시리즈를 채우고 공식 사진이 붙어요.</p>'; return; }
     box.innerHTML = '<div class="linkbox"><span class="lk">연결됨</span><span>' + (it ? esc(it.title) + ' <span class="hint">' + esc([it.grade, it.scale].filter(Boolean).join(' · ')) + '</span>' : '<span class="hint">' + esc(link.id) + (catState === 'ready' ? ' (카탈로그 반영 대기)' : '') + '</span>') +
       '</span><button type="button" class="linkbtn" id="pk-unlink">연결 해제</button></div>';

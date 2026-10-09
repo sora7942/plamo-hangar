@@ -266,6 +266,20 @@ function priceInfo(item, today) {
   if (item.priceJpy > 0) return { kind: 'jpy', amount: fmtMoney('¥', item.priceJpy), label: '일본 정가(세금 포함)', url: null, ended: false, soldOut: false, note: '' };
   return null;
 }
+// 구매 가격(원): 직접 입력한 price가 있으면 그 값, 비어 있으면 연결된 제품의 몰 정가(priceKrw). collection.json에는 저장하지 않는 화면 계산값이다.
+// 엔 정가(priceJpy)만 있는 제품은 원화로 환산하지 않고 null — 합계에도 넣지 않는다. → { amount, listed } | null (listed: 정가 기준)
+function purchasePrice(kit, item) {
+  var own = Number(kit && kit.price) || 0;
+  if (own > 0) return { amount: own, listed: false };
+  var pi = item ? priceInfo(item) : null;
+  return pi && pi.kind === 'krw' ? { amount: item.priceKrw, listed: true } : null;
+}
+// 합계: 직접 입력 + 정가 기준. listed는 정가 기준으로 들어간 개수. itemOf(kit)는 연결된 카탈로그 항목(없으면 null)
+function purchaseTotal(kits, itemOf) {
+  var total = 0, listed = 0;
+  (kits || []).forEach(function (k) { var p = purchasePrice(k, itemOf ? itemOf(k) : null); if (p) { total += p.amount; if (p.listed) listed++; } });
+  return { total: total, listed: listed };
+}
 function priceShort(item) { var p = priceInfo(item); return p ? p.amount : ''; }          // 연결 후보 목록의 작은 가격 (₩ 또는 ¥)
 
 /* ---------- 자동 연결 후보 · 시리즈 한국어 · 리뷰 링크 ---------- */
@@ -364,6 +378,6 @@ return {
   FILES: FILES, SEARCH_LIMIT: SEARCH_LIMIT,
   norm: norm, stripPrefix: stripPrefix, displayName: displayName, isStableImage: isStableImage, thumbUrl: thumbUrl, pageUrl: pageUrl,
   normalizeItem: normalizeItem, build: build, search: search, parseRef: parseRef, fillPatch: fillPatch,
-  officialImages: officialImages, setCatalogId: setCatalogId, gapInfo: gapInfo, priceInfo: priceInfo, priceShort: priceShort, mallUrl: mallUrl, autoLinks: autoLinks, seriesKoSuggestions: seriesKoSuggestions, fillCandidates: fillCandidates, applyAuto: applyAuto, reviewLinks: reviewLinks, dayNum: dayNum, monthEnd: monthEnd, releaseLabel: releaseLabel, releaseSortKey: releaseSortKey, cacheKey: cacheKey, load: load
+  officialImages: officialImages, setCatalogId: setCatalogId, gapInfo: gapInfo, priceInfo: priceInfo, priceShort: priceShort, purchasePrice: purchasePrice, purchaseTotal: purchaseTotal, mallUrl: mallUrl, autoLinks: autoLinks, seriesKoSuggestions: seriesKoSuggestions, fillCandidates: fillCandidates, applyAuto: applyAuto, reviewLinks: reviewLinks, dayNum: dayNum, monthEnd: monthEnd, releaseLabel: releaseLabel, releaseSortKey: releaseSortKey, cacheKey: cacheKey, load: load
 };
 });
