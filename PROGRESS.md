@@ -107,7 +107,9 @@
 ### 2단계: 계획만 (해외 IP 차단으로 확인되면 — 아직 구현하지 않음)
 원칙: 한국 IP인 내 PC에서 평소처럼 요청하는 것이지 우회가 아니다. VPN·프록시·해외 서버 없음. robots.txt·요청 간격(1.2초)·상한(20회)은 그대로. Actions가 **카탈로그 파일의 유일한 작성자**라는 규칙을 지킨다.
 
-**결정 필요 (구현 전에 확인)**: PC가 쓰는 파일을 `mall.json`으로 할지 별도 `mall-scan.json`으로 할지.
+**결정 (사용자 확인됨, 2026-10-09)**: PC는 `docs/data/mall-scan.json`만, Actions는 `mall.json`만 쓴다. 2단계는 사용자가 진단 결과를 보고 시작하라고 지시할 때만 시작한다.
+
+(결정 전 검토 내용)
 - 지금 `mall.json`은 `goods`(스캔 원본)와 `links`(Actions가 만든 gno↔catalogId 연결)를 함께 가진다. PC가 `goods`를, Actions가 `links`를 같은 파일에 쓰면 파일 작성자가 둘이라 push 충돌이 날 수 있다(JSON을 한 항목 한 줄로 쓰므로 자동 병합되는 날도 있지만 보장되지 않는다).
 - **권장**: PC는 `docs/data/mall-scan.json`(스냅샷: `scan{at, complete, requests, count}` + `goods`)만 쓰고, `mall.json`(links·상태)은 Actions만 쓴다. 파일이 갈리므로 충돌이 없다. 지시하신 "mall.json만 커밋"과 다르니 확인 부탁.
 
