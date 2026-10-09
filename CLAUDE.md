@@ -28,7 +28,7 @@
 - 크롤러가 쓰는 파일: `docs/data/catalog-*.json`, `feed.json`, `kr-arrivals.json`, `series-ko.json`, `mall.json`, `meta.json` — 사이트는 읽기만 한다. **이 파일들은 Actions만 커밋한다**(예외 하나: `mall-scan.json`은 내 PC만 커밋한다 — Actions의 커밋 허용 목록에 넣지 않는다) — 로컬 `--dry-run`/`--bootstrap` 결과는 `git restore`로 되돌리고 커밋하지 않는다
 - 크롤러는 `docs/data/collection.json`을 **읽기만 한다**(`crawler/mine.py`) — 연결된 `catalogId`로 미등록 상품의 상세를 받고(`manual:true`, 제외 브랜드는 `line:"other"`), 디스코드에서 "내 프라"를 먼저 보낸다
 - 시리즈 한국어: `crawler/series.py`가 seriesKey별로 한 번만 번역해 `series-ko.json`에 보관하고 카탈로그 항목의 `seriesKo`를 채운다. 틀린 번역은 `config.SERIES_KO_OVERRIDES`에 한 줄 추가
-- 반다이남코코리아몰(7a): **몰 방화벽이 클라우드 IP를 막아(Actions는 `Request Rejected`) 목록은 내 PC가 읽는다** — `crawler/sources/mall.py`(목록 페이지만, 품절 상품 포함 49요청·3초 간격, 상세·이미지 요청 없음, 실행당 `MALL_MAX_REQUESTS`)를 `crawler/mall_scan.py`의 `--mall-local`이 불러 `docs/data/mall-scan.json`(PC만 씀)에 스냅샷을 남긴다. Actions의 `mall` 단계는 **요청 없이** 그 파일을 읽어 `crawler/mall_link.py`가 gno ↔ catalogId 연결·가격(`priceKrw`, `priceKrwAt` = 스냅샷 시각; 사이트는 내 프라의 직접 입력 가격이 비면 이 값을 "정가 기준" 구매 가격으로 화면에서만 보여 준다 — collection.json에는 저장하지 않고 엔 정가는 환산하지 않는다)·몰 이름(`nameKoSource:"bnkrmall"`, 몰 > 조이하비 > AI)·시리즈·판매 종료(`mallEnded`)를 카탈로그에 반영하고 `docs/data/mall.json`(Actions만 씀)에 상태를 둔다. 틀린 연결은 `config.MALL_OVERRIDES`. **몰 이미지는 저장도 사용도 하지 않는다 — 7b(사진)는 사용자가 약관을 확인한 뒤 따로 지시**
+- 반다이남코코리아몰(7a): **몰 방화벽이 클라우드 IP를 막아(Actions는 `Request Rejected`) 목록은 내 PC가 읽는다** — `crawler/sources/mall.py`(목록 페이지만, 품절 상품 포함 49요청·3초 간격, 상세·이미지 요청 없음, 실행당 `MALL_MAX_REQUESTS`)를 `crawler/mall_scan.py`의 `--mall-local`이 불러 `docs/data/mall-scan.json`(PC만 씀)에 스냅샷을 남긴다. Actions의 `mall` 단계는 **요청 없이** 그 파일을 읽어 `crawler/mall_link.py`가 gno ↔ catalogId 연결·가격(`priceKrw`, `priceKrwAt` = 스냅샷 시각; 사이트는 내 프라의 직접 입력 가격이 비면 이 값을 "정가 기준" 구매 가격으로 화면에서만 보여 준다 — collection.json에는 저장하지 않고 엔 정가는 환산하지 않는다)·몰 이름(`nameKoSource:"bnkrmall"`, 몰 > 조이하비 > AI)·시리즈·판매 종료(`mallEnded`)를 카탈로그에 반영하고 `docs/data/mall.json`(Actions만 씀)에 상태를 둔다. 틀린 연결은 `config.MALL_OVERRIDES`. **몰 이미지는 저장하지 않는다 — 7b(소유자 화면 전용 링크)만 허용, Critical 참고. 목록 카드의 사진 경로 `imgPath`는 `mall-scan.json`·`mall.json`에만 두고 `catalog-*.json`의 `images`(공식 사진)에는 섞지 않는다**
 - 검색 별칭은 `docs/aliases.js`(사이트 쪽 사전 — config가 아니다; 일본어 가나는 묶음에서만, 한국어 표기와 짝으로. `∀`는 `norm`이 `ターンエー`로 읽는다): 철자·줄임말 묶음, 무시할 꼬리말(클리어·코팅 — 가산만), 일반어. 연결 도우미의 진행 상태는 순수 로직 `docs/assist.js`, 화면은 app.js `openAssist`
 - 상세 받는 순서: ① 사이트에서 연결한 미등록 상품(`manual`, 실행당 `MANUAL_DETAIL_MAX`) ② 새 상품 ③ 밀린 상품은 **발매월 최신순**(같은 달이면 line이 있는 항목 먼저)
 - URL·대상 라인·주기·개수 제한·알림 규칙·모델명·매칭 임계값은 `crawler/config.py` 한 곳에만 둔다. 사람이 고치는 표(`BRAND_LINE`, `JOY_BRACKET_GRADES`, `KR_CODE_OVERRIDES` …)도 거기 있다
@@ -48,6 +48,7 @@
 
 ## Critical
 - NEVER: 공식 이미지나 다른 사람의 사진을 내려받아 저장소에 넣지 않는다. 공식 이미지는 안정 URL 링크만, 리뷰어 사진·판매점 이미지는 쓰지 않는다
+- NEVER: **몰(bnkrmall.co.kr) 이미지는 소유자 화면에서만 링크로 표시한다.** 다운로드·저장소 저장·방문자 화면 표시 금지(몰 이용약관 제23조②(사전 승낙 없는 복제·송신·배포·제3자 이용 금지)). 승낙을 받기 전까지 유지. 방문자 화면 DOM에는 img·URL·배경 어디에도 몰 이미지가 없어야 한다(e2e로 확인). 대표 사진(cover)으로 고를 수도 없다. 쓰는 것은 목록 카드의 상품 사진 경로(`imgPath`)뿐이고 리뷰·상세설명·배너 이미지는 쓰지 않는다
 - NEVER: 서명 URL(`?Expires=`)을 저장하거나 살리려 하지 않는다 (갱신·프록시 금지)
 - NEVER: 지역 제한(P-반다이 JP 등)을 VPN·프록시·일본 서버로 우회하지 않는다
 - NEVER: GitHub 토큰·`DISCORD_WEBHOOK_URL`·`ANTHROPIC_API_KEY`를 코드·로그·커밋에 남기지 않는다 (`.env`는 `.gitignore`)

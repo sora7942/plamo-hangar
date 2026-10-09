@@ -27,6 +27,7 @@ GitHub Pages(공개 저장소 `sora7942/plamo-hangar`)로 서비스한다. GitHu
 - P-반다이 JP 직접 수집 — 지역 제한. VPN·프록시·일본 서버 등 **지역 제한 우회 금지**
 - 서명 URL 이미지를 살리려는 시도(주기 갱신, 프록시 리다이렉트 등) — 반다이가 핫링크를 막으려는 설정이므로 우회하지 않는다
 - 공식 이미지·리뷰어 사진 내려받기·재호스팅. 리뷰는 "리뷰 찾아보기" 검색 링크만
+- **몰 이미지의 방문자 화면 표시·내려받기·재호스팅** — 몰 이용약관 제23조②(사전 승낙 없는 복제·송신·배포·제3자 이용 금지). 몰 상품 사진은 **소유자 모드(토큰 있음) 화면에서만 링크로** 띄운다(6장 "몰 사진"). 승낙을 받기 전까지 유지
 - 조이하비 상품 이미지 핫링크 (판매점 자원)
 - 반다이 외 브랜드 카탈로그 (내 컬렉션에는 수동 입력 가능)
 - 가격 비교, 재고 실시간 감시, 로그인 시스템
@@ -136,9 +137,9 @@ plamo-hangar/
 ```json
 {"updatedAt":"ISO","scan":{"at":"ISO","complete":true,"requests":12,"count":397},
  "links":{"64138890":{"catalogId":"bh-01_6824","method":"fuzzy|override","score":100.0,"margin":100.0,"nameOk":true,"nameApplied":true,"at":"ISO"}},
- "goods":{"64138890":{"name":"HG 건담 레오파드","series":"기동신세기 건담 X","price":26400,"soldOut":false,"cate":"gunpla","first":"2026-10-09","seen":"2026-10-09"}}}
+ "goods":{"64138890":{"name":"HG 건담 레오파드","series":"기동신세기 건담 X","price":26400,"soldOut":false,"cate":"gunpla","imgPath":"goods/middle/20241212/<32자 hash>.jpg","first":"2026-10-09","seen":"2026-10-09"}}}
 ```
-- `goods`: 몰 목록에서 읽은 상품(gno → 몰 이름·시리즈·판매가·품절·카테고리 키·처음/마지막으로 본 날짜). 믿을 수 있는 스캔에서 사라진 상품은 **연결 안 된 것만** 지운다(연결된 상품은 남긴다).
+- `goods`: 몰 목록에서 읽은 상품(`imgPath`는 있을 때만 — 소유자 화면 전용 몰 사진 경로, 6장 "몰 사진"; gno → 몰 이름·시리즈·판매가·품절·카테고리 키·처음/마지막으로 본 날짜). 믿을 수 있는 스캔에서 사라진 상품은 **연결 안 된 것만** 지운다(연결된 상품은 남긴다).
 - `links`: 한 번 확실히 연결된 gno ↔ catalogId. 다음 실행부터는 이름을 다시 비교하지 않는다. 한 카탈로그 항목에는 몰 상품 하나만 연결된다(점수가 높은 쪽).
 - `scan.complete`: **믿을 수 있는 스캔**(모든 쪽을 정상으로 읽었고 상품 수가 이전 정상 스캔의 `MALL_ENDED_MIN_RATIO`=50% 이상)일 때만 true. 이때만 "몰에서 사라짐"(`mallEnded`)을 판정한다.
 - `config.MALL_OVERRIDES`(사람이 고치는 표): `{gno: catalogId}`는 강제 연결(같은 카탈로그 항목에 붙어 있던 자동 연결은 푼다), `{gno: None}`은 연결 금지(굳은 연결을 풀고 이름·시리즈·가격 필드를 되돌린다). 현재 사용자가 맞는 쌍으로 확인한 5개가 들어 있다(이름 보호 규칙에 막혔지만 가격 비율 10.91·일본어 이름이 일치).
@@ -152,7 +153,7 @@ plamo-hangar/
  "lastTry":{"at":"ISO","ok":true,"blocked":false,"complete":true,"requests":12,"pages":{"gunpla":8,"girl-30mm":3,"girl-figurerise":1},
             "results":[{"where":"gunpla 1쪽","status":200,"ok":true,"bytes":201820}],"errors":[],"diag":[]},
  "scan":{"at":"ISO","complete":true,"requests":12,"count":396},
- "goods":{"64138890":{"name":"HG 건담 레오파드","series":"기동신세기 건담 X","price":26400,"soldOut":false,"cate":"gunpla"}}}
+ "goods":{"64138890":{"name":"HG 건담 레오파드","series":"기동신세기 건담 X","price":26400,"soldOut":false,"cate":"gunpla","imgPath":"goods/middle/20241212/<32자 hash>.jpg"}}}
 ```
 - **왜 PC인가**: 몰의 웹 방화벽이 GitHub Actions(클라우드 IP)에는 HTTP 200 + `Request Rejected / Your support ID is …`(247바이트, robots.txt 포함)만 돌려준다(2026-10 진단). 우회(VPN·프록시·헤더 위장)는 하지 않고, 한국 IP인 사용자 PC가 평소처럼 읽는다.
 - **작성자 분리**: PC는 `mall-scan.json`만, Actions는 `mall.json`·카탈로그만 쓴다(push 충돌 없음). Actions의 커밋 허용 목록에 `mall-scan.json`은 없다.
@@ -276,7 +277,7 @@ plamo-hangar/
 - 커밋 메시지: `collection: <동작 요약>`
 - 사진: 긴 변 1600px WebP(0.82) + 480px 썸네일. 여러 장, 순서 바꾸기·삭제·**대표 사진 지정**(공식·내 사진 중에서). 삭제 시 파일도 같은 커밋에서 지운다
 - 저장 후 "사이트 반영까지 1~2분" 안내
-- 보안: 외부 문자열(카탈로그·피드·메모)은 전부 이스케이프. CSP: script self + cdnjs, connect self + api.github.com, img self + `bandai-a.akamaihd.net` + `bandai-hobby.net`
+- 보안: 외부 문자열(카탈로그·피드·메모)은 전부 이스케이프. CSP: script self + cdnjs, connect self + api.github.com, img self + `bandai-a.akamaihd.net` + `bandai-hobby.net` + `cdn.bnkrmall.co.kr`(소유자 화면 전용 몰 사진 — 방문자 화면은 이 호스트를 쓰지 않는다)
 - 외부 이미지: `referrerpolicy="no-referrer"`, `loading="lazy"`, 실패하면 자리표시
 
 ### 화면 추가·변경 (v2 대비)
@@ -286,6 +287,7 @@ plamo-hangar/
 - **재판 공백** (연결된 보유·위시만):
   - **정가 줄** *(7a)*: 상세에 `정가 ₩46,800 · 반다이남코코리아몰`(몰 가격이 있을 때, 새 탭 noopener 링크). 품절이면 `품절`, 몰에서 사라졌으면 `판매 종료(마지막 확인 YYYY-MM-DD)`(링크 없음, 마지막 가격 그대로). 몰 가격이 없으면 호비 `priceJpy`로 `¥4,950 · 일본 정가(세금 포함)`. **카드에는 넣지 않는다**(내 구매가와 헷갈리지 않게). 연결 후보 목록·연결 도우미 후보 행에도 같은 가격을 작게 붙인다(`C.priceInfo`·`C.priceShort`). 내 구매 정보(가격)는 그대로다
   - **구매 가격 기본값 = 몰 정가** *(7a 후속)*: 내 프라의 `price`가 비어 있고 연결된 카탈로그에 몰 가격(`priceKrw`)이 있으면 그 값을 구매 가격(위시는 예상 가격)으로 **화면에서만** 보여 준다(`catalog.js` `purchasePrice`, collection.json에는 저장하지 않음). 직접 입력한 값이 우선이고 그때는 표시가 없다. 상세는 `₩33,600 정가 기준`(작게), 위시 카드는 `정가 ₩33,600`. 수정 폼 가격 칸은 비워 두고 placeholder만 `정가 ₩33,600`. 통계 "총 구매액"·"예상 합계" = 직접 입력 + 정가 기준이고 `정가 기준 N개 포함`을 작게 붙인다. 엔 정가(`priceJpy`)만 있는 제품은 원화로 환산하지 않고 합계에도 넣지 않는다(표시 없음). 가격순 정렬도 같은 값을 쓴다. "구매 정보 빈 칸"(`purchase`)과 엑셀 백업의 가격 열은 **직접 입력 기준 그대로**다. `hidePurchase`는 정가 기준 값에도 똑같이 적용된다(방문자 화면에서 숨김; 상세의 "정가" 줄은 카탈로그 정보라 그대로 보인다)
+  - **몰 사진 (7b, 소유자 화면 전용)** *(7a 후속)*: 몰 이용약관 제23조②(사전 승낙 없는 복제·송신·배포·제3자 이용 금지) 때문에 **방문자 화면에는 img·URL·배경 어디에도 몰 이미지가 없어야 한다.** 토큰이 있는 소유자 모드에서만, 연결된 카탈로그 항목에 호비 공식 사진(`images`)이 하나도 없고 몰 상품(`mallGno`)에 사진이 있을 때 몰 사진을 링크로 띄운다. 순서는 내 사진(대표 포함) > 호비 공식 사진 > 몰 사진(내 사진만 있으면 갤러리 맨 뒤). 카드는 몰이 주는 작은 변환본(`?resize=550&format=webp`)을 `referrerpolicy="no-referrer"`·`loading="lazy"`로 걸고 실패하면 자리표시. 상세에는 "사진: 반다이남코코리아몰 · 내 화면에서만 표시"와 몰 상품 링크. **대표 사진(cover)으로 고를 수 없다**(방문자 화면과 어긋나므로; 사진 관리 목록에도 없음). `hideOfficialPhotos` 설정이 켜져 있으면 몰 사진도 숨긴다. 데이터: PC가 목록 카드의 상품 사진 경로(`goods/middle/YYYYMMDD/<hash>.jpg`, `.img_box` 배경에서 `goods/` 아래만)를 `mall-scan.json` goods의 `imgPath`로 저장 — 추가 요청 없음 — 하고 Actions는 `mall.json`의 goods에만 둔다(`catalog-*.json`의 `images`에는 섞지 않는다). 사이트는 소유자 모드에서만 `data/mall.json`을 받아(공식 사진이 없는 연결 제품이 있을 때만) `imgPath`를 읽는다. 리뷰(`review/`)·상세설명(`editor/`)·배너 이미지는 쓰지 않고, 다운로드·저장은 하지 않는다. 방문자 화면에는 몰 상품 *링크*(정가 줄)만 있다
   - 국내 입고 기록이 있으면 `국내 마지막 입고 2026-09-29 · 7일 전`
   - 없으면 `국내 입고 기록 없음 (YYYY-MM-DD 이후 기준) · 일본 발매 2022-10`
   - 일본 발매가 미래면 `일본 발매 예정 2026-12`
@@ -367,5 +369,5 @@ plamo-hangar/
    - **상태 (2026-10-08)**: 5a 디스코드 테스트 발송(`--discord-test`, 수동 실행 입력 `discord_test`) **코드·테스트 완료**, 5b README **완료**. 남은 것: push 후 Actions 수동 실행(`discord_test` 켜기)으로 실제 알림 1건 확인(사용자가 요청할 때만), 다음 날 예약 실행 확인(11장 5단계), 이전 Claude 아티팩트 정리 여부 확인
 6. 다듬기 *(2026-10)* — 6-1 디스코드 임베드 `url` 구별, 6-7 번역 한자 혼입 검사, 6-4 2015년 이전 카탈로그(`brand_backfill`)·상세 받기 순서, 6-3 검색 별칭, 6-5 빈 칸 채우기, 6-2 연결 도우미
    - **7a 후속 (2026-10-09)**: 몰 방화벽이 Actions(클라우드 IP)를 막아(`Request Rejected`) 몰 목록은 **내 PC**가 `--mall-local`로 읽어 `mall-scan.json`만 커밋하고(`scripts/mall_local.ps1`, 작업 스케줄러 06:30), Actions는 요청 없이 그 파일을 읽어 연결한다(4장 `mall-scan.json`). 남은 것: 사용자가 push → PC 첫 수동 실행 → Actions 실행 → 작업 스케줄러 등록(PROGRESS.md "사용자가 할 순서")
-   - **7a 반다이남코코리아몰(가격·한국 공식 이름) 구현됨**: 목록 수집(`mall` 단계)·연결·`priceKrw` 등 카탈로그 필드·몰 이름/시리즈·사이트 정가 줄. **7b(몰 사진)는 사용자가 이용약관을 확인한 뒤 따로 지시한다** — 이미지 규칙(CLAUDE.md Critical)·CSP·SPEC 2장은 그대로이고 몰 이미지 URL은 저장하지 않는다
+   - **7a 반다이남코코리아몰(가격·한국 공식 이름) 구현됨**: 목록 수집(`mall` 단계)·연결·`priceKrw` 등 카탈로그 필드·몰 이름/시리즈·사이트 정가 줄. **7b(몰 사진)는 소유자 화면 전용 링크로 구현했다**(6장 "몰 사진", 몰 이용약관 제23조②(사전 승낙 없는 복제·송신·배포·제3자 이용 금지) 때문에 방문자 화면에는 쓰지 않는다)
    - **상태**: 위 항목 코드·테스트 완료. 남은 것: push 후 Actions `discord_test`로 임베드가 따로 보이는지 확인, `brand_backfill` 한 번 실행(이후 매일 실행이 상세·번역을 나눠 채움), 한자 혼입 2건(`비达르`) 재번역 확인. **6-0b 반다이남코코리아몰 연동**(조사: `spike/mall-report.md`)은 사용자가 이용약관을 확인한 뒤 따로 지시한다
