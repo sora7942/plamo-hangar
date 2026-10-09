@@ -600,7 +600,7 @@ def test_only_mall_runs_just_the_mall_stage_and_robots_blocked_paths_are_not_req
 def test_user_confirmed_overrides_exist_and_point_at_real_catalog_items():
     cat = {i["id"]: i for f in ("catalog-gunpla.json", "catalog-girl.json") for i in json.loads((config.DATA_DIR / f).read_text(encoding="utf-8"))["items"]}
     ov = {g: t for g, t in config.MALL_OVERRIDES.items() if t}
-    assert {"7223664", "56457", "59201", "68326863", "48650462"} <= set(ov)
+    assert {"7223664", "56457", "59201", "68326863", "48650462", "33247684"} <= set(ov)
     for gno, cid in ov.items():
         assert gno.isdigit() and cid in cat, (gno, cid)
     assert len(set(ov.values())) == len(ov), "한 카탈로그 항목에 몰 상품 하나"
