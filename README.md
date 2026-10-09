@@ -55,9 +55,10 @@ docs/                       GitHub Pages 루트 (Deploy from a branch: main /doc
   photos/<프라ID>/           내 사진 (WebP + 썸네일)
 crawler/                    Python 크롤러 (매일 KST 07:10, GitHub Actions)
   config.py                 URL·주기·개수 제한·알림 규칙·분류표·용어집·사람이 고치는 표 — 설정은 여기 한 곳에만
-  sources/                  호비 일정·브랜드·상세, 조이하비 파서, 반다이남코코리아몰 목록(mall.py)
-  catalog.py  feed.py  kr.py  mall_link.py  match.py  translate.py  series.py  discord.py  discord_test.py  mine.py  pipeline.py  store.py  http.py
+  sources/                  호비 일정·브랜드·상세, 조이하비 파서, 반다이남코코리아몰 목록(mall.py, 내 PC에서만 실행)
+  catalog.py  feed.py  kr.py  mall_link.py  mall_scan.py  match.py  translate.py  series.py  discord.py  discord_test.py  mine.py  pipeline.py  store.py  http.py
 main.py                     크롤러 진입점 (옵션은 `python main.py --help`)
+scripts/mall_local.ps1      내 PC 작업 스케줄러용: 몰 목록을 읽어 mall-scan.json만 커밋·push (6장)
 .github/workflows/crawl.yml 매일 실행 + 수동 실행
 tests/                      pytest(크롤러), node 테스트(사이트), Playwright 확인(e2e), fixtures(저장해 둔 응답)
 spike/  reference/          0단계 검증 결과 / 옮기기 전 아티팩트 원본 (보존, 수정하지 않는다)
@@ -75,7 +76,8 @@ SPEC.md  CLAUDE.md  PROGRESS.md
 | `feed.json` | **크롤러** | 신제품·입고 소식 (최대 1000개). `added`는 처음 발견한 시각으로 한 번 정해지면 바뀌지 않는다 |
 | `kr-arrivals.json` | **크롤러** | 조이하비 원본 행, 글 처리 상태, BD 상품코드 ↔ 카탈로그 연결 |
 | `series-ko.json` | **크롤러** | 시리즈 한국어 번역 사전 (seriesKey → 한국어) |
-| `mall.json` | **크롤러** | 반다이남코코리아몰 상품 목록(gno·이름·시리즈·판매가)과 gno ↔ 카탈로그 연결 |
+| `mall.json` | **크롤러(Actions)** | 반다이남코코리아몰 상품 목록(gno·이름·시리즈·판매가)과 gno ↔ 카탈로그 연결 |
+| `mall-scan.json` | **내 PC** (`scripts/mall_local.ps1`) | 몰 목록 스냅샷(읽은 시각·쪽별 결과·상품). 몰 방화벽이 클라우드 IP를 막아서 Actions 대신 PC가 읽는다. **이 파일만 PC가 커밋** |
 | `meta.json` | **크롤러** | 마지막 수집 시각, 소스별 성공·실패, 수집 진행 위치, 조이하비 기록 시작일 |
 
 > 이 둘이 같은 `main` 브랜치에 커밋한다. 그래서 **크롤러는 자기 파일(위 표의 크롤러 7개)만 커밋**하고 `collection.json`·`photos/`가 섞이면 실패하도록 막아 두었다. 사이트 저장은 충돌하면 최신을 다시 읽고 묻는다.
@@ -137,7 +139,7 @@ SPEC.md  CLAUDE.md  PROGRESS.md
 
 `호비 월별 일정 → 걸프라 브랜드 목록 → 상품 상세 → 조이하비 국내 입고 → 번역(이름·시리즈) → 피드 → 파일 쓰기 → 디스코드`
 
-- **반다이남코코리아몰**(`mall` 단계, 매 실행): 목록 페이지만 받는다(건프라 `cate=1576` 약 8쪽 + 애니프라 `cate=1577` 안의 30MM·Figure-rise 4쪽, 요청 상한 20회). 한 줄에서 상품번호·한국 공식 이름·시리즈·판매가를 읽고 `match.py`로 카탈로그와 연결한다(애매하면 연결하지 않고, 몰 판매가 ÷ 호비 정가가 정상 범위인지도 본다). 연결되면 카탈로그에 `priceKrw`·`priceKrwAt`·`mallGno`(품절 `mallSoldOut`, 몰에서 사라지면 `mallEnded`)가 붙고, 확실한 연결은 `nameKo`·`seriesKo`를 몰 표기로 바꾼다(몰 > 조이하비 > AI 번역). 몰 이미지는 저장도 사용도 하지 않는다.
+- **반다이남코코리아몰**(`mall` 단계, 매 실행): **Actions는 몰에 요청하지 않는다**(방화벽이 클라우드 IP에 `Request Rejected`를 돌려준다). 내 PC가 올린 `mall-scan.json`(6장 아래 "몰 수집")을 읽어 `match.py`로 카탈로그와 연결한다(애매하면 연결하지 않고, 몰 판매가 ÷ 호비 정가가 정상 범위인지도 본다). 연결되면 카탈로그에 `priceKrw`·`priceKrwAt`(= PC가 몰을 읽은 시각)·`mallGno`(품절 `mallSoldOut`, 몰에서 사라지면 `mallEnded`)가 붙고, 확실한 연결은 `nameKo`·`seriesKo`를 몰 표기로 바꾼다(몰 > 조이하비 > AI 번역). 같은 스냅샷을 다시 읽어도 아무것도 바뀌지 않는다. 스냅샷이 **7일** 넘게 오래되면 "판매 종료" 판정을 하지 않고 meta에 경고하며, 사이트 정가 줄에 `가격 확인 YYYY-MM-DD`가 붙는다. PC가 차단되면(`blocked`) 경고만 남기고 마지막 스냅샷을 쓴다. 몰 이미지는 저장도 사용도 하지 않는다.
 - 상세는 실행당 **사용자가 연결한 미등록 상품 20 + 새 상품 40 + 밀린 상품 150**까지(합계 400 이하). 밀린 상품은 **발매월 최신순**(같은 달이면 분류가 정해진 항목 먼저)이라 과거 상품이 많아도 최근 상품이 먼저 채워진다.
 - 번역은 한자가 섞인 결과(`비达르` 같은 오번역)도 가나와 똑같이 재요청하고, 이미 저장된 오번역은 매 실행 시작에 비워 같은 실행에서 다시 번역한다.
 - 소스 하나가 실패해도 나머지는 계속하고, 실패는 `meta.json`과 Actions 요약에 남는다.
@@ -156,7 +158,34 @@ SPEC.md  CLAUDE.md  PROGRESS.md
 | `translate_only` | 꺼짐 | **번역만** 실행한다(수집 없음, Claude API 사용). `nameKo`가 빈 항목을 최신 발매순으로 `translate_max`개까지 채우고 커밋한다 — `brand_backfill` 뒤에 쌓인 번역 대기를 한 번에 끝낼 때(`--translate-only`) |
 | `translate_max` | 600 | `translate_only`일 때 번역할 항목 수 상한(최대 3000). 50개씩 나눠 요청한다 — 1500개면 약 30요청, 20분 안팎, 비용은 1달러 남짓(입력 약 13만 토큰 + 출력 약 8만 토큰 기준 추정) |
 | `discord_test` | 꺼짐 | **디스코드 테스트 알림 1건만** 보낸다. 수집·커밋은 하지 않는다. `feed.json` 최근 3개(내 프라 연결 항목이 있으면 그중 1개 포함)를 실제 알림과 같은 형식으로, 맨 앞에 `[테스트] 프라 격납고 알림 확인용`을 붙여 보낸다. 웹훅은 Secret만 쓰고, 없으면 "웹훅 없음"만 출력하고 끝난다 |
-| `mall_debug` | 꺼짐 | **몰(반다이남코코리아몰) 진단만** 실행한다(`--only mall --dry-run --mall-dump`). 받은 목록 HTML과 `summary.json`(HTTP 상태·최종 URL·title·robots.txt 응답)을 artifact `mall-debug`(3일 보관)로 올리고 **커밋하지 않는다**. 몰 수집이 Actions에서만 실패할 때(`meta.sources.mall.diag`와 실행 요약에도 같은 요약이 남는다) |
+
+### 몰 수집 (내 PC, 작업 스케줄러)
+
+반다이남코코리아몰의 웹 방화벽이 GitHub Actions(클라우드 IP)를 막기 때문에(`Request Rejected / Your support ID is …`, 2026-10 진단) 몰 목록은 **내 PC**가 하루 한 번 읽는다. VPN·프록시·헤더 위장은 쓰지 않는다. PC에서도 차단 응답이 오면 `mall-scan.json`에 `blocked: true`만 기록하고 멈춘다(재시도 없음).
+
+- `python main.py --only mall --mall-local` — 몰 목록(약 12요청)만 읽어 `docs/data/mall-scan.json`만 쓴다. 카탈로그·`mall.json`은 건드리지 않는다. `--dry-run`이면 파일을 쓰지 않고 요약만 출력, `--mall-dump DIR`이면 받은 HTML도 저장한다(진단용).
+- `scripts/mall_local.ps1` — 위 명령을 conda env `plamo`로 실행하고 **`mall-scan.json`만** `git add`/`commit`(`data: mall scan YYYY-MM-DD`) → `git pull --rebase --autostash` → `git push`(실패하면 1회 재시도)한다. 경로를 지정한 커밋이라 그 시각에 작업 중이던 다른 파일은 절대 같이 커밋되지 않고, 커밋 직후 파일 하나만 들어갔는지 다시 확인한다. 현재 브랜치가 `main`이 아니거나 rebase/merge 중이면 아무것도 하지 않고 로그만 남긴다. 로그는 `crawler\out\mall_local.log`(gitignore). python은 `-Python` 또는 환경변수 `PLAMO_PYTHON`, 없으면 흔한 conda 위치의 `envs\plamo\python.exe`를 찾는다. 종료 코드: 0 정상(변경 없음 포함) · 2 python 못 찾음 · 3 브랜치/상태로 건너뜀 · 4 수집 실패 · 5 커밋 검사 실패 · 6 pull/push 실패.
+- Actions는 이 파일을 **읽기만** 한다(`mall` 단계, 요청 없음). PC가 push한 뒤 07:10 실행이 반영한다.
+
+**작업 스케줄러 등록** (PowerShell, 관리자 권한 불필요 — 로그온한 상태에서 실행):
+
+```powershell
+$repo = "C:\Users\woori\plamo-hangar"
+$act  = New-ScheduledTaskAction -Execute "powershell.exe" -WorkingDirectory $repo `
+          -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$repo\scripts\mall_local.ps1`""
+$trg  = New-ScheduledTaskTrigger -Daily -At 06:30          # Actions(KST 07:10)보다 먼저
+$set  = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
+          -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 20)
+Register-ScheduledTask -TaskName "plamo-hangar-mall" -Action $act -Trigger $trg -Settings $set `
+          -Description "몰 목록을 읽어 docs/data/mall-scan.json만 push"
+```
+
+- `-StartWhenAvailable`: 06:30에 PC가 꺼져 있었으면 켜지고(로그온하고) 나서 바로 한 번 실행된다. 스캔은 이어받을 커서가 없는 전체 스냅샷(12쪽)이라 놓친 날을 메울 필요 없이 다음 실행이 곧 최신이다. 놓친 날 Actions는 마지막 스냅샷을 그대로 쓰고, 7일을 넘기면 경고한다.
+- 지금 한 번 실행: `Start-ScheduledTask -TaskName plamo-hangar-mall` (또는 `powershell -File scripts\mall_local.ps1`)
+- 확인: `Get-ScheduledTaskInfo -TaskName plamo-hangar-mall | Select LastRunTime, LastTaskResult, NextRunTime` (`LastTaskResult` 0이 정상, 위 종료 코드 참고) · `Get-Content crawler\out\mall_local.log -Tail 30 -Encoding UTF8`
+- 시각 바꾸기: `Set-ScheduledTask -TaskName plamo-hangar-mall -Trigger (New-ScheduledTaskTrigger -Daily -At 06:00)`
+- 삭제: `Unregister-ScheduledTask -TaskName plamo-hangar-mall -Confirm:$false`
+
 
 ### 로컬에서 같은 일 해 보기
 
@@ -205,6 +234,7 @@ python tests/e2e/site_catalog_check.py      # Playwright: 카탈로그 연결·�
 | 상황 | 고칠 곳 | 방법 |
 |---|---|---|
 | 조이하비 입고 글이 **엉뚱한 제품에 연결**됐다 | `KR_CODE_OVERRIDES` | `{"BD1234567": None}` = 연결 금지(`kr` 이력 제거, 한글 이름 되돌림). `{"BD1234567": "bh-01_4259"}` = 그 제품에 강제 연결. BD 코드는 `docs/data/kr-arrivals.json`의 `rows`/`codeMap`에서 찾는다. 틀린 연결 < 연결 없음이라 애매하면 연결하지 않는 게 기본 |
+| 몰 가격이 오래된 값이다 / 정가 줄에 "가격 확인 …"이 보인다 | 내 PC 작업 스케줄러 | `meta.sources.mall`의 `snapshotAt`·`blocked`를 보고, `Get-ScheduledTaskInfo -TaskName plamo-hangar-mall`·`crawler\out\mall_local.log`를 확인한다 (6장 "몰 수집") |
 | 몰(반다이남코코리아몰) 상품이 **엉뚱한 제품에 연결**됐다 | `MALL_OVERRIDES` | `{"58992": None}` = 연결 금지(몰이 바꿔 놓은 이름·시리즈·가격 필드를 되돌림), `{"58992": "bh-01_4257"}` = 강제 연결. 몰 상품번호(gno)는 `docs/data/mall.json`의 `links`에서 찾는다 |
 | **시리즈 한국어 번역**이 어색하다 | `SERIES_KO_OVERRIDES` | `{"seed-d": "기동전사 건담 SEED DESTINY"}` (키는 `docs/data/series-ko.json`의 seriesKey). 번역보다 우선하고 API를 부르지 않는다. 값에 일본어 가나 금지(테스트가 막는다) |
 | 이름으로 검색했는데 **못 찾는다/엉뚱한 후보**가 나온다 | `docs/aliases.js` | 묶음(`['발바토스','바르바토스']`, 양방향)·줄임말(`'퍼건': ['퍼스트건담', …]`)·꼬리말(`['클리어']`)·일반어 표에 한 줄 추가. 사이트 쪽 사전이라 config가 아니고, 고치고 push하면 바로 적용된다. `tests/site_aliases.test.mjs`가 형식을 검사한다 |

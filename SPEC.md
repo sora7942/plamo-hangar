@@ -48,7 +48,8 @@ plamo-hangar/
 │  │  ├─ feed.json              # [자동]
 │  │  ├─ kr-arrivals.json       # [자동] 조이하비 원본 행 + 글 상태 + BD 코드 ↔ catalogId (4장)
 │  │  ├─ series-ko.json         # [자동] seriesKey → 한국어 시리즈 사전 (4장, 4단계)
-│  │  ├─ mall.json              # [자동] 반다이남코코리아몰 상품 목록 + gno ↔ catalogId (4장, 7a)
+│  │  ├─ mall.json              # [자동·Actions] 반다이남코코리아몰 상품 목록 + gno ↔ catalogId (4장, 7a)
+│  │  ├─ mall-scan.json         # [내 PC] 몰 목록 스냅샷 — PC만 쓰고 PC만 커밋 (4장, 7a 후속)
 │  │  └─ meta.json              # [자동]
 │  └─ photos/<kitId>/<photoId>.webp, <photoId>_t.webp   # [사이트] 내 사진
 ├─ crawler/
@@ -59,7 +60,7 @@ plamo-hangar/
 │  │  ├─ hobby_item.py          # 상품 상세
 │  │  ├─ hobby_brand.py         # 브랜드 목록 페이지 (걸프라 4개 브랜드 열거 + 2015년 이전 채우기용 OLD_BRANDS 전체 쪽수)
 │  │  ├─ joyhobby.py            # 공지 게시판 목록·글 본문 파서, 판매예정일 (EUC-KR)
-│  │  └─ mall.py                # 반다이남코코리아몰 카테고리 목록 (7a, 목록 페이지만)
+│  │  └─ mall.py                # 반다이남코코리아몰 카테고리 목록 (7a, 목록 페이지만, 내 PC에서만 실행)
 │  ├─ catalog.py                # 병합·분류·밀린 상품 선택·저장
 │  ├─ match.py                  # 조이하비 상품명 ↔ 카탈로그 매칭 (rapidfuzz)
 │  ├─ kr.py                     # kr-arrivals 상태, 연결(codeMap)·재매칭, 카탈로그 kr·nameKo 교체, 조이하비 피드 항목
@@ -128,7 +129,7 @@ plamo-hangar/
 - `catalog-pending.json`: `{"updatedAt","items":[line=null 항목],"excluded":{"<id>":"<사유>"}}`. 사유는 `brand:<키들>`·`no-brand-key`·`title-no-match`·`detail-404`. 제외된 id는 일정에 다시 나와도 항목을 만들지 않고 상세도 다시 받지 않는다
 - `manual` / `line:"other"` *(4단계, 구현됨)*: 사이트에서 호비사이트 상품 URL을 붙여넣어 `catalogId`만 저장한 상품을 크롤러가 상세로 받을 때, 브랜드 키가 건프라·걸프라면 해당 파일에 정상 등록한다. 제외 브랜드이거나 사전에 없는 브랜드면 `catalog-gunpla.json`에 `line:"other"`, `manual:true`로 등록한다(건프라 필터·피드 필터에 섞이지 않는다). `manual`이면 기존 항목 재분류를 건너뛰고, 제외 목록에 있던 id도 같은 방식으로 되살린다
 - `seriesKo` *(4단계)*: 시리즈(`seriesKey`)가 있는 항목에 붙는 한국어 시리즈명(`series`는 호비사이트의 일본어 원문 그대로). 사전(`series-ko.json`)·`config.SERIES_KO_OVERRIDES`로 채우고, 번역 당시의 일본어와 `series`가 달라지면 지운 뒤 다시 번역한다. 사이트는 연결·채우기·검색에 `seriesKo`를 먼저 쓴다
-- **몰 필드** *(7a)*: 반다이남코코리아몰과 연결된 항목에 `priceKrw`(판매가, 원, 정수)·`priceKrwAt`(확인 시각, 매 실행 갱신)·`mallGno`(몰 상품번호 — 상품 URL `https://www.bnkrmall.co.kr/goods/detail.do?gno=<gno>`은 사이트가 만든다)·`mallSoldOut`(품절이면 true)·`mallEnded`(몰 목록에서 사라졌으면 true, 가격·`priceKrwAt`은 마지막 값 그대로 → 사이트가 "판매 종료(마지막 확인 날짜)"로 표시). `mallSoldOut`·`mallEnded`는 있으면 항상 true.
+- **몰 필드** *(7a)*: 반다이남코코리아몰과 연결된 항목에 `priceKrw`(판매가, 원, 정수)·`priceKrwAt`(확인 시각 = **PC가 몰 목록을 읽은 스냅샷 시각**, 같은 스냅샷을 다시 적용해도 바뀌지 않음)·`mallGno`(몰 상품번호 — 상품 URL `https://www.bnkrmall.co.kr/goods/detail.do?gno=<gno>`은 사이트가 만든다)·`mallSoldOut`(품절이면 true)·`mallEnded`(몰 목록에서 사라졌으면 true, 가격·`priceKrwAt`은 마지막 값 그대로 → 사이트가 "판매 종료(마지막 확인 날짜)"로 표시). `mallSoldOut`·`mallEnded`는 있으면 항상 true.
 - **몰 이름** *(7a)*: 확실한 연결(점수 `MATCH_NAME_SCORE` 이상 또는 `MALL_OVERRIDES`)이면 `nameKo`를 몰 상품명(`<등급> <스케일> <이름>` 꼴로 정리 — 몰 이름에 등급·스케일이 없으면 카탈로그 값)으로 바꾸고 `nameKoSource:"bnkrmall"`. 이전 이름은 `nameKoAi`(AI 번역·없으면 null)에, 조이하비 이름이었다면 `nameKoJoy`에 보존한다(몰 연결을 걷어내면 조이하비 이름 → AI 번역 순으로 돌아간다). 우선순위 **몰 > 조이하비 > AI 번역**: 조이하비 연결·번역·용어집/한자 재번역은 `nameKoSource`가 있는 이름을 건드리지 않는다. 걸프라(`girl`)도 적용한다(몰 표기 그대로라 괄호 손실이 없다). `seriesKo`도 몰 시리즈명(목록의 caption)이 있으면 그것을 쓰고 `seriesKoSource:"bnkrmall"`을 붙인다(`series.apply`가 건드리지 않는다).
 
 ### mall.json (크롤러가 씀) *(7a)*
@@ -144,6 +145,20 @@ plamo-hangar/
 - `manual`·`line:"other"` 항목은 `catalog-gunpla.json`에 들어가지만 신제품 피드·조이하비 매칭·번역 외의 자동 처리에는 섞이지 않는다. 사이트에서 URL을 붙여넣어 `catalogId`만 저장한 상품은 다음 실행의 `hobby_item` 단계가 **먼저**(실행당 `MANUAL_DETAIL_MAX`=20개, 새·밀린 상품 상한과 별개) 상세를 받는다. 404면 `detail-404`로 제외하고, 일시 오류면 저장하지 않고 다음 실행에 다시 시도하며(되살렸던 제외 사유는 원래대로), `pb-`(P-반다이) id는 상세를 요청하지 않아 카탈로그에 있어야만 쓸 수 있다. 결과는 `meta.sources.hobby_item.manual`(`requested`·`added`·`other`·`unsupported`·`failed`)
 - `nameKo`: 번역 실패·키 없음이면 `null`. 사이트 검색은 nameKo·nameJa 모두 대상
   - `nameKoSource: "joyhobby"` *(3단계)*: 매칭 점수가 **연결 기준보다 높은 별도 기준**(`MATCH_NAME_SCORE`)을 넘었거나 사람이 연결을 확인(`KR_CODE_OVERRIDES`)한 항목은 `nameKo`를 조이하비 한글명(대괄호 코드·영문 괄호·`(프라모델)`·작품 꼬리 정리, `<등급> <스케일> <이름>` 꼴)으로 바꾸고 이 표식을 붙인다. 바꾸기 전 번역은 `nameKoAi`에 보존한다(번역 전이었으면 `null`). 이후 번역은 이 항목을 건드리지 않는다. 연결 금지(override)가 걸리면 `nameKo`를 `nameKoAi`로 되돌리고 두 필드를 지운다. **이름 교체는 `line`이 `gunpla`인 항목만** — 걸프라(`girl`)는 연결·`kr`·피드는 그대로 하되 `nameKo`는 번역을 유지하고, 이미 바뀐 걸프라 항목은 다음 실행에 `nameKoAi`로 되돌린다(`nameReverted`)
+
+### mall-scan.json (내 PC가 씀) *(7a 후속)*
+```json
+{"updatedAt":"ISO","blocked":false,
+ "lastTry":{"at":"ISO","ok":true,"blocked":false,"complete":true,"requests":12,"pages":{"gunpla":8,"girl-30mm":3,"girl-figurerise":1},
+            "results":[{"where":"gunpla 1쪽","status":200,"ok":true,"bytes":201820}],"errors":[],"diag":[]},
+ "scan":{"at":"ISO","complete":true,"requests":12,"count":396},
+ "goods":{"64138890":{"name":"HG 건담 레오파드","series":"기동신세기 건담 X","price":26400,"soldOut":false,"cate":"gunpla"}}}
+```
+- **왜 PC인가**: 몰의 웹 방화벽이 GitHub Actions(클라우드 IP)에는 HTTP 200 + `Request Rejected / Your support ID is …`(247바이트, robots.txt 포함)만 돌려준다(2026-10 진단). 우회(VPN·프록시·헤더 위장)는 하지 않고, 한국 IP인 사용자 PC가 평소처럼 읽는다.
+- **작성자 분리**: PC는 `mall-scan.json`만, Actions는 `mall.json`·카탈로그만 쓴다(push 충돌 없음). Actions의 커밋 허용 목록에 `mall-scan.json`은 없다.
+- `lastTry`는 마지막 시도(성공·부분·차단·실패), `scan`·`goods`는 상품을 읽은 마지막 스냅샷이다. 시도가 상품을 하나도 못 읽으면(차단·구조 변경·전부 HTTP 오류) `scan`·`goods`는 이전 값 그대로 두고 `lastTry`만 갱신한다. 일부 쪽만 읽었으면 그 상품들로 `scan`을 바꾸되 `complete:false`라 Actions가 "판매 종료"를 판정하지 않는다.
+- **차단 감지** (`mall.looks_blocked`): HTTP 403/429, 또는 짧은 본문(3,000자 미만)에 `Request Rejected`·`support ID`·`Access Denied`·`Forbidden`이 있고 상품 줄(`data-childno`)이 없을 때. 첫 차단에서 **전체 스캔을 멈추고** `blocked:true`로 기록한다(재시도·다른 카테고리 요청 없음).
+- **Actions 쪽 처리**: 같은 스냅샷이면 변화 없음(`priceKrwAt` = `scan.at`, `goods.seen` = 스냅샷 날짜). 스냅샷이 `MALL_STALE_DAYS`(7)일을 넘으면 "판매 종료" 판정을 하지 않고 경고(`stale`). `blocked`·파일 없음도 경고. 사이트는 `priceKrwAt`이 7일보다 오래되면 정가 줄에 `가격 확인 YYYY-MM-DD`를 붙인다.
 
 ### series-ko.json (크롤러가 씀) *(4단계)*
 ```json
@@ -191,7 +206,7 @@ plamo-hangar/
  "unknownBrandKeys":[]}
 ```
 - `sources`는 단계별로 나눈다(`hobby`를 `hobby_schedule`·`hobby_brand`·`hobby_item`으로). 일부 항목만 실패하면 `ok:false`와 실패 목록이 `error`에 들어간다. `--only`로 돌리지 않은 소스는 이전 값을 유지한다
-- `sources.mall.diag` *(7a 진단)*: 몰 목록 쪽이 실패했을 때만 붙는 응답 요약 배열 — `{where, status, error, finalUrl, redirects, bytes, contentType, title(≤100자), head(본문 텍스트 앞 200자, script·style·title 제외)}`. 성공한 실행에서는 사라진다. 본문 전체는 `--mall-dump` 때만 파일로 남는다
+- `sources.mall` *(7a 후속)*: Actions는 몰에 요청하지 않고 `mall-scan.json`을 읽는다. `snapshotAt`(PC가 몰을 읽은 시각)·`snapshotAgeDays`·`stale`(7일 초과)·`blocked`가 붙고, 차단·오래됨·파일 없음은 `ok:false`+`error`(경고)로 남는다. `diag`는 PC 수집이 실패했을 때만 붙는 응답 요약 배열 — `{where, status, error, finalUrl, redirects, bytes, contentType, title(≤100자), head(본문 텍스트 앞 200자)}`
 - `crawl.lastFixups`: 이번 실행에 적용한 기존 데이터 보정 결과(재분류로 제외된 수·line 변경 수·nameKo/피드 titleKo 치환 수·`seriesKoApplied` 시리즈 한국어를 채운 항목 수·`strayHanReset` 한자가 섞인 번역을 비워 재번역하게 한 수). 매 실행 덮어쓴다
 - `crawl`: 최초 채우기 커서(5장) — `scheduleFrom`은 "이 달부터 현재까지 일정을 다 훑었다", `girlBrandsDone`은 전체 쪽수를 끝낸 걸프라 브랜드, `backlog`는 상세를 기다리는 항목 수(0이 되면 채우기 완료)
 - `crawl.brandBackfill` *(6단계)*: 2015년 이전 채우기(5장) 커서 — 브랜드 키별 `{next: 다음에 받을 쪽, last: 마지막 쪽, done}`. 중간에 멎으면 그 쪽부터 이어 하고, 전부 `done`이면 더 요청하지 않는다. `meta.sources.hobby_backfill`에 이번 실행의 성공·실패(`hg:2`처럼 실패한 쪽)가 남는다
@@ -207,7 +222,7 @@ plamo-hangar/
 | 호비 상품 상세 | `https://bandai-hobby.net/item/01_N/` | `h1.p-heading__h1-product`, `dl.pg-products__detail dt/dd`, `a.pg-products__pblink`, `li.p-card__link a.p-card__flat`(브랜드·작품 키), 갤러리 이미지 | 상세가 없는 `bh-` 항목만. 실행당 **새 상품 최대 40 + 밀린 상품 최대 150** |
 | 호비 브랜드 목록 | `https://bandai-hobby.net/brand/<key>/?p=N` (`a.c-archives__pagination-list-item-link`) | 카드 `a.p-card`(일정 카드와 같은 구조, 슬라이드 `a.p-slide__link`는 제외) | 걸프라 4개 브랜드: 매일 1쪽, 최초 채우기 때 전체 쪽수 |
 | 조이하비 공지 | `https://www.joyhobby.co.kr/mall/board_list.asp?siteid=joyhobby&BoardCode=notice&nowPage=N` → 글 `board_view.asp?SiteID=joyhobby&BoardCode=notice&B_iID=<번호>` | 후보 글: 제목에 `반다이` 또는 `입고`. 본문 `상품코드 / 상품명 / 가격` 3줄 반복, 반다이 코드 `BD#######` 행이 있어야 기록(없으면 "봤음"). **EUC-KR 인코딩.** 고정 공지 7개가 쪽마다 반복 | 매일 목록 1~2쪽, 처음 보는 글만 |
-| 반다이남코코리아몰 *(7a)* | `https://www.bnkrmall.co.kr/goods/category.do?cate=<N>&page=<P>&cateName=…[&brandIdx=…]&soldout=Y&endGoods=Y` | 줄 `li[data-childno]`: `a.thumb[href=…detail.do?gno=N]`, `.caption`(시리즈), `h5`(상품명), `.price .num`(판매가), `.badge`(품절 표시). **상세·이미지는 받지 않는다.** 구조가 바뀌면(줄 0개·절반 미만) 소스 실패로 기록 | 매일: 건프라 `cate=1576`(약 8쪽) + 애니프라 `cate=1577`의 `brandIdx=205`(30 MINUTES MISSIONS, 3쪽)·`202,203,407,386`(Figure-rise 시리즈, 1쪽). 실행당 요청 `MALL_MAX_REQUESTS`=20회 이내 |
+| 반다이남코코리아몰 *(7a, **내 PC만**)* | `https://www.bnkrmall.co.kr/goods/category.do?cate=<N>&page=<P>&cateName=…[&brandIdx=…]&soldout=Y&endGoods=Y` | 줄 `li[data-childno]`: `a.thumb[href=…detail.do?gno=N]`, `.caption`(시리즈), `h5`(상품명), `.price .num`(판매가), `.badge`(품절 표시). **상세·이미지는 받지 않는다.** 구조가 바뀌면(줄 0개·절반 미만) 소스 실패로 기록, 차단 응답이면 `blocked`로 기록하고 멈춤. Actions는 요청하지 않고 `mall-scan.json`을 읽는다 | 매일(PC 작업 스케줄러 06:30): 건프라 `cate=1576`(약 8쪽) + 애니프라 `cate=1577`의 `brandIdx=205`(30 MINUTES MISSIONS, 3쪽)·`202,203,407,386`(Figure-rise 시리즈, 1쪽). 실행당 요청 `MALL_MAX_REQUESTS`=20회 이내 |
 
 - **몰 매칭 (7a, `mall_link.py`)**: 몰 상품명은 `<등급낱말> [스케일] <이름>` 꼴(`HG 건담 레오파드`, `RG 1/48 AV-98Plus (잉그램 플러스)`, `ENTRY GRADE 윙 건담`, `HGBD:R …`, `피규어라이즈 스탠다드 …`)이라 맨 앞 등급 낱말로 등급을 정한다. 등급 낱말이 없는 이름(`1/100 건담 에어마스터`, `옵션파츠 …`)과 카탈로그에 없는 라인(`30MM`)은 연결하지 않는다. 그 뒤는 `match.best_match`(스케일·등급 후보 → 이름 유사도 → 보호 규칙 → 1·2등 점수 차이)를 그대로 쓰고, **추가 보호**로 몰 판매가(원) ÷ 호비 정가(엔, 세금 포함)가 `MALL_PRICE_RATIO`(9.5~12.5) 밖이면 연결하지 않는다(2026-10 첫 실행에서 연결된 76개가 모두 10.91이었다). 한 카탈로그 항목에는 점수 높은 몰 상품 하나만 붙는다. 사유: `no-grade`·`no-candidates`·`low-score`·`guard`·`ambiguous`·`model-conflict`·`price-mismatch`·`duplicate`. 연결은 조이하비 이름 교체 **뒤**에 한다(몰 > 조이하비)
 - 호출: `requests` + `beautifulsoup4`. Actions에서 결과가 로컬과 다르면(차단·리다이렉트) 그 소스만 Playwright로 바꾼다
@@ -302,13 +317,15 @@ plamo-hangar/
   - `--brand-backfill` *(6단계)*: 2015년 이전 상품 채우기(5장)만 실행(`--only hobby_backfill`과 같다). 커서(`meta.crawl.brandBackfill`)로 이어 하고 알림 없음. `--bootstrap`·`--only`·`--discord-test`와는 함께 쓸 수 없다
   - `--translate-only` / `--translate-max N` *(6단계)*: 수집 없이 번역 단계만 실행하고 이번 실행의 번역 항목 수 상한을 정한다(기본 600, 1~3000). `--only`·`--bootstrap`·`--brand-backfill`·`--discord-test`와는 함께 쓸 수 없다
   - `--data-dir DIR`: `docs/data` 대신 다른 폴더에 읽고 쓴다(로컬에서 부분 채우기를 저장소와 섞지 않으려고)
-  - `--mall-dump DIR` *(7a 진단)*: 몰 단계가 받은 목록 응답 본문(`<카테고리>-p<쪽>.html`)과 `summary.json`(쪽별 HTTP 상태·최종 URL·크기·title, robots.txt 응답 요약)을 DIR에 저장한다. 커밋 대상이 아니다(`crawler/out/`는 gitignore). Actions `mall_debug`가 쓴다
+  - `--mall-local` *(7a 후속)*: **내 PC 전용** — `--only mall`과만 함께 쓴다. 몰 목록만 읽어 `docs/data/mall-scan.json`만 쓴다(카탈로그·`mall.json`·`meta.json`은 건드리지 않음). 차단 응답이면 `blocked:true` 기록 후 정상 종료. `--dry-run`이면 파일을 쓰지 않고 요약만 출력. 매일 실행은 `scripts/mall_local.ps1`(작업 스케줄러, README 6장)
+  - `--mall-dump DIR`: `--mall-local` 때 받은 목록 응답 본문(`<카테고리>-p<쪽>.html`)과 `summary.json`(쪽별 HTTP 상태·최종 URL·크기·title, robots.txt 응답 요약)을 DIR에 저장(진단용, 커밋 대상 아님). 일반 실행의 `--only mall`은 파일을 읽을 뿐 요청하지 않는다
   - `--no-discord`: 발송만 끈다. `--dry-run`은 파일은 쓰고 디스코드는 보내지 않으며 **보낼 내용을 항상 출력**하고, API 비용이 드는 번역은 `--only translate`로 명시할 때만 돌린다
   - `--discord-test` *(5단계)*: 수집 없이 테스트 알림 **1메시지**만 보낸다. `feed.json` 최근 3개(내 프라 연결 항목이 있으면 그중 1개 포함)를 실제 알림과 같은 형식으로 묶고 맨 앞에 `[테스트] 프라 격납고 알림 확인용`을 붙인다. `docs/data`는 바꾸지 않고(커밋도 없음) 웹훅은 `DISCORD_WEBHOOK_URL`(Actions Secret)만 쓴다 — 없으면 "웹훅 없음"만 출력하고 성공 종료, 발송 실패는 종료 코드 1. `--dry-run`을 같이 주면 내용만 출력. 수집 옵션과는 함께 쓸 수 없다
 - 로컬 미리보기: `python -m http.server -d docs 8000`
 
 ## 9. GitHub Actions (`crawl.yml`)
-- 트리거: `schedule: cron "10 22 * * *"` (KST 07:10), `workflow_dispatch`(입력: `bootstrap`, `max_backlog`(기본 150), `joy_backfill`(조이하비 과거 글만: `--bootstrap --only joyhobby`), `joy_pages`(기본 25), `brand_backfill`(기본 꺼짐: 2015년 이전 상품 채우기만 — 8장 `--brand-backfill`, 약 8분), `translate_only`(기본 꺼짐: 수집 없이 번역만 — `--translate-only`) + `translate_max`(기본 600), `discord_test`(기본 꺼짐: 수집·커밋 없이 테스트 알림 1건만 — 8장 `--discord-test`), `mall_debug`(기본 꺼짐: 몰만 `--only mall --dry-run --mall-dump crawler/out/mall-debug`로 돌리고 받은 HTML을 artifact `mall-debug`(3일)로 올린다. 커밋 단계는 건너뜀))
+- 트리거: `schedule: cron "10 22 * * *"` (KST 07:10), `workflow_dispatch`(입력: `bootstrap`, `max_backlog`(기본 150), `joy_backfill`(조이하비 과거 글만: `--bootstrap --only joyhobby`), `joy_pages`(기본 25), `brand_backfill`(기본 꺼짐: 2015년 이전 상품 채우기만 — 8장 `--brand-backfill`, 약 8분), `translate_only`(기본 꺼짐: 수집 없이 번역만 — `--translate-only`) + `translate_max`(기본 600), `discord_test`(기본 꺼짐: 수집·커밋 없이 테스트 알림 1건만 — 8장 `--discord-test`))
+- 몰 단계는 요청하지 않는다(위 4장 `mall-scan.json`). 커밋 허용 목록 8개에 `mall-scan.json`은 없다 — PC만 커밋한다
 - `concurrency: { group: crawl }`, 권한 `contents: write`
 - 단계: checkout → Python 3.12 + pip 캐시 → `python main.py` → 요청 로그 artifact(7일) → `git pull --rebase --autostash` → **허용 목록 8개만 add**(`catalog-gunpla/girl/pending.json`, `feed.json`, `kr-arrivals.json`, `series-ko.json`, `mall.json`, `meta.json`; 그 밖의 경로가 staged면 실패해 `collection.json`·`photos/`를 지킨다) → 변경이 있으면 커밋(`data: crawl YYYY-MM-DD`) → push(충돌 시 `pull --rebase` 후 최대 3회). `timeout-minutes: 45`
 - 조이하비 과거 글 채우기: 수동 실행에서 `joy_backfill`을 켠다(한 번에 끝남, 약 320요청 ≈ 6.5분 — 후보 글의 2/3가 BD 행이 없는 글이라 대부분이 "봤음"용 요청이다). 호비사이트 채우기와 독립이다
@@ -348,5 +365,6 @@ plamo-hangar/
 5. 마무리 — 실제 알림 1회(사용자 요청 시), README, 이전 아티팩트 정리 여부 확인
    - **상태 (2026-10-08)**: 5a 디스코드 테스트 발송(`--discord-test`, 수동 실행 입력 `discord_test`) **코드·테스트 완료**, 5b README **완료**. 남은 것: push 후 Actions 수동 실행(`discord_test` 켜기)으로 실제 알림 1건 확인(사용자가 요청할 때만), 다음 날 예약 실행 확인(11장 5단계), 이전 Claude 아티팩트 정리 여부 확인
 6. 다듬기 *(2026-10)* — 6-1 디스코드 임베드 `url` 구별, 6-7 번역 한자 혼입 검사, 6-4 2015년 이전 카탈로그(`brand_backfill`)·상세 받기 순서, 6-3 검색 별칭, 6-5 빈 칸 채우기, 6-2 연결 도우미
+   - **7a 후속 (2026-10-09)**: 몰 방화벽이 Actions(클라우드 IP)를 막아(`Request Rejected`) 몰 목록은 **내 PC**가 `--mall-local`로 읽어 `mall-scan.json`만 커밋하고(`scripts/mall_local.ps1`, 작업 스케줄러 06:30), Actions는 요청 없이 그 파일을 읽어 연결한다(4장 `mall-scan.json`). 남은 것: 사용자가 push → PC 첫 수동 실행 → Actions 실행 → 작업 스케줄러 등록(PROGRESS.md "사용자가 할 순서")
    - **7a 반다이남코코리아몰(가격·한국 공식 이름) 구현됨**: 목록 수집(`mall` 단계)·연결·`priceKrw` 등 카탈로그 필드·몰 이름/시리즈·사이트 정가 줄. **7b(몰 사진)는 사용자가 이용약관을 확인한 뒤 따로 지시한다** — 이미지 규칙(CLAUDE.md Critical)·CSP·SPEC 2장은 그대로이고 몰 이미지 URL은 저장하지 않는다
    - **상태**: 위 항목 코드·테스트 완료. 남은 것: push 후 Actions `discord_test`로 임베드가 따로 보이는지 확인, `brand_backfill` 한 번 실행(이후 매일 실행이 상세·번역을 나눠 채움), 한자 혼입 2건(`비达르`) 재번역 확인. **6-0b 반다이남코코리아몰 연동**(조사: `spike/mall-report.md`)은 사용자가 이용약관을 확인한 뒤 따로 지시한다

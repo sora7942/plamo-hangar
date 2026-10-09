@@ -104,7 +104,7 @@
 | 5xx·timeout·ConnectionError | 일시 장애 또는 연결 차단 | 한 번 더 실행해 재현되면 2단계 |
 | robots.txt가 차단 페이지(`html:true`가 아닌 본문인데 규칙이 이상함) | robots 해석 문제 | 확인 후 수정 |
 
-### 2단계: 계획만 (해외 IP 차단으로 확인되면 — 아직 구현하지 않음)
+### 2단계: 계획 (구현됨 — 아래 "2단계 구현" 참고. 여기는 당시 계획 원문)
 원칙: 한국 IP인 내 PC에서 평소처럼 요청하는 것이지 우회가 아니다. VPN·프록시·해외 서버 없음. robots.txt·요청 간격(1.2초)·상한(20회)은 그대로. Actions가 **카탈로그 파일의 유일한 작성자**라는 규칙을 지킨다.
 
 **결정 (사용자 확인됨, 2026-10-09)**: PC는 `docs/data/mall-scan.json`만, Actions는 `mall.json`만 쓴다. 2단계는 사용자가 진단 결과를 보고 시작하라고 지시할 때만 시작한다.
@@ -134,3 +134,43 @@
 **테스트(네트워크 없이)**: `--mall-local`이 `mall-scan.json`만 쓰고 카탈로그를 건드리지 않음, 불완전 스캔은 이전 스냅샷 유지, Actions 단계가 파일을 읽어 연결(요청 0회), 같은 `scan.at` 재실행은 변화 없음, `priceKrwAt = scan.at`, 오래된 스냅샷 문구(node), 스크립트의 허용 목록 검사는 PowerShell 로직이라 수동 확인.
 
 **문서 갱신(구현 때)**: CLAUDE.md "크롤러가 쓰는 파일 … Actions만 커밋" 규칙에 `mall-scan.json`(PC만) 예외, SPEC 3·4·8·9장, README(작업 스케줄러 절차·문제 해결).
+
+
+### 진단 결과 (2026-10-09, 사용자 실행)
+Actions에서 몰 목록 3쪽 + robots.txt 모두 HTTP 200 `Request Rejected / Your support ID is …`(247바이트) — 웹 방화벽이 클라우드 IP를 차단. 로컬은 정상 → 2단계 진행. 이 응답은 "200인데 상품 줄 0개"라서 상태 코드만으로는 못 거른다 → 차단 문구 감지(`mall.looks_blocked`).
+
+## 2단계 구현 (2026-10-09, 로컬 커밋 — push는 사용자가)
+파일 분리는 권장안대로: **PC는 `mall-scan.json`만, Actions는 `mall.json`·카탈로그만**. 우회(VPN·프록시·헤더 위장)는 없다.
+- [x] `python main.py --only mall --mall-local` (`crawler/mall_scan.py`): 몰 목록만 읽어 `docs/data/mall-scan.json`(`lastTry`: 시도 시각·쪽별 결과·오류·진단 / `scan`·`goods`: 마지막 스냅샷 / `blocked`)만 쓴다. 카탈로그·`mall.json`·`meta.json`은 건드리지 않는다. `--dry-run`은 파일을 쓰지 않는다. `--mall-dump DIR`로 받은 HTML 저장(진단)
+- [x] 차단 감지: 403/429 또는 짧은 본문의 `Request Rejected`/`support ID`/`Access Denied`/`Forbidden`(상품 줄 없을 때) → **첫 차단에서 전체 스캔 중단**(재시도·다른 카테고리 요청 없음), `blocked:true` 기록, 이전 스냅샷은 지우지 않음. 429·연속 실패(SourceAborted)·robots 거부도 기록하고 정상 종료
+- [x] Actions `mall` 단계는 **요청 없이** 파일을 읽어 `absorb → link_all`. 같은 스냅샷이면 `mall.json`·카탈로그 변화 없음(테스트: 바이트 비교). `priceKrwAt` = 스냅샷 시각. 7일(`config.MALL_STALE_DAYS`) 넘으면 "판매 종료" 판정 안 함 + meta 경고(`stale`, `snapshotAgeDays`), `blocked`·파일 없음도 경고(`ok:false`+`error`). 실제 데이터(PC 스냅샷 396개)로 확인: 연결 139, 같은 스냅샷 재실행은 파일 변화 없음
+- [x] 사이트: `priceInfo(item, today)` — `priceKrwAt`이 7일보다 오래되면 정가 줄에 `가격 확인 YYYY-MM-DD`(품절이면 `품절 · 가격 확인 …`, 판매 종료·엔 정가에는 붙이지 않음)
+- [x] `scripts/mall_local.ps1`: python 찾기 → 수집 → `mall-scan.json`만 `git add` + `git commit -- <경로>`(경로 지정 커밋; 다른 staged 파일은 같이 안 들어감, 커밋 후 파일 1개인지 재확인) → `git pull --rebase --autostash` → `git push`(실패 시 1회 재시도). main이 아니거나 rebase/merge 중이면 건너뜀. 로그 `crawler\out\mall_local.log`. **임시 저장소(로컬 bare remote)에서 실제 몰로 end-to-end 확인**: 작업 중 수정·staged 파일 유지, 커밋에는 `mall-scan.json`만, 원격이 앞서 있어도 rebase 후 push, 다른 브랜치면 종료 코드 3으로 건너뜀
+- [x] crawl.yml: 커밋 허용 목록은 그대로(`mall-scan.json` 없음, 테스트로 고정). `mall_debug` 입력은 Actions가 더는 몰을 요청하지 않아 의미가 없어 제거(`--mall-dump`는 `--mall-local`용으로 유지)
+- [x] 문서: CLAUDE.md Gotchas·명령·Structure, SPEC(3·4·5·8·9장), README(2·6·8장). 테스트 pytest 439개 + node 125개 통과
+
+### 사용자가 할 순서
+1. **push** (코드 + 스크립트 + 문서). 아직 `docs/data/mall-scan.json`이 저장소에 없으므로 3번 전까지 Actions의 `mall`은 "mall-scan.json 없음" 경고만 낸다(다른 소스는 정상)
+2. **PC에서 첫 수동 실행** (PowerShell, 저장소 폴더, `main` 브랜치):
+   ```powershell
+   conda activate plamo
+   python main.py --only mall --mall-local --dry-run     # 파일은 안 쓰고 읽히는지만 (약 12요청, 20초)
+   powershell -NoProfile -ExecutionPolicy Bypass -File scripts\mall_local.ps1      # 수집 + mall-scan.json만 커밋·push
+   Get-Content crawler\out\mall_local.log -Tail 20 -Encoding UTF8       # 끝에 "완료: push 됨"
+   ```
+   작업 트리에 다른 변경이 있어도 괜찮다(그 파일은 커밋되지 않고, `--autostash`가 잠깐 치웠다 되돌린다).
+3. **Actions 실행**: Actions → `crawl` → Run workflow(기본값) → 실행 요약의 `mall` 행이 `ok`, `meta.sources.mall`에 `snapshotAt`·`links`(약 139)가 보이는지 확인. 다음 날 07:10 예약 실행도 같은 파일이면 변화 없음.
+4. **작업 스케줄러 등록**(README 6장 "몰 수집"과 같은 명령, 매일 06:30):
+   ```powershell
+   $repo = "C:\Users\woori\plamo-hangar"
+   $act  = New-ScheduledTaskAction -Execute "powershell.exe" -WorkingDirectory $repo `
+             -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$repo\scripts\mall_local.ps1`""
+   $trg  = New-ScheduledTaskTrigger -Daily -At 06:30
+   $set  = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
+             -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 20)
+   Register-ScheduledTask -TaskName "plamo-hangar-mall" -Action $act -Trigger $trg -Settings $set -Description "몰 목록을 읽어 docs/data/mall-scan.json만 push"
+   Start-ScheduledTask -TaskName plamo-hangar-mall                # 등록 직후 한 번 시험
+   Get-ScheduledTaskInfo -TaskName plamo-hangar-mall | Select LastRunTime, LastTaskResult, NextRunTime     # LastTaskResult 0 = 정상
+   Unregister-ScheduledTask -TaskName plamo-hangar-mall -Confirm:$false                                   # 삭제
+   ```
+5. 알아 둘 점: PC가 꺼져 있던 날은 `-StartWhenAvailable`로 켜진 뒤 한 번 실행된다(커서 없는 전체 스냅샷이라 놓친 날을 메울 필요 없음). 06:30에 `main`이 아닌 브랜치에서 작업 중이면 그날은 건너뛴다(로그에 남음, 종료 코드 3). 로그온하지 않은 상태에서는 로그온 후 실행된다.

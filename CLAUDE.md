@@ -18,17 +18,17 @@
 - 2015년 이전 상품 채우기(수동 실행 `brand_backfill`): `python main.py --brand-backfill` (= `--only hobby_backfill`. 목록 약 366쪽을 카드만으로, 약 8분. 진행 위치는 `meta.crawl.brandBackfill`, 알림 없음. 대상 브랜드는 `config.OLD_BRANDS`, bb 제외)
 - 번역만(수집 없음): `python main.py --translate-only --translate-max 1500` (밀린 번역을 최신 발매순으로 한 번에. Actions 입력 `translate_only`·`translate_max`)
 - 용어 일관성 점검(읽기 전용): `python -m crawler.audit_terms --top 50` → 표기가 갈린 가타카나 단어 표. 결과는 `crawler/out/term-audit.md`
-- 몰 진단(Actions에서만 실패할 때): Actions `mall_debug`(= `--only mall --dry-run --mall-dump crawler/out/mall-debug`, 응답 HTML을 artifact 3일 보관, 커밋 없음). 실패하면 `meta.sources.mall.diag`에 HTTP 상태·최종 URL·title·본문 앞 200자가 남는다
+- 몰 수집(내 PC에서만): `python main.py --only mall --mall-local` → `docs/data/mall-scan.json`만 쓴다(`--dry-run`이면 쓰지 않음, `--mall-dump DIR`로 받은 HTML 저장). 매일은 작업 스케줄러가 `scripts/mall_local.ps1`로 돌려 그 파일만 커밋·push (README 6장)
 - 디스코드 테스트(수집 없음): `python main.py --discord-test --dry-run` (실제 발송은 Actions `discord_test`로, 사용자가 요청할 때만)
 - 사이트 미리보기: `python -m http.server -d docs 8000` → http://localhost:8000
 - 테스트: `pytest -q` (사이트 순수 함수는 `node --test tests/site_*.test.mjs`, 화면은 `python tests/e2e/site_mock_check.py`·`site_catalog_check.py`)
 
 ## Structure
 - 사이트가 쓰는 파일: `docs/data/collection.json`, `docs/photos/**` — 크롤러는 읽기만 한다
-- 크롤러가 쓰는 파일: `docs/data/catalog-*.json`, `feed.json`, `kr-arrivals.json`, `series-ko.json`, `mall.json`, `meta.json` — 사이트는 읽기만 한다. **이 파일들은 Actions만 커밋한다** — 로컬 `--dry-run`/`--bootstrap` 결과는 `git restore`로 되돌리고 커밋하지 않는다
+- 크롤러가 쓰는 파일: `docs/data/catalog-*.json`, `feed.json`, `kr-arrivals.json`, `series-ko.json`, `mall.json`, `meta.json` — 사이트는 읽기만 한다. **이 파일들은 Actions만 커밋한다**(예외 하나: `mall-scan.json`은 내 PC만 커밋한다 — Actions의 커밋 허용 목록에 넣지 않는다) — 로컬 `--dry-run`/`--bootstrap` 결과는 `git restore`로 되돌리고 커밋하지 않는다
 - 크롤러는 `docs/data/collection.json`을 **읽기만 한다**(`crawler/mine.py`) — 연결된 `catalogId`로 미등록 상품의 상세를 받고(`manual:true`, 제외 브랜드는 `line:"other"`), 디스코드에서 "내 프라"를 먼저 보낸다
 - 시리즈 한국어: `crawler/series.py`가 seriesKey별로 한 번만 번역해 `series-ko.json`에 보관하고 카탈로그 항목의 `seriesKo`를 채운다. 틀린 번역은 `config.SERIES_KO_OVERRIDES`에 한 줄 추가
-- 반다이남코코리아몰(7a): `crawler/sources/mall.py`가 **목록 페이지만** 읽고(상세·이미지 요청 없음, 실행당 `MALL_MAX_REQUESTS`) `crawler/mall_link.py`가 gno ↔ catalogId 연결·가격(`priceKrw`)·몰 이름(`nameKoSource:"bnkrmall"`, 몰 > 조이하비 > AI)·시리즈·판매 종료(`mallEnded`)를 카탈로그에 반영하고 `docs/data/mall.json`에 상태를 둔다. 틀린 연결은 `config.MALL_OVERRIDES`. **몰 이미지는 저장도 사용도 하지 않는다 — 7b(사진)는 사용자가 약관을 확인한 뒤 따로 지시**
+- 반다이남코코리아몰(7a): **몰 방화벽이 클라우드 IP를 막아(Actions는 `Request Rejected`) 목록은 내 PC가 읽는다** — `crawler/sources/mall.py`(목록 페이지만, 상세·이미지 요청 없음, 실행당 `MALL_MAX_REQUESTS`)를 `crawler/mall_scan.py`의 `--mall-local`이 불러 `docs/data/mall-scan.json`(PC만 씀)에 스냅샷을 남긴다. Actions의 `mall` 단계는 **요청 없이** 그 파일을 읽어 `crawler/mall_link.py`가 gno ↔ catalogId 연결·가격(`priceKrw`, `priceKrwAt` = 스냅샷 시각)·몰 이름(`nameKoSource:"bnkrmall"`, 몰 > 조이하비 > AI)·시리즈·판매 종료(`mallEnded`)를 카탈로그에 반영하고 `docs/data/mall.json`(Actions만 씀)에 상태를 둔다. 틀린 연결은 `config.MALL_OVERRIDES`. **몰 이미지는 저장도 사용도 하지 않는다 — 7b(사진)는 사용자가 약관을 확인한 뒤 따로 지시**
 - 검색 별칭은 `docs/aliases.js`(사이트 쪽 사전 — config가 아니다; 일본어 가나는 묶음에서만, 한국어 표기와 짝으로. `∀`는 `norm`이 `ターンエー`로 읽는다): 철자·줄임말 묶음, 무시할 꼬리말(클리어·코팅 — 가산만), 일반어. 연결 도우미의 진행 상태는 순수 로직 `docs/assist.js`, 화면은 app.js `openAssist`
 - 상세 받는 순서: ① 사이트에서 연결한 미등록 상품(`manual`, 실행당 `MANUAL_DETAIL_MAX`) ② 새 상품 ③ 밀린 상품은 **발매월 최신순**(같은 달이면 line이 있는 항목 먼저)
 - URL·대상 라인·주기·개수 제한·알림 규칙·모델명·매칭 임계값은 `crawler/config.py` 한 곳에만 둔다. 사람이 고치는 표(`BRAND_LINE`, `JOY_BRACKET_GRADES`, `KR_CODE_OVERRIDES` …)도 거기 있다
@@ -57,6 +57,7 @@
 - 단계는 SPEC 12장 순서대로, 사용자가 다음 단계를 지시할 때만 넘어간다
 
 ## Gotchas
+- **몰(bnkrmall.co.kr)은 클라우드 IP를 막는다**: Actions에서 robots.txt·목록 모두 HTTP 200 `Request Rejected / Your support ID is …`(247바이트)가 온다(2026-10 진단) → 몰은 Actions가 요청하지 않고 내 PC가 `--mall-local`로 읽는다. 로컬에서도 차단 응답이 오면 `mall-scan.json`에 `blocked:true`만 기록하고 **재시도·헤더 위장·프록시·VPN 없이 멈춘다**(`mall.scan`이 첫 차단에서 전체를 중단). Actions는 blocked·스냅샷 7일 초과(`MALL_STALE_DAYS`, 이때는 "판매 종료" 판정 안 함 + 사이트가 "가격 확인 날짜" 표시)·파일 없음을 `meta.sources.mall`의 경고로 남긴다
 - 0단계 결과(`spike/report.md`)가 사이트 구조의 기준이다. 셀렉터·URL은 거기와 fixture를 따른다
 - 조이하비는 **EUC-KR**(응답 헤더 `Charset=euc-kr`)이다. `crawler/http.py`의 `decode_body`가 Content-Type → `<meta charset>` → UTF-8 순으로 읽는다. `r.text`나 UTF-8 고정 디코딩을 쓰면 한글이 깨진다. fixture도 `joyhobby-raw-*.html`은 응답 원본 바이트(`joyhobby-post-*`/`joyhobby-board-notice-p1`은 Playwright 저장본 UTF-8)
 - 조이하비 공지 목록: **고정 공지 7개(`Notice=true`)가 쪽마다 맨 위에 반복**된다(버릴 것). 쪽당 일반 글 20개, **마지막 쪽은 20쪽(2026-10)**, **21쪽부터는 마지막 행만 되풀이**해서 돌려준다(오류가 아님 — 새 글이 없거나 20개 미만인 쪽에서 멈춘다). 제목 형식이 제각각이라 `반다이`|`입고` 후보의 본문에 `BD#######` 행이 있는지로 확정한다
