@@ -19,9 +19,10 @@ ROBOTS = "User-agent: *\nAllow: /\nDisallow: /nmanager/\n"
 
 
 # ---------------------------------------------------------------- 합성 목록 페이지
-def li(gno, name, price, series_name=None, badge=""):
+def li(gno, name, price, series_name=None, badge="", dim=""):
     cap = f'<p class="font-13 caption">{series_name}</p>' if series_name else ""
-    return (f'<li data-childno="1"><a class="thumb" href="../goods/detail.do?gno={gno}"><div class="thumb-img"><div class="img_box" style="background-image:none"></div></div>'
+    dim_html = f'<div class="thumb-dim"><p class="font-esamanru font-bold dim-text">{dim}</p></div>' if dim else ""
+    return (f'<li data-childno="1"><a class="thumb" href="../goods/detail.do?gno={gno}"><div class="thumb-img"><div class="img_box" style="background-image:none"></div>{dim_html}</div>'
             f'{cap}<h5 class="font-15">{name}</h5><div class="font-15 price"><p class="price_result"><span class="num font-20">\n {price:,}</span>원</p></div></a>'
             f'<div class="badge">{badge}</div></li>')
 
@@ -62,6 +63,13 @@ def test_parse_list_sold_out_badge_and_price_commas():
     assert [(i["gno"], i["price"], i["soldOut"]) for i in p["items"]] == [("11", 1234567, True), ("12", 9900, False)]
 
 
+def test_parse_list_sold_out_is_read_from_thumb_dim_not_from_promo_badges_or_reservation_dim():
+    """실제 목록(2026-10): 품절은 `.thumb-dim`의 `SOLD OUT`. `.badge`는 `MD PICK` 같은 홍보 문구, 예약 상품의 dim은 `예약상품`이다."""
+    p = mall.parse_list(page_html([("1", "MGSD 윙 건담 제로EW", 54000, "신기동전기 건담 W", "", "SOLD OUT"), ("2", "RG 샤이닝 건담", 42000, None, "MD PICK", ""),
+                                   ("3", "예약 상품", 30000, None, "", "예약상품"), ("4", "품절 아님", 100, None, "", "")]))
+    assert {i["gno"]: i["soldOut"] for i in p["items"]} == {"1": True, "2": False, "3": False, "4": False}
+
+
 def test_parse_list_structure_change_raises():
     for html in ("<html><body>점검 중입니다</body></html>", "<ul></ul>"):
         with pytest.raises(mall.MallStructureError):
@@ -73,9 +81,17 @@ def test_parse_list_structure_change_raises():
     assert len(ok["items"]) == 2 and ok["skipped"] == 1                           # 한두 줄만 못 읽으면 건너뛰고 계속
 
 
+def test_list_urls_include_sold_out_goods_and_scan_budget_covers_the_full_lists():
+    """`soldout=Y`는 품절 상품을 뺀다 → 빈 값이어야 한다 (2026-10: 건프라 40쪽·30MM 5쪽·Figure-rise 4쪽 = 49요청, 1.2초 간격으로 22쪽에서 연결이 끊겨 3초로 늦춤)."""
+    for c in config.MALL_CATEGORIES:
+        assert "soldout=&" in mall.list_url(c["params"], 1) and "soldout=Y" not in mall.list_url(c["params"], 1)
+    assert config.MALL_MAX_REQUESTS >= 49 + 5 and config.MALL_MAX_PAGES >= 40
+    assert config.MALL_MIN_INTERVAL >= 2 * config.MIN_INTERVAL, "몰은 1.2초보다 훨씬 느리게 (속도 제한)"
+
+
 def test_urls_are_list_pages_only():
     u = mall.list_url({"cate": "1577", "cateName": "애니프라", "brandIdx": "202,203,407,386"}, 3)
-    assert u.startswith("https://www.bnkrmall.co.kr/goods/category.do?cate=1577&page=3&cateName=") and "brandIdx=202,203,407,386" in u and "soldout=Y&endGoods=Y" in u
+    assert u.startswith("https://www.bnkrmall.co.kr/goods/category.do?cate=1577&page=3&cateName=") and "brandIdx=202,203,407,386" in u and "soldout=&endGoods=Y" in u and "soldout=Y" not in u
     assert mall.goods_url("58992") == "https://www.bnkrmall.co.kr/goods/detail.do?gno=58992"
     assert all("detail.do" not in mall.list_url(c["params"], 1) for c in config.MALL_CATEGORIES)
 

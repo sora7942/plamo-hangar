@@ -66,8 +66,9 @@ MALL_CATEGORIES = [
     {"key": "girl-30mm", "params": {"cate": "1577", "cateName": "애니프라", "brandIdx": "205"}},
     {"key": "girl-figurerise", "params": {"cate": "1577", "cateName": "애니프라", "brandIdx": "202,203,407,386"}},
 ]
-MALL_MAX_REQUESTS = 20            # 실행당 요청 상한 (robots.txt 포함). 넘으면 멈추고 그 실행은 "사라짐" 판정을 하지 않는다
-MALL_MAX_PAGES = 12               # 카테고리 하나의 쪽수 안전 상한
+MALL_MAX_REQUESTS = 70            # 실행당 요청 상한 (robots.txt 제외). 품절 상품까지 받으면 건프라 40쪽 + 30MM 5쪽 + Figure-rise 4쪽 = 49회(2026-10). 넘으면 멈추고 그 실행은 "사라짐" 판정을 하지 않는다
+MALL_MIN_INTERVAL = 3.0           # 몰 요청 사이 최소 간격(초). 1.2초로 22쪽을 연달아 읽자 23번째부터 연결이 끊겼다(2026-10, 속도 제한으로 보임) → 느리게
+MALL_MAX_PAGES = 60               # 카테고리 하나의 쪽수 안전 상한 (건프라 40쪽)
 MALL_PRICE_RATIO = (9.5, 12.5)    # 몰 판매가(원) ÷ 호비 정가(엔, 세금 포함)의 정상 범위. 밖이면 이름이 비슷해도 연결하지 않는다(세트 구성·분류가 다른 상품).
                                   # 2026-10 첫 실행에서 연결된 63개가 모두 10.91(= 12 ÷ 1.1)이었다 — 어긋나면 틀린 연결을 의심한다
 MALL_STALE_DAYS = 7               # PC 스냅샷이 이보다 오래되면 "판매 종료" 판정을 하지 않고 meta에 경고한다. 사이트도 같은 값(catalog.js STALE_DAYS)으로 "가격 확인 날짜"를 보인다

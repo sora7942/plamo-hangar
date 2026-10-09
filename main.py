@@ -115,7 +115,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.mall_local:                                            # 몰은 클라우드 IP를 막는다 → PC에서 목록만 읽어 mall-scan.json만 쓴다
         from crawler import mall_scan
-        mall_scan.run_local(HttpClient(log_path=config.REQUEST_LOG), args.data_dir or config.DATA_DIR, dump_dir=args.mall_dump, dry_run=args.dry_run)
+        from crawler.http import RateLimiter
+        mall_http = HttpClient(log_path=config.REQUEST_LOG, limiter=RateLimiter(config.MALL_MIN_INTERVAL))      # 몰은 천천히 (속도 제한을 건드리지 않게)
+        mall_scan.run_local(mall_http, args.data_dir or config.DATA_DIR, dump_dir=args.mall_dump, dry_run=args.dry_run)
         return 0                                                   # 차단·실패도 기록으로 남기는 정상 종료 (예외만 비정상)
 
     opts = Options(

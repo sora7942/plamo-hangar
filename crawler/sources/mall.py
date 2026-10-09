@@ -1,8 +1,11 @@
 """반다이남코코리아몰(https://www.bnkrmall.co.kr) 상품 목록 — 한국 정식 상품명·시리즈명·판매가(원)를 모은다. (7a)
 
-- **목록 페이지만** 받는다(상세·이미지는 받지 않는다). 카테고리 목록: `/goods/category.do?cate=<N>&page=<P>&cateName=…&soldout=Y&endGoods=Y`
-  (`soldout=Y&endGoods=Y`가 사이트 "전체상품" 링크의 값 — 품절·판매 종료 상품도 목록에 나온다). 쪽당 40개.
-- 한 줄(`li[data-childno]`): `a.thumb[href=../goods/detail.do?gno=N]`, `.caption`(시리즈, 없을 수 있음), `h5`(상품명), `.price .num`(판매가), `.badge`
+- **목록 페이지만** 받는다(상세·이미지는 받지 않는다). 카테고리 목록: `/goods/category.do?cate=<N>&page=<P>&cateName=…&soldout=&endGoods=Y`. 쪽당 40개.
+  **`soldout=Y`는 품절 상품을 *빼는* 값이다**(사이트 "전체상품" 링크가 그 값을 쓰지만 목록에는 판매 중인 상품만 나온다 — 2026-10 확인: 건프라 8쪽·282개뿐이라
+  MGSD 윙 건담 제로 EW·RG 윙 건담 제로 EW 같은 품절 상품이 통째로 빠졌다). `soldout=`(빈 값)이면 품절도 나온다: 건프라 40쪽(≈1,600개), 30MM 5쪽, Figure-rise 4쪽.
+  `endGoods`는 `Y`든 빈 값이든 첫 쪽·쪽수가 같았다(2026-10) — 사이트 링크대로 `Y`로 둔다.
+- 한 줄(`li[data-childno]`): `a.thumb[href=../goods/detail.do?gno=N]`, `.caption`(시리즈, 없을 수 있음), `h5`(상품명), `.price .num`(판매가), `.badge`,
+  `.thumb-dim`(`SOLD OUT` — 품절 표시는 여기에 있고 `.badge`는 `MD PICK` 같은 홍보 문구다. `예약상품`도 같은 칸에 나오지만 품절이 아니다)
 - 이미지 URL(`.img_box` 배경)은 읽지 않는다 — 몰 이미지는 저장하지도 쓰지도 않는다 (CLAUDE.md Critical)
 - 요청은 `HttpClient`(robots 준수·1.2초 간격·timeout·UA)로, 실행당 `config.MALL_MAX_REQUESTS`회 이내. 구조가 바뀌면 소스 실패로 기록하고 계속한다
 - 반환의 `complete`는 "모든 카테고리의 모든 쪽을 정상으로 읽었다"는 뜻이다. 이때만 호출자가 "몰에서 사라진 상품"을 판정한다
@@ -46,7 +49,7 @@ def list_url(params: dict[str, str], page: int) -> str:
     q = {"cate": params["cate"], "page": str(page), "cateName": params.get("cateName", "")}
     if params.get("brandIdx"):
         q["brandIdx"] = params["brandIdx"]
-    q.update({"soldout": "Y", "endGoods": "Y"})
+    q.update({"soldout": "", "endGoods": "Y"})          # soldout=Y는 품절 상품을 *뺀다* — 빈 값이어야 품절도 나온다 (모듈 설명 참고)
     return f"{config.MALL_BASE}/goods/category.do?{urlencode(q, safe=',')}"
 
 
@@ -75,8 +78,8 @@ def parse_list(html: str) -> dict:
         seen.add(m.group(1))
         cap = li.select_one(".caption")
         series = re.sub(r"\s+", " ", cap.get_text(" ", strip=True)) if cap else ""
-        badge = li.select_one(".badge")
-        sold = bool(_SOLDOUT_RX.search((badge.get_text(" ", strip=True) if badge else "") + " " + " ".join(li.get("class") or [])))
+        badge, dim = li.select_one(".badge"), li.select_one(".thumb-dim")
+        sold = bool(_SOLDOUT_RX.search(" ".join([badge.get_text(" ", strip=True) if badge else "", dim.get_text(" ", strip=True) if dim else "", *(li.get("class") or [])])))
         items.append({"gno": m.group(1), "name": name, "series": series or None, "price": int(pm.group(0).replace(",", "")), "soldOut": sold})
     if not lis or len(items) * 2 < len(lis):
         raise MallStructureError(f"상품 줄 {len(lis)}개 중 {len(items)}개만 읽었습니다 (구조가 바뀌었을 수 있음)")
