@@ -641,9 +641,9 @@ function openDetail(id) {
   var linkInfo = !k.catalogId ? '' : '<div class="linkbox"><span class="lk">반다이 제품</span>' + (ci
       ? '<span>' + esc(ci.title) + ' <span class="hint">' + esc([ci.grade, ci.scale, ci.seriesText].filter(Boolean).join(' · ')) + '</span>' + (pu ? ' · <a href="' + esc(pu) + '" target="_blank" rel="noopener noreferrer">공식 페이지</a>' : '') + '</span>'
       : '<span class="hint">' + (catState === 'ready' ? '카탈로그에 아직 없는 제품이에요 (' + esc(k.catalogId) + '). 다음 수집 때 채워져요.' : catState === 'error' ? '카탈로그를 불러오지 못했어요.' : '카탈로그를 불러오는 중이에요…') + '</span>') + '</div>';
-  var pi = ci && C.priceInfo(ci);
+  var pi = ci && C.priceInfo(ci, today());
   var priceLine = !pi ? '' : '<p class="priceline"><span class="lk">정가</span><span class="mono">' + esc(pi.amount) + '</span><span>' + (pi.url ? '<a href="' + esc(pi.url) + '" target="_blank" rel="noopener noreferrer">' + esc(pi.label) + '</a>' : esc(pi.label)) + '</span>' +
-    (pi.note ? '<span class="' + (pi.ended ? 'ended' : 'soldout') + '">' + esc(pi.note) + '</span>' : '') + '</p>';
+    (pi.note ? '<span class="' + (pi.ended ? 'ended' : pi.soldOut ? 'soldout' : 'stale') + '">' + esc(pi.note) + '</span>' : '') + '</p>';
   var rv = k.sample ? null : C.reviewLinks(k);
   var reviews = rv ? '<p class="reviews"><span class="lk">리뷰 찾아보기</span><a href="' + esc(rv.youtube) + '" target="_blank" rel="noopener noreferrer">유튜브</a><a href="' + esc(rv.naver) + '" target="_blank" rel="noopener noreferrer">네이버 블로그</a></p>' : '';
   var body = gallery + linkInfo + priceLine + reviews +

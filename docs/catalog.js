@@ -251,13 +251,17 @@ function mallUrl(gno) { return /^\d+$/.test(String(gno == null ? '' : gno)) ? MA
 function fmtMoney(sym, n) { return sym + Math.round(Number(n) || 0).toLocaleString('ko-KR'); }
 // 상세의 "정가" 줄 정보. 몰 가격이 있으면 ₩ · 반다이남코코리아몰(링크), 없으면 호비의 엔 정가(세금 포함). 둘 다 없으면 null.
 // 몰에서 사라졌으면(mallEnded) 마지막 값과 날짜를 그대로 보이되 링크는 걸지 않는다. 카드에는 쓰지 않는다 (내 구매가와 헷갈리지 않게).
-function priceInfo(item) {
+// today(YYYY-MM-DD)를 주면: 몰 가격 확인 시각(priceKrwAt = PC가 몰 목록을 읽은 날)이 STALE_DAYS일보다 오래됐을 때 "가격 확인 YYYY-MM-DD"를 덧붙인다 (stale: true).
+// 몰이 클라우드 IP를 막아 목록은 사용자 PC가 읽는다 — PC가 꺼져 있던 기간에는 가격이 오래된 값일 수 있다는 표시.
+var STALE_DAYS = 7;       // crawler/config.py MALL_STALE_DAYS와 같은 값
+function priceInfo(item, today) {
   if (!item) return null;
   var url = mallUrl(item.mallGno);
   if (item.priceKrw > 0 && url) {
     var checked = String(item.priceKrwAt || '').slice(0, 10), ended = !!item.mallEnded, sold = !ended && !!item.mallSoldOut;
-    return { kind: 'krw', amount: fmtMoney('₩', item.priceKrw), label: '반다이남코코리아몰', url: ended ? null : url, ended: ended, soldOut: sold,
-             note: ended ? '판매 종료' + (checked ? '(마지막 확인 ' + checked + ')' : '') : (sold ? '품절' : '') };
+    var t = dayNum(today), c = dayNum(checked), stale = !ended && t != null && c != null && t - c > STALE_DAYS;
+    var note = ended ? '판매 종료' + (checked ? '(마지막 확인 ' + checked + ')' : '') : [sold ? '품절' : '', stale ? '가격 확인 ' + checked : ''].filter(Boolean).join(' · ');
+    return { kind: 'krw', amount: fmtMoney('₩', item.priceKrw), label: '반다이남코코리아몰', url: ended ? null : url, ended: ended, soldOut: sold, stale: stale, note: note };
   }
   if (item.priceJpy > 0) return { kind: 'jpy', amount: fmtMoney('¥', item.priceJpy), label: '일본 정가(세금 포함)', url: null, ended: false, soldOut: false, note: '' };
   return null;
