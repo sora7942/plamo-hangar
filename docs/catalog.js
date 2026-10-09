@@ -280,6 +280,25 @@ function purchaseTotal(kits, itemOf) {
   (kits || []).forEach(function (k) { var p = purchasePrice(k, itemOf ? itemOf(k) : null); if (p) { total += p.amount; if (p.listed) listed++; } });
   return { total: total, listed: listed };
 }
+/* ---------- 몰 상품 사진 (소유자 화면 전용) ----------
+ * 몰 이용약관 제23조②(사전 승낙 없는 복제·송신·배포·제3자 이용 금지) 때문에 방문자 화면에는 절대 쓰지 않는다.
+ * 토큰이 있는 소유자 모드에서만 mall.json의 imgPath(목록 카드의 상품 사진 경로)를 링크로 띄운다. 내려받거나 저장하지 않고, 공식 사진(images)과 섞지 않는다. */
+var MALL_IMG_RX = /^goods\/(?:big|middle)\/\d{8}\/[0-9a-f]{32}\.(?:jpe?g|png|webp)$/;
+var MALL_CDN = 'https://cdn.bnkrmall.co.kr/live/data/base/';
+// 경로 → 몰이 주는 작은 변환본(550px WebP, 원본보다 훨씬 작다). goods/ 경로가 아니면 null
+function mallImageUrl(path) { return typeof path === 'string' && MALL_IMG_RX.test(path) ? MALL_CDN + path + '?resize=550&format=webp' : null; }
+// mall.json → { gno: imgPath } (형식이 맞는 것만)
+function mallImages(doc) {
+  var out = {}, g = doc && typeof doc.goods === 'object' && doc.goods ? doc.goods : {};
+  Object.keys(g).forEach(function (k) { if (/^\d+$/.test(k) && g[k] && typeof g[k].imgPath === 'string' && MALL_IMG_RX.test(g[k].imgPath)) out[k] = g[k].imgPath; });
+  return out;
+}
+// 연결된 카탈로그 항목의 몰 사진: 호비 공식 사진이 하나도 없고 몰 상품(mallGno)에 사진이 있을 때만. → 사진 항목 { key:'mall', kind:'mall', src, thumb } | null
+function mallPhoto(item, imgs) {
+  if (!item || !imgs || (item.images && item.images.length) || !/^\d+$/.test(String(item.mallGno == null ? '' : item.mallGno))) return null;
+  var u = mallImageUrl(imgs[item.mallGno]);
+  return u ? { key: 'mall', kind: 'mall', src: u, thumb: u } : null;
+}
 function priceShort(item) { var p = priceInfo(item); return p ? p.amount : ''; }          // 연결 후보 목록의 작은 가격 (₩ 또는 ¥)
 
 /* ---------- 자동 연결 후보 · 시리즈 한국어 · 리뷰 링크 ---------- */
@@ -378,6 +397,6 @@ return {
   FILES: FILES, SEARCH_LIMIT: SEARCH_LIMIT,
   norm: norm, stripPrefix: stripPrefix, displayName: displayName, isStableImage: isStableImage, thumbUrl: thumbUrl, pageUrl: pageUrl,
   normalizeItem: normalizeItem, build: build, search: search, parseRef: parseRef, fillPatch: fillPatch,
-  officialImages: officialImages, setCatalogId: setCatalogId, gapInfo: gapInfo, priceInfo: priceInfo, priceShort: priceShort, purchasePrice: purchasePrice, purchaseTotal: purchaseTotal, mallUrl: mallUrl, autoLinks: autoLinks, seriesKoSuggestions: seriesKoSuggestions, fillCandidates: fillCandidates, applyAuto: applyAuto, reviewLinks: reviewLinks, dayNum: dayNum, monthEnd: monthEnd, releaseLabel: releaseLabel, releaseSortKey: releaseSortKey, cacheKey: cacheKey, load: load
+  officialImages: officialImages, setCatalogId: setCatalogId, gapInfo: gapInfo, priceInfo: priceInfo, priceShort: priceShort, purchasePrice: purchasePrice, mallImageUrl: mallImageUrl, mallImages: mallImages, mallPhoto: mallPhoto, purchaseTotal: purchaseTotal, mallUrl: mallUrl, autoLinks: autoLinks, seriesKoSuggestions: seriesKoSuggestions, fillCandidates: fillCandidates, applyAuto: applyAuto, reviewLinks: reviewLinks, dayNum: dayNum, monthEnd: monthEnd, releaseLabel: releaseLabel, releaseSortKey: releaseSortKey, cacheKey: cacheKey, load: load
 };
 });

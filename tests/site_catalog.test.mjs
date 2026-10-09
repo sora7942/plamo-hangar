@@ -385,6 +385,26 @@ test('자동 연결 후보: 카탈로그 이름의 HGUC 같은 머리말은 비�
   assert.equal(C.fillPatch(c.byId['bh-03_1'], { name: '', grade: 'HG', scale: '1/144', series: '', brand: 'b' }).patch.name, 'HGUC 1/144 돔 트로펜', '이름을 채울 때도 원래 이름');
 });
 
+test('몰 사진(소유자 전용): 경로는 goods/ 아래만, 작은 변환본 URL, 공식 사진이 있으면 쓰지 않는다', () => {
+  const H = '0123456789abcdef0123456789abcdef';
+  assert.equal(C.mallImageUrl('goods/middle/20241212/' + H + '.jpg'), 'https://cdn.bnkrmall.co.kr/live/data/base/goods/middle/20241212/' + H + '.jpg?resize=550&format=webp');
+  for (const bad of ['review/20241212/' + H + '.jpg', 'editor/20241212/' + H + '.jpg', 'goods/middle/20241212/' + H + '.jpg?x=1', '../goods/middle/20241212/' + H + '.jpg', 'https://evil.example/a.jpg', 'goods/middle/2024/' + H + '.jpg', '', null, undefined, 5]) {
+    assert.equal(C.mallImageUrl(bad), null, String(bad));
+  }
+  const good = 'goods/middle/20241212/' + H + '.jpg';
+  assert.deepEqual(C.mallImages({ goods: { '1': { imgPath: good }, '2': { imgPath: 'review/x.jpg' }, '3': {}, 'x': { imgPath: good }, '4': null } }), { '1': good });
+  assert.deepEqual(C.mallImages(null), {}); assert.deepEqual(C.mallImages({ goods: 5 }), {});
+  const base = { id: 'bh-1', url: 'https://bandai-hobby.net/item/01_1/', line: 'gunpla', grade: 'HG', scale: '1/144', nameKo: 'HG 테스트', release: {}, kr: [], images: [] };
+  const norm = (o) => C.normalizeItem({ ...base, ...o });
+  const imgs = { '77': good };
+  const ph = C.mallPhoto(norm({ mallGno: '77', priceKrw: 100, priceKrwAt: '2026-10-09T10:00:00+09:00' }), imgs);
+  assert.equal(ph.kind, 'mall'); assert.equal(ph.key, 'mall'); assert.ok(ph.src.startsWith('https://cdn.bnkrmall.co.kr/'));
+  assert.equal(C.mallPhoto(norm({ mallGno: '77', images: ['https://bandai-a.akamaihd.net/bc/img/model/xl/1_1.jpg'] }), imgs), null, '호비 공식 사진이 있으면 몰 사진은 쓰지 않는다');
+  assert.equal(C.mallPhoto(norm({ mallGno: '78' }), imgs), null, '몰 상품에 사진이 없으면 없음');
+  assert.equal(C.mallPhoto(norm({}), imgs), null, '몰 연결이 없으면 없음');
+  assert.equal(C.mallPhoto(null, imgs), null); assert.equal(C.mallPhoto(norm({ mallGno: '77' }), null), null);
+});
+
 test('정가: 몰 가격이 있으면 ₩ + 몰 링크, 없으면 엔 정가, 판매 종료·품절 표시, 링크는 사이트가 만든다', () => {
   const base = { id: 'bh-1', url: 'https://bandai-hobby.net/item/01_1/', line: 'gunpla', grade: 'HG', scale: '1/144', nameKo: 'HG 1/144 테스트', priceJpy: 4950, release: {}, kr: [], images: [] };
   const norm = (o) => C.normalizeItem({ ...base, ...o });

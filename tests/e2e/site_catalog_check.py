@@ -387,6 +387,96 @@ def price_checks(browser, base):
         ctx.close()
 
 
+def mall_photo_checks(browser, base):
+    """몰 사진(7b): 소유자 화면에서만 링크로 보이고 방문자 화면에는 흔적이 없다 (몰 이용약관 제23조②). 응답은 전부 route 로 주입한다 — 실제 몰에는 가지 않는다."""
+    H = "0123456789abcdef0123456789abcdef"
+    path = f"goods/middle/20241212/{H}.jpg"
+    ids = [COLL["kits"][i]["id"] for i in range(6)]
+    patch = {NOIMG["id"]: {"mallGno": "9001", "priceKrw": None, "priceKrwAt": None}, MANY[0]["id"]: {"mallGno": "9003", "priceKrw": None, "priceKrwAt": None}}
+    mall_doc = {"updatedAt": "2026-10-09T10:00:00+09:00", "scan": {}, "links": {}, "goods": {
+        "9001": {"name": "HG 시험", "series": None, "price": 1000, "soldOut": False, "cate": "gunpla", "first": "2026-10-09", "seen": "2026-10-09", "imgPath": path},
+        "9003": {"name": "HG 시험2", "series": None, "price": 1000, "soldOut": False, "cate": "gunpla", "first": "2026-10-09", "seen": "2026-10-09", "imgPath": path}}}
+
+    def serve_cat(route):
+        body = json.loads(route.fetch().text())
+        for it in body["items"]:
+            if it["id"] in patch:
+                it.update(patch[it["id"]])
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(body, ensure_ascii=False))
+
+    def setup(ctx, cdn_status=200):
+        seen = []
+        ctx.on("request", lambda r: seen.append(r.url))
+        ctx.route("**/data/catalog-*.json*", serve_cat)
+        ctx.route("**/data/mall.json*", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(mall_doc, ensure_ascii=False)))
+        ctx.route("**/cdn.bnkrmall.co.kr/**", lambda r: r.fulfill(status=cdn_status, content_type="image/png", body=M.make_png(40, 40)) if cdn_status == 200 else r.fulfill(status=404, body=""))
+        return seen
+
+    section("몰 사진 · 방문자 화면: 흔적 없음 (img·URL·배경·요청 모두)")
+    ctx = M.new_context(browser, token=False)
+    seen = setup(ctx)
+    page = M.open_page(ctx, base)
+    poll(page, f"!!document.querySelector('.card[data-id=\"{ids[0]}\"] .ph img')", timeout=15000)
+    page.wait_for_timeout(500)
+    check(not [u for u in seen if "bnkrmall" in u or "data/mall.json" in u], f"방문자는 mall.json·몰 CDN을 요청하지 않는다: {[u for u in seen if 'bnkrmall' in u or 'mall.json' in u]}")
+    body = page.evaluate("document.body.innerHTML")
+    check("bnkrmall" not in body and "imgPath" not in body, "목록 DOM(body)에 bnkrmall 문자열 0건")
+    check(page.locator(f'.card[data-id="{ids[4]}"] .ghost').count() == 1 and page.locator(f'.card[data-id="{ids[4]}"] img').count() == 0, "공식 사진이 없는 프라: 등급 글자 자리표시 그대로")
+    card_for(page, ids[4]).click()
+    page.wait_for_selector(".panel .ghost", timeout=5000)
+    check("bnkrmall" not in page.evaluate("document.body.innerHTML") and page.locator("#d-credit-mall").count() == 0, "상세 DOM에도 몰 사진·출처 표시 없음 (자리표시 + 공식 사진 보기)")
+    check(not [u for u in seen if "bnkrmall" in u], "상세를 연 뒤에도 몰 요청 없음")
+    ctx.close()
+
+    section("몰 사진 · 소유자 화면: 링크로 표시 (카드·상세·출처·대표 후보 아님)")
+    ctx = M.new_context(browser, token=True, fake={"seed": {COLL_PATH: COLL_TEXT + "\n", "docs/data/feed.json": '{"n":1}', "docs/data/meta.json": "{}"}})
+    seen = setup(ctx)
+    page = M.open_page(ctx, base)
+    poll(page, f"!!document.querySelector('.card[data-id=\"{ids[4]}\"] .ph img')", timeout=15000)
+    img = page.locator(f'.card[data-id="{ids[4]}"] .ph img')
+    src = img.get_attribute("src")
+    check(src == f"https://cdn.bnkrmall.co.kr/live/data/base/{path}?resize=550&format=webp", f"카드: 몰 작은 변환본 링크: {src}")
+    check(img.get_attribute("referrerpolicy") == "no-referrer" and img.get_attribute("loading") == "lazy", "no-referrer · lazy")
+    card_for(page, ids[4]).scroll_into_view_if_needed()          # loading=lazy 라서 화면에 들어와야 요청이 나간다
+    poll(page, f"(() => {{ const i = document.querySelector('.card[data-id=\"{ids[4]}\"] .ph img'); return !!i && i.complete && i.naturalWidth > 0; }})()", timeout=10000)
+    check(any("data/mall.json" in u for u in seen), "mall.json 은 소유자 모드에서만 받는다")
+    check(page.locator(f'.card[data-id="{ids[0]}"] .ph img').get_attribute("src").find("bnkrmall") < 0, "호비 공식 사진이 있는 프라는 공식 사진 그대로 (몰 사진 안 씀)")
+    card_for(page, ids[4]).click()
+    page.wait_for_selector("#d-main", timeout=5000)
+    check(page.get_attribute("#d-main", "src") == src, "상세 대표 이미지도 몰 사진")
+    cr = " ".join(page.locator("#d-credit-mall").inner_text().split())
+    check(cr == "사진: 반다이남코코리아몰 · 내 화면에서만 표시 · 몰 상품 보기", f"출처 표시: {cr}")
+    a = page.locator("#d-credit-mall a")
+    check(a.get_attribute("href") == "https://www.bnkrmall.co.kr/goods/detail.do?gno=9001" and "noopener" in a.get_attribute("rel") and a.get_attribute("target") == "_blank", "몰 상품 링크")
+    check(page.locator("#d-credit").is_hidden() if page.locator("#d-credit").count() else True, "BANDAI SPIRITS 출처는 보이지 않음")
+    shot(page, "cat-mall-photo-owner.png")
+    page.click("#edit")
+    page.wait_for_selector("#pm", timeout=5000)
+    page.wait_for_timeout(300)
+    pm = page.evaluate("document.querySelector('#pm').innerHTML")
+    check("bnkrmall" not in pm and page.locator("#pm [data-pm=cover]").count() == 0, "수정 폼 사진 관리: 몰 사진은 목록·대표 선택지에 없다")
+    page.keyboard.press("Escape")
+    page.wait_for_timeout(300)
+    card_for(page, ids[0]).click()
+    page.wait_for_selector("#d-main", timeout=5000)
+    check(page.locator("#d-credit-mall").count() == 0 and "bnkrmall" not in page.get_attribute("#d-main", "src"), "공식 사진이 있는 프라 상세: 몰 사진·몰 출처 없음")
+    ctx.close()
+
+    section("몰 사진 · 소유자: 이미지가 안 뜨면 자리표시 · 400px 다크 가로 넘침 없음")
+    ctx = M.new_context(browser, w=400, h=860, scheme="dark", token=True, fake={"seed": {COLL_PATH: COLL_TEXT + "\n", "docs/data/feed.json": '{"n":1}', "docs/data/meta.json": "{}"}})
+    setup(ctx, cdn_status=404)
+    page = M.open_page(ctx, base)
+    poll(page, f"!!document.querySelector('.card[data-id=\"{ids[4]}\"] .ph img')", timeout=15000)
+    card_for(page, ids[4]).scroll_into_view_if_needed()          # loading=lazy 라서 화면에 들어와야 요청이 나가고 실패도 알 수 있다
+    poll(page, f"document.querySelectorAll('.card[data-id=\"{ids[4]}\"] .ghost').length === 1 && document.querySelectorAll('.card[data-id=\"{ids[4]}\"] img').length === 0", timeout=15000)
+    check(True, "몰 이미지 로드 실패 → 카드가 자리표시로 바뀜")
+    card_for(page, ids[4]).click()
+    page.wait_for_selector(".panel", timeout=5000)
+    page.wait_for_timeout(500)
+    check(M.no_overflow(page) and page.evaluate("document.querySelector('.panel').scrollWidth <= document.querySelector('.panel').clientWidth + 1"), "400px 다크: 상세 가로 넘침 없음")
+    ctx.close()
+
+
 def gap_checks(browser, base):
     """재판 공백: 카탈로그 응답에 입고 날짜·발매일을 주입(route)해서 문구·정렬을 결정적으로 확인한다."""
     import datetime
@@ -1076,6 +1166,7 @@ def main():
             owner_flows(browser, base)
             gap_checks(browser, base)
             price_checks(browser, base)
+            mall_photo_checks(browser, base)
             feed_checks(browser, base)
             autolink_checks(browser, base)
             assist_checks(browser, base)

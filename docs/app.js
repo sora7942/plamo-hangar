@@ -59,12 +59,30 @@ function scaleChoices(cur) { var a = SCALES.slice(); if (cur && a.indexOf(cur) <
 function gapOf(k) { var it = catItem(k); return it ? C.gapInfo(it, today(), cat.since) : null; }
 function hasLinked() { return data.kits.some(function (k) { return k.catalogId; }); }
 function official(k) { return cat ? C.officialImages(cat, k, data.settings) : []; }
+// 몰 상품 사진: **소유자 모드에서만** (몰 이용약관 제23조② — 방문자 화면에는 img·URL·배경 어디에도 쓰지 않는다. CLAUDE.md Critical). 링크만, 저장하지 않는다.
+// 공식 사진이 없는 연결 제품이 있을 때만 mall.json을 한 번 받는다.
+var mallImgs = null, mallState = 'idle';       // idle | loading | ready | error
+function loadMallImages() {
+  if (!canWrite || !cat || mallState !== 'idle') return Promise.resolve();
+  if (!data.kits.some(function (k) { var it = catItem(k); return it && it.mallGno && !it.images.length; })) return Promise.resolve();
+  mallState = 'loading';
+  return window.fetch('data/mall.json?v=' + encodeURIComponent(cat.updatedAt || ''), {}).then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+    .then(function (doc) { mallImgs = C.mallImages(doc); mallState = 'ready'; }, function () { mallImgs = {}; mallState = 'error'; });
+}
+function mallPhotoOf(k) { return canWrite && mallImgs && !k.sample && !data.settings.hideOfficialPhotos ? C.mallPhoto(catItem(k), mallImgs) : null; }
+function photosOf(k) { return P.photoOrder(k, official(k), mallPhotoOf(k)); }
 // 구매 가격: 직접 입력 > 연결된 제품의 몰 정가(화면 계산값, collection.json에는 저장하지 않는다). 엔 정가만 있으면 null (환산 안 함)
 function priceOf(k) { return C.purchasePrice(k, catItem(k)); }
 function catItem(k) { return cat && k && k.catalogId ? (cat.byId[k.catalogId] || null) : null; }
 // 사진 항목 → 이미지 주소. 공식 사진의 카드·썸네일은 작은 이미지(/m/)를 먼저 쓰고, 안 뜨면 원본으로 (error 위임 핸들러의 data-alt)
-function imgUrl(p, thumb) { return p.kind === 'off' ? (thumb ? C.thumbUrl(p.src) : p.src) : photoSrc(thumb ? p.thumb : p.src); }
+function imgUrl(p, thumb) { return p.kind === 'mall' ? p.src : p.kind === 'off' ? (thumb ? C.thumbUrl(p.src) : p.src) : photoSrc(thumb ? p.thumb : p.src); }
 function imgAlt(p, thumb) { return p.kind === 'off' && thumb && C.thumbUrl(p.src) !== p.src ? ' data-alt="' + esc(p.src) + '"' : ''; }
+// 몰 사진 출처 표시(소유자 화면에만 있다 — 갤러리에 몰 사진이 있을 때만 만든다)
+function mallCreditHTML(k, order) {
+  if (!order.some(function (p) { return p.kind === 'mall'; })) return '';
+  var ci = catItem(k), u = ci && C.mallUrl(ci.mallGno);
+  return '<p class="hint credit" id="d-credit-mall"' + (order[0].kind === 'mall' ? '' : ' hidden') + '>사진: 반다이남코코리아몰 · 내 화면에서만 표시' + (u ? ' · <a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">몰 상품 보기</a>' : '') + '</p>';
+}
 function creditHTML(k, shown) {
   var ci = catItem(k), u = ci && C.pageUrl(ci);
   return '<p class="hint credit" id="d-credit"' + (shown ? '' : ' hidden') + '>사진: BANDAI SPIRITS' + (u ? ' · <a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">원본 페이지</a>' : '') + '</p>';
@@ -303,7 +321,7 @@ function renderStats() {
 
 function gapLine(k) { var g = gapOf(k); return g ? '<span class="gapline' + (g.recent ? ' recent' : '') + '">' + esc(g.short) + '</span>' : ''; }
 function cardHTML(k) {
-  var g = gname(k.grade), on = sel && sel.has(k.id), cover = P.photoOrder(k, official(k)).cover;
+  var g = gname(k.grade), on = sel && sel.has(k.id), cover = photosOf(k).cover;
   return '<button class="card' + (on ? ' selected' : '') + '" data-id="' + esc(k.id) + '" aria-label="' + esc(k.name) + (sel ? (on ? ' 선택됨' : ' 선택하기') : ' 자세히 보기') + '"' + (sel ? ' aria-pressed="' + !!on + '"' : '') + '>' +
    '<div class="ph">' + (cover ? '<img src="' + esc(imgUrl(cover, true)) + '"' + imgAlt(cover, true) + ' alt="" loading="lazy" referrerpolicy="no-referrer" data-g="' + esc(g) + '">' : '<div class="ghost">' + esc(g) + '</div>') +
    '<span class="grade g-' + gk(k.grade) + '">' + esc(P.glabel(k.grade)) + '</span>' + (k.sample ? '<span class="sample-tag">예시</span>' : '') +
@@ -317,6 +335,7 @@ function cardHTML(k) {
 
 var lastList = [];
 function renderList() {
+  if (canWrite && catState === 'ready' && mallState === 'idle') loadMallImages().then(function () { if (mallState === 'ready' && document.getElementById('grid')) renderList(); });   // 소유자 전용 몰 사진
   lastList = P.filterSort(allKits(), ui, { gap: gapOf, price: function (k) { var p = priceOf(k); return p ? p.amount : 0; } });
   document.getElementById('countline').textContent = lastList.length + '개 표시 중';
   var gt = document.getElementById('gap-tools');
@@ -634,9 +653,9 @@ function openDetail(id) {
   if (k.tags.length) rows.push(['태그', k.tags.map(function (t) { return '#' + t; }).join(' ')]);
   var gi = gapOf(k); if (gi) rows.splice(5, 0, ['재판 공백', gi.text]);
   var show = rows.filter(function (r) { return r[1] || (canWrite && !k.sample); });
-  var order = P.photoOrder(k, official(k)).list, g = gname(k.grade), ci = catItem(k), pu = ci && C.pageUrl(ci);
-  var gallery = order.length ? '<div class="detail-photo"><img id="d-main" src="' + esc(imgUrl(order[0], false)) + '" alt="' + esc(k.name) + ' 사진" referrerpolicy="no-referrer" data-g="' + esc(g) + '" data-note="' + (order[0].kind === 'off' ? '' : '1') + '">' +
-      (order.length > 1 ? '<span class="count" id="d-count">1 / ' + order.length + '</span>' : '') + '</div>' + creditHTML(k, order[0].kind === 'off') +
+  var order = photosOf(k).list, g = gname(k.grade), ci = catItem(k), pu = ci && C.pageUrl(ci);
+  var gallery = order.length ? '<div class="detail-photo"><img id="d-main" src="' + esc(imgUrl(order[0], false)) + '" alt="' + esc(k.name) + ' 사진" referrerpolicy="no-referrer" data-g="' + esc(g) + '" data-note="' + (order[0].kind === 'my' ? '1' : '') + '">' +
+      (order.length > 1 ? '<span class="count" id="d-count">1 / ' + order.length + '</span>' : '') + '</div>' + creditHTML(k, order[0].kind === 'off') + mallCreditHTML(k, order) +
     (order.length > 1 ? '<div class="thumbs">' + order.map(function (p, i) { return '<button type="button" class="th" data-i="' + i + '" aria-label="사진 ' + (i + 1) + '" aria-current="' + (i === 0) + '"><img src="' + esc(imgUrl(p, true)) + '"' + imgAlt(p, true) + ' alt="" loading="lazy" referrerpolicy="no-referrer" data-g=""></button>'; }).join('') + '</div>' : '') :
     // 연결됐는데 쓸 수 있는 사진이 없을 때(서명 URL뿐인 신제품 등): 등급 글자 자리표시 + 공식 페이지 버튼
     (k.catalogId && catState === 'ready' && !k.sample ? '<div class="detail-photo"><div class="ghost">' + esc(P.glabel(k.grade)) + '</div></div>' +
@@ -661,8 +680,9 @@ function openDetail(id) {
   m.addEventListener('click', function (e) {
     var t = e.target.closest('.th'); if (!t) return;
     var i = +t.dataset.i, main = m.querySelector('#d-main'); if (!main || !order[i]) return;
-    main.src = imgUrl(order[i], false); main.dataset.note = order[i].kind === 'off' ? '' : '1';
+    main.src = imgUrl(order[i], false); main.dataset.note = order[i].kind === 'my' ? '1' : '';
     var cr = m.querySelector('#d-credit'); if (cr) cr.hidden = order[i].kind !== 'off';
+    var mc = m.querySelector('#d-credit-mall'); if (mc) mc.hidden = order[i].kind !== 'mall';
     var c = m.querySelector('#d-count'); if (c) c.textContent = (i + 1) + ' / ' + order.length;
     m.querySelectorAll('.th').forEach(function (b) { b.setAttribute('aria-current', String(b === t)); });
   });

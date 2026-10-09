@@ -109,11 +109,14 @@ function photoItems(kit, official) {
 }
 // 대표: cover가 가리키는 사진 → 없으면 내 첫 사진 → 없으면 공식 첫 사진.
 // 갤러리 순서: [대표, 나머지 공식(사이트 순서), 나머지 내 사진]
-function photoOrder(kit, official) {
+// extra: 소유자 화면 전용 몰 사진({kind:'mall'}). 대표(cover) 후보가 아니다(방문자 화면과 어긋나므로) — 내 사진·공식 사진이 없으면 대표 자리를 채우고,
+// 내 사진만 있을 때는 갤러리 맨 뒤에 붙는다. 공식 사진이 있으면 쓰지 않는다.
+function photoOrder(kit, official, extra) {
   var it = photoItems(kit, official), all = it.my.concat(it.off);
   var cover = (kit.cover && all.filter(function (x) { return x.key === kit.cover; })[0]) || it.my[0] || it.off[0] || null;
-  if (!cover) return { cover: null, list: [] };
+  if (!cover) return extra && extra.kind === 'mall' ? { cover: extra, list: [extra] } : { cover: null, list: [] };
   var list = [cover].concat(it.off.filter(function (x) { return x !== cover; }), it.my.filter(function (x) { return x !== cover; }));
+  if (extra && extra.kind === 'mall' && !it.off.length) list.push(extra);
   return { cover: cover, list: list };
 }
 function hasPhoto(kit, official) { return photoOrder(kit, official).list.length > 0; }

@@ -113,6 +113,21 @@ test('빈 칸 모아보기: 사진 없음은 photos 기준', () => {
   assert.equal(P.GAPS.done.t(kit({ status: 'built' })), true);
 });
 
+test('photoOrder: 몰 사진(extra)은 대표 후보가 아니고, 내 사진·공식 사진이 없을 때만 대표 자리를 채우며, 공식 사진이 있으면 쓰지 않는다', () => {
+  const mall = { key: 'mall', kind: 'mall', src: 'https://cdn.bnkrmall.co.kr/x.webp', thumb: 'https://cdn.bnkrmall.co.kr/x.webp' };
+  const mine = { id: 'p1', src: 'photos/k/p1.webp', thumb: 'photos/k/p1_t.webp' };
+  const off = ['https://bandai-a.akamaihd.net/a.jpg'];
+  assert.equal(P.photoOrder(kit({ id: 'a' }), [], mall).cover.kind, 'mall');
+  assert.deepEqual(P.photoOrder(kit({ id: 'a' }), [], mall).list.map((x) => x.kind), ['mall']);
+  assert.equal(P.photoOrder(kit({ id: 'a' }), [], null).cover, null);
+  assert.deepEqual(P.photoOrder(kit({ id: 'a', photos: [mine] }), [], mall).list.map((x) => x.kind), ['my', 'mall'], '내 사진이 먼저, 몰 사진은 맨 뒤');
+  assert.equal(P.photoOrder(kit({ id: 'a', photos: [mine] }), [], mall).cover.kind, 'my');
+  assert.deepEqual(P.photoOrder(kit({ id: 'a' }), off, mall).list.map((x) => x.kind), ['off'], '공식 사진이 있으면 몰 사진은 안 쓴다');
+  assert.equal(P.photoOrder(kit({ id: 'a', cover: 'mall' }), [], mall).cover.kind, 'mall', 'cover가 mall을 가리켜도 저장된 선택은 아니고 기본 규칙이 같은 결과');
+  assert.equal(P.photoOrder(kit({ id: 'a', photos: [mine], cover: 'mall' }), [], mall).cover.kind, 'my', 'cover=mall은 선택으로 인정되지 않는다');
+  assert.deepEqual(P.photoOrder(kit({ id: 'a' }), []).list, [], 'extra 없이는 기존 동작 그대로');
+});
+
 test('filterSort: 가격순은 ctx.price(정가 기준 포함)가 있으면 그 값으로', () => {
   const kits = [kit({ id: '1', name: '가', price: 10000 }), kit({ id: '2', name: '나', price: 0 }), kit({ id: '3', name: '다', price: 0 })];
   const ui = { tab: 'own', q: '', grade: 'all', status: 'all', tag: 'all', gap: 'all', sort: 'price' };
