@@ -1,7 +1,7 @@
 """반다이남코코리아몰 상품 ↔ 카탈로그 연결, 가격·한국 공식 이름 반영 (7a) — mall.json, 카탈로그 priceKrw·mallGno·nameKo·seriesKo.
 
 mall.json
-  goods: {gno: {name, series, price, soldOut, cate, first(YYYY-MM-DD), seen(YYYY-MM-DD)}}   몰 목록에서 읽은 상품. 연결 안 된 상품은 이번 스캔에 나온 것만 남긴다
+  goods: {gno: {name, series, price, soldOut, cate, imgPath?, first(YYYY-MM-DD), seen(YYYY-MM-DD)}}   몰 목록에서 읽은 상품. 연결 안 된 상품은 이번 스캔에 나온 것만 남긴다
   links: {gno: {catalogId, method(fuzzy|override), score, margin, nameOk, nameApplied, at}}  한 번 확실히 연결된 gno ↔ catalogId (다음 실행부터는 이름을 다시 비교하지 않는다)
   scan:  {at(PC가 몰을 읽은 시각), complete, requests, count}                                    마지막 스냅샷 요약 (스캔은 PC가 mall-scan.json으로 올린다 — crawler/mall_scan.py)
 
@@ -73,6 +73,8 @@ class MallState:
             prev = self.goods.get(gno) or {}
             self.goods[gno] = {"name": g["name"], "series": g["series"], "price": g["price"], "soldOut": g["soldOut"],
                                "cate": g["cate"], "first": prev.get("first") or today, "seen": today}
+            if g.get("imgPath"):       # 몰 상품 사진 경로 — 소유자 화면 전용 링크용. 카탈로그(images)에는 섞지 않는다
+                self.goods[gno]["imgPath"] = g["imgPath"]
         if healthy:
             for gno in [k for k in self.goods if k not in seen and k not in self.links]:
                 del self.goods[gno]

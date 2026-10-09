@@ -6,7 +6,9 @@
   `endGoods`는 `Y`든 빈 값이든 첫 쪽·쪽수가 같았다(2026-10) — 사이트 링크대로 `Y`로 둔다.
 - 한 줄(`li[data-childno]`): `a.thumb[href=../goods/detail.do?gno=N]`, `.caption`(시리즈, 없을 수 있음), `h5`(상품명), `.price .num`(판매가), `.badge`,
   `.thumb-dim`(`SOLD OUT` — 품절 표시는 여기에 있고 `.badge`는 `MD PICK` 같은 홍보 문구다. `예약상품`도 같은 칸에 나오지만 품절이 아니다)
-- 이미지 URL(`.img_box` 배경)은 읽지 않는다 — 몰 이미지는 저장하지도 쓰지도 않는다 (CLAUDE.md Critical)
+- **이미지는 내려받지 않는다.** 카드(`.img_box` 배경)의 상품 사진 *경로*(`goods/middle/YYYYMMDD/<hash>.jpg`)만 `imgPath`로 읽어 둔다 — 추가 요청 없음.
+  사이트의 **소유자 화면에서만** 링크로 띄운다(몰 이용약관 제23조② 때문에 방문자 화면에는 쓰지 않는다. CLAUDE.md Critical).
+  리뷰(`review/`)·상세설명(`editor/`)·배너 이미지는 읽지 않는다
 - 요청은 `HttpClient`(robots 준수·1.2초 간격·timeout·UA)로, 실행당 `config.MALL_MAX_REQUESTS`회 이내. 구조가 바뀌면 소스 실패로 기록하고 계속한다
 - 반환의 `complete`는 "모든 카테고리의 모든 쪽을 정상으로 읽었다"는 뜻이다. 이때만 호출자가 "몰에서 사라진 상품"을 판정한다
 """
@@ -28,6 +30,8 @@ log = logging.getLogger("plamo.mall")
 _GNO_RX = re.compile(r"gno=(\d+)")
 _PAGE_RX = re.compile(r"pageLink\('(\d+)'\)")
 _PRICE_RX = re.compile(r"[\d,]+")
+# 상품 사진 경로: 카드의 `.img_box` 배경 `//cdn.bnkrmall.co.kr/live/data/base/goods/middle/20241212/<32자 hash>.jpg?resize=550&format=webp` 중 `goods/` 아래만 (변환 파라미터는 버린다)
+_IMG_RX = re.compile(r"//cdn\.bnkrmall\.co\.kr/live/data/base/(goods/(?:big|middle)/\d{8}/[0-9a-f]{32}\.(?:jpe?g|png|webp))")
 _SOLDOUT_RX = re.compile(r"품절|sold[\s_-]?out", re.I)
 # 웹 방화벽 차단 페이지 ("Request Rejected / Your support ID is …", 200으로 오는 수백 바이트짜리). Actions(클라우드 IP)에서 실제로 받았다 (2026-10)
 _BLOCK_RX = re.compile(r"Request Rejected|support ID|Access Denied|Forbidden", re.I)
@@ -80,7 +84,10 @@ def parse_list(html: str) -> dict:
         series = re.sub(r"\s+", " ", cap.get_text(" ", strip=True)) if cap else ""
         badge, dim = li.select_one(".badge"), li.select_one(".thumb-dim")
         sold = bool(_SOLDOUT_RX.search(" ".join([badge.get_text(" ", strip=True) if badge else "", dim.get_text(" ", strip=True) if dim else "", *(li.get("class") or [])])))
-        items.append({"gno": m.group(1), "name": name, "series": series or None, "price": int(pm.group(0).replace(",", "")), "soldOut": sold})
+        box = li.select_one(".img_box")
+        im = _IMG_RX.search(box.get("style") or "") if box else None
+        items.append({"gno": m.group(1), "name": name, "series": series or None, "price": int(pm.group(0).replace(",", "")), "soldOut": sold,
+                      "imgPath": im.group(1) if im else None})
     if not lis or len(items) * 2 < len(lis):
         raise MallStructureError(f"상품 줄 {len(lis)}개 중 {len(items)}개만 읽었습니다 (구조가 바뀌었을 수 있음)")
     pages = [int(x) for x in _PAGE_RX.findall(html)]
@@ -150,8 +157,10 @@ def scan(http: HttpClient, categories: list[dict] | None = None, *, max_requests
                     out["complete"] = False
                     out["errors"].append(f"{cat['key']}: {parsed['pages']}쪽 중 {config.MALL_MAX_PAGES}쪽까지만 받음")
             for it in parsed["items"]:
-                out["goods"].setdefault(it["gno"], {"name": it["name"], "series": it["series"], "price": it["price"],
-                                                    "soldOut": it["soldOut"], "cate": cat["key"]})
+                g = {"name": it["name"], "series": it["series"], "price": it["price"], "soldOut": it["soldOut"], "cate": cat["key"]}
+                if it.get("imgPath"):
+                    g["imgPath"] = it["imgPath"]
+                out["goods"].setdefault(it["gno"], g)
             page += 1
     if out["diag"]:
         log.warning("몰 목록 실패 진단: %s", json.dumps(out["diag"], ensure_ascii=False))

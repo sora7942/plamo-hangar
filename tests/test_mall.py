@@ -19,10 +19,11 @@ ROBOTS = "User-agent: *\nAllow: /\nDisallow: /nmanager/\n"
 
 
 # ---------------------------------------------------------------- 합성 목록 페이지
-def li(gno, name, price, series_name=None, badge="", dim=""):
+def li(gno, name, price, series_name=None, badge="", dim="", img=""):
     cap = f'<p class="font-13 caption">{series_name}</p>' if series_name else ""
+    bg = f"background-image:url('{img}')" if img else "background-image:none"
     dim_html = f'<div class="thumb-dim"><p class="font-esamanru font-bold dim-text">{dim}</p></div>' if dim else ""
-    return (f'<li data-childno="1"><a class="thumb" href="../goods/detail.do?gno={gno}"><div class="thumb-img"><div class="img_box" style="background-image:none"></div>{dim_html}</div>'
+    return (f'<li data-childno="1"><a class="thumb" href="../goods/detail.do?gno={gno}"><div class="thumb-img"><div class="img_box" style="{bg}"></div>{dim_html}</div>'
             f'{cap}<h5 class="font-15">{name}</h5><div class="font-15 price"><p class="price_result"><span class="num font-20">\n {price:,}</span>원</p></div></a>'
             f'<div class="badge">{badge}</div></li>')
 
@@ -68,6 +69,29 @@ def test_parse_list_sold_out_is_read_from_thumb_dim_not_from_promo_badges_or_res
     p = mall.parse_list(page_html([("1", "MGSD 윙 건담 제로EW", 54000, "신기동전기 건담 W", "", "SOLD OUT"), ("2", "RG 샤이닝 건담", 42000, None, "MD PICK", ""),
                                    ("3", "예약 상품", 30000, None, "", "예약상품"), ("4", "품절 아님", 100, None, "", "")]))
     assert {i["gno"]: i["soldOut"] for i in p["items"]} == {"1": True, "2": False, "3": False, "4": False}
+
+
+H1 = "0123456789abcdef0123456789abcdef"            # 합성 hash (실제 상품 사진이 아니다)
+IMG = f"//cdn.bnkrmall.co.kr/live/data/base/goods/middle/20241212/{H1}.jpg?resize=550&format=webp"
+
+
+def test_parse_list_reads_only_the_goods_photo_path_from_the_card_and_nothing_else():
+    """사진 경로(imgPath)만 저장 — 변환 파라미터·호스트는 버리고, goods/ 밖(리뷰·상세설명·배너)이나 다른 호스트는 읽지 않는다."""
+    review = f"//cdn.bnkrmall.co.kr/live/data/base/review/20241212/{H1}.jpg"
+    editor = f"//cdn.bnkrmall.co.kr/live/data/base/editor/20241212/{H1}.jpg"
+    other = f"//example.com/live/data/base/goods/middle/20241212/{H1}.jpg"
+    p = mall.parse_list(page_html([("1", "HG 가", 1000, None, "", "", IMG), ("2", "HG 나", 1000, None, "", "", review), ("3", "HG 다", 1000, None, "", "", editor),
+                                   ("4", "HG 라", 1000, None, "", "", other), ("5", "HG 마", 1000)]))
+    assert {i["gno"]: i["imgPath"] for i in p["items"]} == {"1": f"goods/middle/20241212/{H1}.jpg", "2": None, "3": None, "4": None, "5": None}
+    assert "resize" not in p["items"][0]["imgPath"] and "cdn." not in p["items"][0]["imgPath"]
+
+
+def test_scan_goods_carry_img_path_only_when_present_and_no_image_is_ever_requested():
+    pages = {"gunpla": [[("1", "HG 가", 1100, None, "", "", IMG), ("2", "HG 나", 1100)]]}
+    client, sess, _ = make_client(routes_for(pages))
+    res = mall.scan(client)
+    assert res["goods"]["1"]["imgPath"] == f"goods/middle/20241212/{H1}.jpg" and "imgPath" not in res["goods"]["2"]
+    assert not any("cdn." in c["url"] or c["url"].endswith((".jpg", ".png", ".webp")) for c in sess.calls), "이미지는 내려받지 않는다 (경로만 저장)"
 
 
 def test_parse_list_structure_change_raises():
@@ -558,6 +582,25 @@ def test_pipeline_applies_snapshot_without_any_mall_request_and_same_snapshot_ch
     res2, _, sess2, _ = go(w, tmp_path, Options(max_new=5, max_backlog=5), now=PIPE_NOW + timedelta(hours=3))        # 같은 스냅샷으로 다시 실행
     assert {n: (tmp_path / n).read_bytes() for n in names} == before, "같은 스냅샷이면 mall.json·카탈로그가 바뀌지 않는다"
     assert res2["meta"]["sources"]["mall"]["ok"] is True and not [c for c in sess2.calls if "bnkrmall" in c["url"]]
+
+
+def test_img_path_stays_in_mall_json_and_never_reaches_the_catalog(tmp_path):
+    w = World()
+    go(w, tmp_path, Options(bootstrap=True, from_month="2026-09", max_new=5, max_backlog=5))
+    cid = seed_linkable(tmp_path)
+    before_images = all_items(tmp_path)[cid]["images"]
+    goods = {"100": {**good("HG 테스트기A", 14300), "imgPath": f"goods/middle/20241212/{H1}.jpg"}, "200": good("30MS 다른 상품", 4000)}
+    write_snap(tmp_path, snap_doc(goods))
+    go(w, tmp_path, Options(max_new=5, max_backlog=5))
+    mj = read(tmp_path, "mall.json")
+    assert mj["goods"]["100"]["imgPath"] == f"goods/middle/20241212/{H1}.jpg" and "imgPath" not in mj["goods"]["200"]
+    it = all_items(tmp_path)[cid]
+    assert it["mallGno"] == "100" and it["images"] == before_images, "공식 사진(images)에는 몰 이미지를 섞지 않는다"
+    for f in ("catalog-gunpla.json", "catalog-girl.json", "catalog-pending.json", "feed.json"):
+        txt = (tmp_path / f).read_text(encoding="utf-8")
+        assert "cdn.bnkrmall" not in txt and H1 not in txt and "imgPath" not in txt, f
+    from schema_check import check_mall
+    assert check_mall(mj) == []
 
 
 def test_pipeline_without_snapshot_blocked_or_stale_warns_and_does_not_end_goods(tmp_path):

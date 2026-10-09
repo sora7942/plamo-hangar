@@ -209,6 +209,7 @@ def check_mall(doc: dict) -> list[str]:
     for gno, g in goods.items():
         if not (re.fullmatch(r"\d+", gno) and isinstance(g.get("name"), str) and g["name"] and isinstance(g.get("price"), int) and g["price"] > 0
                 and isinstance(g.get("soldOut"), bool) and g.get("cate") and (g.get("series") is None or isinstance(g["series"], str))
+                and (g.get("imgPath") is None or re.fullmatch(r"goods/(big|middle)/\d{8}/[0-9a-f]{32}\.(jpe?g|png|webp)", str(g["imgPath"])))
                 and re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(g.get("first", ""))) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(g.get("seen", "")))):
             errs.append(f"goods[{gno}] 형식 {g!r}")
     for gno, e in links.items():
@@ -242,7 +243,8 @@ def check_mall_scan(doc: dict) -> list[str]:
         errs.append(f"scan 형식 {scan!r}")
     for gno, g in goods.items():
         if not (re.fullmatch(r"\d+", gno) and isinstance(g.get("name"), str) and g["name"] and isinstance(g.get("price"), int) and g["price"] > 0
-                and isinstance(g.get("soldOut"), bool) and g.get("cate") and (g.get("series") is None or isinstance(g["series"], str))):
+                and isinstance(g.get("soldOut"), bool) and g.get("cate") and (g.get("series") is None or isinstance(g["series"], str))
+                and (g.get("imgPath") is None or re.fullmatch(r"goods/(big|middle)/\d{8}/[0-9a-f]{32}\.(jpe?g|png|webp)", str(g["imgPath"])))):
             errs.append(f"goods[{gno}] 형식 {g!r}")
     return errs
 
