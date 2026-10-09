@@ -9,14 +9,16 @@
 """
 from __future__ import annotations
 
+import json
 import logging
 import re
+from pathlib import Path
 from urllib.parse import urlencode
 
 from bs4 import BeautifulSoup
 
 from .. import config
-from ..http import HttpClient
+from ..http import Fetched, HttpClient
 
 log = logging.getLogger("plamo.mall")
 
@@ -72,12 +74,28 @@ def parse_list(html: str) -> dict:
     return {"items": items, "pages": max(pages) if pages else 1, "skipped": skipped}
 
 
-def scan(http: HttpClient, categories: list[dict] | None = None, *, max_requests: int | None = None) -> dict:
-    """모든 카테고리의 목록을 쪽마다 받는다. → {goods: {gno: {name, series, price, soldOut, cate}}, requests, complete, errors, pages}.
-    한 카테고리가 실패해도 다음 카테고리는 계속한다. 요청 상한에 닿으면 멈추고 complete=False."""
+def describe(res: Fetched, where: str) -> dict:
+    """실패한 응답의 진단 요약 — Actions(해외 IP)에서 로컬과 다른 응답을 받을 때 원인을 가르려고 meta에 남긴다.
+    HTTP 상태·최종 URL(리다이렉트)·크기·`<title>`·본문 텍스트 앞 200자. 본문 전체는 남기지 않는다(`--mall-dump`일 때만 파일로)."""
+    soup = BeautifulSoup(res.text or "", "html.parser")
+    title = re.sub(r"\s+", " ", soup.title.get_text(" ", strip=True)) if soup.title else ""
+    for t in soup(["script", "style", "title"]):
+        t.decompose()
+    head = re.sub(r"\s+", " ", soup.get_text(" ", strip=True))[:200]
+    return {"where": where, "status": res.status, "error": res.error, "finalUrl": res.final_url or res.url, "redirects": res.redirects,
+            "bytes": res.size, "contentType": res.content_type, "title": title[:100], "head": head}
+
+
+def scan(http: HttpClient, categories: list[dict] | None = None, *, max_requests: int | None = None, dump_dir: Path | None = None) -> dict:
+    """모든 카테고리의 목록을 쪽마다 받는다. → {goods: {gno: {name, series, price, soldOut, cate}}, requests, complete, errors, pages, diag}.
+    한 카테고리가 실패해도 다음 카테고리는 계속한다. 요청 상한에 닿으면 멈추고 complete=False.
+    `diag`: 실패한 쪽마다 `describe()` 요약. `dump_dir`(디버그 실행): 받은 응답 본문을 `<카테고리>-p<쪽>.html`로, 요약을 `summary.json`으로 저장한다(저장소에는 커밋하지 않는다)."""
     categories = config.MALL_CATEGORIES if categories is None else categories
     cap = config.MALL_MAX_REQUESTS if max_requests is None else max_requests
-    out: dict = {"goods": {}, "requests": 0, "complete": True, "errors": [], "pages": {}}
+    out: dict = {"goods": {}, "requests": 0, "complete": True, "errors": [], "pages": {}, "diag": []}
+    responses: list[dict] = []
+    if dump_dir is not None:
+        Path(dump_dir).mkdir(parents=True, exist_ok=True)
     for cat in categories:
         page, last = 1, 1
         while page <= last:
@@ -85,17 +103,23 @@ def scan(http: HttpClient, categories: list[dict] | None = None, *, max_requests
                 out["complete"] = False
                 out["errors"].append(f"{cat['key']}: 요청 상한({cap}회)에 닿아 {page}쪽부터 받지 못함")
                 break
+            where = f"{cat['key']} {page}쪽"
             res = http.get(list_url(cat["params"], page), kind="mall")
             out["requests"] += 1
+            if dump_dir is not None:
+                (Path(dump_dir) / f"{cat['key']}-p{page}.html").write_text(res.text or "", encoding="utf-8")
+                responses.append(describe(res, where))
             if not res.ok:
                 out["complete"] = False
-                out["errors"].append(f"{cat['key']} {page}쪽: HTTP {res.status}")
+                out["errors"].append(f"{where}: HTTP {res.status}" if res.error is None else f"{where}: {res.error}")
+                out["diag"].append(describe(res, where))
                 break
             try:
                 parsed = parse_list(res.text)
             except MallStructureError as e:
                 out["complete"] = False
-                out["errors"].append(f"{cat['key']} {page}쪽: {e}")
+                out["errors"].append(f"{where}: {e}")
+                out["diag"].append(describe(res, where))
                 break
             if page == 1:
                 last = min(parsed["pages"], config.MALL_MAX_PAGES)
@@ -107,4 +131,9 @@ def scan(http: HttpClient, categories: list[dict] | None = None, *, max_requests
                 out["goods"].setdefault(it["gno"], {"name": it["name"], "series": it["series"], "price": it["price"],
                                                     "soldOut": it["soldOut"], "cate": cat["key"]})
             page += 1
+    if out["diag"]:
+        log.warning("몰 목록 실패 진단: %s", json.dumps(out["diag"], ensure_ascii=False))
+    if dump_dir is not None:
+        summary = {"requests": out["requests"], "errors": out["errors"], "responses": responses, "robots": http.robots_info}
+        (Path(dump_dir) / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=1), encoding="utf-8")
     return out

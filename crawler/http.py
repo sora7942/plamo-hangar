@@ -132,6 +132,8 @@ class Fetched:
     final_url: str = ""
     redirects: int = 0
     error: str | None = None
+    size: int = 0                  # 응답 본문 바이트 수 (진단용)
+    content_type: str = ""
 
     @property
     def ok(self) -> bool:
@@ -172,6 +174,7 @@ class HttpClient:
         self.user_agent = user_agent
         self.stats = Stats()
         self._robots: dict[str, Robots] = {}
+        self.robots_info: dict[str, dict] = {}      # origin → robots.txt 요청 결과 요약 (진단용: HTTP 상태, 크기, 앞부분)
         self._consecutive_failures = 0
         self._start_wall: datetime | None = None   # 마지막 요청의 "시작" 시각 — 로그의 간격 = 시작~시작 간격 (spike와 같은 방식)
 
@@ -202,7 +205,8 @@ class HttpClient:
         headers = getattr(r, "headers", None) or {}
         text = decode_body(r.content, headers.get("Content-Type"))
         self._log("GET", kind, r.status_code, url, r.url, len(r.history))
-        return Fetched(url=url, status=r.status_code, text=text, final_url=r.url, redirects=len(r.history))
+        return Fetched(url=url, status=r.status_code, text=text, final_url=r.url, redirects=len(r.history),
+                       size=len(r.content or b""), content_type=str(headers.get("Content-Type") or ""))
 
     # ------------------------------------------------------------ robots
     def _robots_for(self, url: str) -> Robots:
@@ -211,6 +215,8 @@ class HttpClient:
         if origin not in self._robots:
             res = self._send(origin + "/robots.txt", "robots")
             ctype_html = res.text.lstrip()[:15].lower().startswith(("<!doctype", "<html"))
+            self.robots_info[origin] = {"status": res.status, "error": res.error, "bytes": res.size, "html": ctype_html,
+                                        "head": re.sub(r"\s+", " ", res.text)[:200]}
             # 호비사이트는 robots.txt 자리에 HTML을 돌려준다 = 규칙 없음. 실패해도 규칙 없음으로 본다(spike와 동일).
             self._robots[origin] = Robots("" if (not res.ok or ctype_html) else res.text)
         return self._robots[origin]

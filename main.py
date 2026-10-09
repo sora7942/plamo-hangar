@@ -2,7 +2,7 @@
 
     python main.py                         # 수집 → docs/data 갱신 → 디스코드 발송
     python main.py --dry-run               # 파일은 쓰되 디스코드로 보내지 않고 보낼 내용을 출력
-    python main.py --only hobby_item       # 일부 단계만 (hobby, hobby_schedule, hobby_brand, hobby_item, joyhobby, translate, hobby_backfill)
+    python main.py --only hobby_item       # 일부 단계만 (hobby, hobby_schedule, hobby_brand, hobby_item, joyhobby, mall, translate, hobby_backfill)
     python main.py --bootstrap --only joyhobby   # 조이하비 과거 글 채우기 (실행당 --joy-pages쪽, 진행 위치는 meta.crawl.joyNext)
     python main.py --bootstrap --from 2025-10 --data-dir /tmp/data   # 최초 채우기(범위를 줄여 확인용으로)
     python main.py --brand-backfill        # 2015년 이전 상품 채우기(목록 카드만, 커서로 이어 함)
@@ -39,6 +39,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap.add_argument("--brand-backfill", action="store_true", help="2015년 이전 상품 채우기: 건프라 등급 브랜드 목록(hg·hguc·mg·rg·mgsd·sd 계열)을 전체 쪽수로 훑는다. 커서로 이어 하고, 알림 없음")
     ap.add_argument("--translate-only", action="store_true", help="수집 없이 번역 단계만 실행한다 (--only translate와 같다). 상한은 --translate-max")
     ap.add_argument("--translate-max", type=int, default=config.TRANSLATE_MAX_PER_RUN, help=f"이번 실행에서 번역할 항목 수 상한 (기본 {config.TRANSLATE_MAX_PER_RUN}, 최신 발매순)")
+    ap.add_argument("--mall-dump", type=Path, default=None, metavar="DIR", help="몰 단계가 받은 목록 응답 HTML과 summary.json을 이 폴더에 저장한다 (Actions mall_debug 진단용, 커밋하지 않음)")
     ap.add_argument("--discord-test", action="store_true", help="수집 없이 디스코드 테스트 알림 1건만 보낸다 (feed.json 최근 3개, 내 프라 연결 항목 포함)")
     args = ap.parse_args(argv)
     if args.from_month and not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", args.from_month):
@@ -80,6 +81,12 @@ def _write_step_summary(result: dict) -> None:
     ]
     for name, s in meta["sources"].items():
         lines.append(f"| {name} | {'ok' if s.get('ok') else 'FAIL'} | {s.get('items')} | {s.get('error') or s.get('skipped') or ''} |")
+    diag = (meta["sources"].get("mall") or {}).get("diag") or []
+    if diag:                                                  # 몰이 실패한 쪽의 응답 요약 — 실행 요약만 봐도 차단/개편을 가를 수 있게
+        lines += ["", "#### 몰 실패 진단", "", "| 쪽 | HTTP | 최종 URL | 바이트 | title | 본문 앞부분 |", "|---|---|---|---|---|---|"]
+        for d in diag:
+            cells = [d["where"], d.get("status") or d.get("error"), d.get("finalUrl"), d.get("bytes"), d.get("title"), d.get("head")]
+            lines.append("| " + " | ".join(str(c if c is not None else "").replace("|", "\\|") for c in cells) + " |")
     with open(path, "a", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
 
@@ -106,7 +113,7 @@ def main(argv: list[str] | None = None) -> int:
         bootstrap=args.bootstrap, from_month=args.from_month,
         max_new=args.max_new, max_backlog=args.max_backlog, joy_pages=args.joy_pages,
         data_dir=args.data_dir or config.DATA_DIR, report_dir=config.REQUEST_LOG.parent, brand_backfill=args.brand_backfill,
-        translate_max=args.translate_max,
+        translate_max=args.translate_max, mall_dump=args.mall_dump,
     )
     opts.stages()                                                  # 잘못된 --only는 여기서 바로 실패
     http = HttpClient(log_path=config.REQUEST_LOG)

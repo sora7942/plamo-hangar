@@ -111,6 +111,60 @@ def test_scan_page_failure_or_structure_change_marks_incomplete_but_continues():
     assert res2["complete"] is False and any("구조" in e for e in res2["errors"]) and "1" in res2["goods"] and "2" in res2["goods"]
 
 
+# ---------------------------------------------------------------- 실패 진단 (Actions에서만 실패할 때 원인을 가르려고)
+BLOCK_PAGE = ("<html><head><title>Access Denied</title><style>.x{}</style><script>var a=1;</script></head>"
+              "<body><h1>Access Denied</h1><p>You don't have permission to access this server.</p></body></html>")
+
+
+def test_scan_records_diag_for_http_error_and_structure_change():
+    r = routes_for({})
+    r[mall.list_url(config.MALL_CATEGORIES[0]["params"], 1)] = lambda u: (403, BLOCK_PAGE)
+    r[mall.list_url(config.MALL_CATEGORIES[1]["params"], 1)] = "<html><head><title>점검 중</title></head><body>잠시 후 다시 <b>이용</b>해 주세요</body></html>"
+    client, _, _ = make_client(r)
+    res = mall.scan(client)
+    assert res["complete"] is False and len(res["diag"]) == 2
+    d403, dstruct = res["diag"]
+    assert (d403["where"], d403["status"], d403["title"]) == ("gunpla 1쪽", 403, "Access Denied")
+    assert d403["head"].startswith("Access Denied You don't have permission") and "var a" not in d403["head"] and ".x{}" not in d403["head"], "script·style은 본문 앞부분에서 뺀다"
+    assert d403["finalUrl"] == mall.list_url(config.MALL_CATEGORIES[0]["params"], 1) and d403["redirects"] == 0 and d403["bytes"] == len(BLOCK_PAGE.encode())
+    assert (dstruct["where"], dstruct["status"], dstruct["title"], dstruct["head"]) == ("girl-30mm 1쪽", 200, "점검 중", "잠시 후 다시 이용 해 주세요")
+
+
+def test_diag_head_is_limited_and_redirect_is_visible():
+    long_page = "<html><head><title>" + "T" * 300 + "</title></head><body>" + "가" * 1000 + "</body></html>"
+    start = mall.list_url(config.MALL_CATEGORIES[0]["params"], 1)
+    sess_routes = {config.MALL_BASE + "/robots.txt": ROBOTS, start: lambda u: (200, long_page)}
+    client, _, _ = make_client(sess_routes)
+    res = mall.scan(client, categories=config.MALL_CATEGORIES[:1])
+    d = res["diag"][0]
+    assert len(d["head"]) == 200 and len(d["title"]) == 100
+    fetched = type("F", (), dict(text="", status=200, error=None, final_url="https://www.bnkrmall.co.kr/login.do", url=start, redirects=2, size=0, content_type="text/html"))()
+    dd = mall.describe(fetched, "gunpla 1쪽")
+    assert dd["finalUrl"].endswith("/login.do") and dd["redirects"] == 2 and dd["head"] == "" and dd["title"] == ""
+
+
+def test_scan_without_failures_has_empty_diag_and_no_dump(tmp_path):
+    client, _, _ = make_client(routes_for({}))
+    res = mall.scan(client)
+    assert res["complete"] and res["diag"] == []
+    assert not list(tmp_path.iterdir())
+
+
+def test_scan_dump_dir_saves_every_response_and_summary(tmp_path):
+    r = routes_for({"gunpla": [[("1", "HG 가", 1100)], [("2", "HG 나", 1)]]})
+    r[mall.list_url(config.MALL_CATEGORIES[1]["params"], 1)] = lambda u: (403, BLOCK_PAGE)
+    client, _, _ = make_client(r)
+    out = tmp_path / "mall-debug"
+    res = mall.scan(client, dump_dir=out)
+    names = sorted(p.name for p in out.iterdir())
+    assert names == ["girl-30mm-p1.html", "girl-figurerise-p1.html", "gunpla-p1.html", "gunpla-p2.html", "summary.json"]
+    assert (out / "girl-30mm-p1.html").read_text(encoding="utf-8") == BLOCK_PAGE
+    summary = json.loads((out / "summary.json").read_text(encoding="utf-8"))
+    assert summary["requests"] == res["requests"] == 4 and len(summary["responses"]) == 4
+    assert [x["status"] for x in summary["responses"]] == [200, 200, 403, 200]
+    assert summary["robots"][config.MALL_BASE]["status"] == 200 and "Allow" in summary["robots"][config.MALL_BASE]["head"]
+
+
 # ---------------------------------------------------------------- 이름 정리
 def test_parse_mall_name_grade_scale_and_core():
     n = mall_link.parse_mall_name("HG 건담 레오파드")
@@ -341,6 +395,9 @@ def test_pipeline_mall_failure_does_not_stop_other_sources(tmp_path, monkeypatch
     monkeypatch.setattr(World, "routes", lambda self: r)
     res, *_ = go(w, tmp_path, Options(bootstrap=True, from_month="2026-09", max_new=5, max_backlog=5))
     assert res["meta"]["sources"]["mall"]["ok"] is False and "구조" in res["meta"]["sources"]["mall"]["error"]
+    diag = res["meta"]["sources"]["mall"]["diag"]                  # meta에 응답 요약이 남는다 (HTTP 상태·최종 URL·크기·title·본문 앞부분)
+    assert len(diag) == len(config.MALL_CATEGORIES) and diag[0]["status"] == 200 and diag[0]["head"] == "개편" and diag[0]["bytes"] > 0
+    assert read(tmp_path, "meta.json")["sources"]["mall"]["diag"] == diag
     assert res["meta"]["sources"]["hobby_schedule"]["ok"] is True and check_dir(tmp_path) == []
 
 

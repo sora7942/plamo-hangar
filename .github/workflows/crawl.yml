@@ -2,6 +2,7 @@ name: crawl
 
 # 매일 KST 07:10(= UTC 22:10 전날)에 반다이 호비사이트·조이하비를 수집해 docs/data의 카탈로그·피드·kr-arrivals·series-ko·mall·meta를 커밋한다.
 # 수동 실행(workflow_dispatch)으로 최초 채우기(bootstrap)를 여러 번 돌릴 수 있고, 조이하비 과거 글만 채우는 실행(joy_backfill)도 있다.
+# 수동 실행 mall_debug는 몰 목록 응답만 진단용 artifact로 올린다(커밋 없음).
 # collection.json·photos는 절대 건드리지 않는다 (아래 커밋 단계의 허용 목록 검사).
 # Actions cron은 UTC 기준이고 몇 분씩 늦게 돌며, 부하가 크면 건너뛰기도 한다.
 on:
@@ -37,6 +38,10 @@ on:
         description: "translate_only일 때 번역할 항목 수 상한 (기본 600, 최대 3000). 50개씩 나눠 요청한다 — 1500개면 약 30요청, 20분 안팎"
         type: number
         default: 600
+      mall_debug:
+        description: "몰(반다이남코코리아몰) 진단만 실행 (--only mall --dry-run --mall-dump). 받은 목록 HTML과 summary.json을 artifact(3일 보관)로 올리고 저장소에는 커밋하지 않는다. 몰 수집이 Actions에서만 실패할 때"
+        type: boolean
+        default: false
       joy_pages:
         description: "조이하비 과거 목록을 훑을 쪽 수 (기본 25 — 게시판이 20쪽이라 한 번에 끝난다). bootstrap과 같이 켜도 적용"
         type: number
@@ -80,9 +85,14 @@ jobs:
           BRAND_BACKFILL: ${{ inputs.brand_backfill }}
           TRANSLATE_ONLY: ${{ inputs.translate_only }}
           TRANSLATE_MAX: ${{ inputs.translate_max }}
+          MALL_DEBUG: ${{ inputs.mall_debug }}
         run: |
           if [ "$DISCORD_TEST" = "true" ]; then
             python main.py --discord-test          # 수집·파일 쓰기 없음
+            exit 0
+          fi
+          if [ "$MALL_DEBUG" = "true" ]; then
+            python main.py --only mall --dry-run --mall-dump crawler/out/mall-debug     # 몰만. 파일은 이 실행의 작업 폴더에만 쓰고 커밋하지 않는다
             exit 0
           fi
           if [ "$TRANSLATE_ONLY" = "true" ]; then
@@ -113,8 +123,18 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+      # mall_debug: 받은 목록 응답 HTML + summary.json (HTTP 상태·최종 URL·title·robots.txt 응답 요약). 3일 보관, 커밋하지 않는다.
+      - name: Upload mall debug
+        if: ${{ always() && inputs.mall_debug }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: mall-debug
+          path: crawler/out/mall-debug
+          if-no-files-found: warn
+          retention-days: 3
+
       - name: Commit data
-        if: ${{ !inputs.discord_test }}          # 테스트 알림 실행은 데이터를 바꾸지 않으므로 커밋 단계도 건너뛴다
+        if: ${{ !inputs.discord_test && !inputs.mall_debug }}          # 테스트 알림·몰 진단 실행은 데이터를 커밋하지 않는다
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
