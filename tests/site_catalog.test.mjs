@@ -408,7 +408,7 @@ test('몰 사진(소유자 전용): 경로는 goods/ 아래만, 작은 변환본
 test('정가: 몰 가격이 있으면 ₩ + 몰 링크, 없으면 엔 정가, 판매 종료·품절 표시, 링크는 사이트가 만든다', () => {
   const base = { id: 'bh-1', url: 'https://bandai-hobby.net/item/01_1/', line: 'gunpla', grade: 'HG', scale: '1/144', nameKo: 'HG 1/144 테스트', priceJpy: 4950, release: {}, kr: [], images: [] };
   const norm = (o) => C.normalizeItem({ ...base, ...o });
-  assert.deepEqual(C.priceInfo(norm({})), { kind: 'jpy', amount: '¥4,950', label: '일본 정가(세금 포함)', url: null, ended: false, soldOut: false, note: '' });
+  assert.deepEqual(C.priceInfo(norm({})), { kind: 'jpy', amount: '¥4,950', label: '일본 정가(세금 포함)', url: null, ended: false, soldOut: false, note: '', estimateAmount: 54000, estimate: '₩54,000' });
   const live = C.priceInfo(norm({ priceKrw: 46800, priceKrwAt: '2026-10-09T10:00:00+09:00', mallGno: '58992' }));
   assert.equal(live.kind, 'krw'); assert.equal(live.amount, '₩46,800'); assert.equal(live.label, '반다이남코코리아몰');
   assert.equal(live.url, 'https://www.bnkrmall.co.kr/goods/detail.do?gno=58992'); assert.equal(live.note, '');
@@ -448,23 +448,50 @@ test('정가: 몰 가격 확인이 7일보다 오래되면 "가격 확인 날짜
   assert.equal(C.priceInfo(norm({}), '2026-10-20').kind, 'jpy');
   assert.equal(C.priceInfo(norm({ priceKrw: 46800, mallGno: '58992' }), '2026-10-20').stale, false, '확인 시각을 모르면 오래됨으로 보지 않는다');
 });
-test('구매 가격: 직접 입력 > 몰 정가, 엔 정가만 있으면 없음(환산 안 함), 합계에는 정가 기준 개수를 따로 센다', () => {
+test('원화 추정가: 일본 세전 × 12 (priceJpy는 세금 10% 포함 → round(priceJpy / 1.1) × 12)', () => {
+  // 몰 연결 항목의 실제 (엔 정가, 몰 판매가) 쌍 — 추정식과 정확히 같다
+  const real = [[3080, 33600], [4950, 54000], [1760, 19200], [550, 6000], [660, 7200], [1980, 21600], [2750, 30000], [3300, 36000], [4290, 46800], [4620, 50400], [7700, 84000], [12540, 136800]];
+  for (const [jpy, krw] of real) assert.equal(C.estimateKrw(jpy), krw, '¥' + jpy);
+  assert.equal(C.KR_PRICE_RATE, 12);
+  for (const bad of [0, -1, null, undefined, '', 'x', NaN, Infinity]) assert.equal(C.estimateKrw(bad), null, String(bad));
+  assert.equal(C.estimateKrw('4950'), 54000, '문자열 숫자도');
+});
+
+test('원화 추정가: 카탈로그 전체에서 몰 연결 항목의 추정식 일치율 (저장소 데이터)', () => {
+  const fs = require('node:fs');
+  const items = ['catalog-gunpla.json', 'catalog-girl.json'].flatMap((f) => JSON.parse(fs.readFileSync(new URL('../docs/data/' + f, import.meta.url), 'utf8')).items);
+  const pairs = items.filter((i) => i.priceKrw > 0 && i.priceJpy > 0);
+  if (pairs.length < 30) return;                        // 몰 연결이 아직 적으면 건너뜀
+  const same = pairs.filter((i) => C.estimateKrw(i.priceJpy) === i.priceKrw).length;
+  assert.ok(same / pairs.length >= 0.95, '추정식 일치율 ' + same + '/' + pairs.length);
+});
+
+test('구매 가격: 직접 입력 > 몰 정가 > 엔 정가 추정(반다이 제품만), 합계는 정가 기준·추정 개수를 따로 센다', () => {
   const base = { id: 'bh-1', url: 'https://bandai-hobby.net/item/01_1/', line: 'gunpla', grade: 'RG', scale: '1/144', nameKo: 'RG 1/144 테스트', priceJpy: 3080, release: {}, kr: [], images: [] };
   const norm = (o) => C.normalizeItem({ ...base, ...o });
   const krw = norm({ priceKrw: 33600, priceKrwAt: '2026-10-09T10:00:00+09:00', mallGno: '56343' }), jpyOnly = norm({ id: 'bh-2' });
-  assert.deepEqual(C.purchasePrice({ price: 0 }, krw), { amount: 33600, listed: true });
-  assert.deepEqual(C.purchasePrice({ price: '' }, krw), { amount: 33600, listed: true });
-  assert.deepEqual(C.purchasePrice({ price: 30000 }, krw), { amount: 30000, listed: false }, '직접 입력이 우선 — 정가 표시 없음');
-  assert.equal(C.purchasePrice({ price: 0 }, jpyOnly), null, '엔화만 있는 제품은 원화 가격이 없다');
+  const noPrice = norm({ id: 'bh-3', priceJpy: 0 });
+  assert.deepEqual(C.purchasePrice({ price: 0 }, krw), { amount: 33600, listed: true, estimated: false });
+  assert.deepEqual(C.purchasePrice({ price: '' }, krw), { amount: 33600, listed: true, estimated: false });
+  assert.deepEqual(C.purchasePrice({ price: 30000 }, krw), { amount: 30000, listed: false, estimated: false }, '직접 입력이 우선 — 표시 없음');
+  assert.deepEqual(C.purchasePrice({ price: 0, brand: '반다이' }, jpyOnly), { amount: 33600, listed: false, estimated: true }, '¥3,080 → 세전 ¥2,800 × 12');
+  assert.deepEqual(C.purchasePrice({ price: 0 }, jpyOnly), { amount: 33600, listed: false, estimated: true }, '브랜드를 비워 뒀으면 연결 제품(반다이)으로 본다');
+  assert.deepEqual(C.purchasePrice({ price: 0, brand: 'BANDAI SPIRITS' }, jpyOnly).estimated, true);
+  assert.equal(C.purchasePrice({ price: 0, brand: '코토부키야' }, jpyOnly), null, '브랜드를 반다이 외로 적은 프라는 추정하지 않는다');
+  assert.equal(C.purchasePrice({ price: 0, brand: '중국제' }, jpyOnly), null);
+  assert.deepEqual(C.purchasePrice({ price: 12000, brand: '코토부키야' }, jpyOnly), { amount: 12000, listed: false, estimated: false }, '직접 입력은 브랜드와 무관');
+  assert.equal(C.purchasePrice({ price: 0 }, noPrice), null, '엔화도 없으면 없음');
   assert.equal(C.purchasePrice({ price: 0 }, null), null);
-  assert.deepEqual(C.purchasePrice({ price: 12000 }, jpyOnly), { amount: 12000, listed: false });
   const ended = norm({ priceKrw: 33600, priceKrwAt: '2026-10-09T10:00:00+09:00', mallGno: '56343', mallEnded: true });
-  assert.deepEqual(C.purchasePrice({ price: 0 }, ended), { amount: 33600, listed: true }, '판매 종료여도 마지막 정가를 쓴다');
-  const kits = [{ id: 'a', price: 30000, catalogId: 'k' }, { id: 'b', price: 0, catalogId: 'k' }, { id: 'c', price: 0, catalogId: 'j' }, { id: 'd', price: 0 }, { id: 'e', price: 5000 }];
-  const itemOf = (k) => ({ k: krw, j: jpyOnly })[k.catalogId] || null;
-  assert.deepEqual(C.purchaseTotal(kits, itemOf), { total: 30000 + 33600 + 5000, listed: 1 });
-  assert.deepEqual(C.purchaseTotal([], itemOf), { total: 0, listed: 0 });
-  assert.deepEqual(C.purchaseTotal(kits), { total: 35000, listed: 0 }, '카탈로그가 아직 없으면 직접 입력만');
+  assert.deepEqual(C.purchasePrice({ price: 0 }, ended), { amount: 33600, listed: true, estimated: false }, '판매 종료여도 마지막 정가를 쓴다');
+  const kits = [{ id: 'a', price: 30000, catalogId: 'k' }, { id: 'b', price: 0, catalogId: 'k' }, { id: 'c', price: 0, catalogId: 'j' }, { id: 'd', price: 0 }, { id: 'e', price: 5000 },
+    { id: 'f', price: 0, catalogId: 'j', brand: '코토부키야' }, { id: 'g', price: 0, catalogId: 'n' }];
+  const itemOf = (k) => ({ k: krw, j: jpyOnly, n: noPrice })[k.catalogId] || null;
+  assert.deepEqual(C.purchaseTotal(kits, itemOf), { total: 30000 + 33600 + 33600 + 5000, listed: 1, estimated: 1 });
+  assert.deepEqual(C.purchaseTotal([], itemOf), { total: 0, listed: 0, estimated: 0 });
+  assert.deepEqual(C.purchaseTotal(kits), { total: 35000, listed: 0, estimated: 0 }, '카탈로그가 아직 없으면 직접 입력만');
+  assert.equal(C.isBandaiBrand('반다이'), true); assert.equal(C.isBandaiBrand(''), true); assert.equal(C.isBandaiBrand(undefined), true);
+  assert.equal(C.isBandaiBrand('バンダイ'), true); assert.equal(C.isBandaiBrand('Bandai'), true); assert.equal(C.isBandaiBrand('굿스마일컴퍼니'), false);
 });
 
 test('검색: 몰 이름에 없는 모델번호·옛 표기도 nameKoAi·nameKoJoy로 찾고, 현재 이름 일치가 더 앞선다', () => {

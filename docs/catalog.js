@@ -254,6 +254,13 @@ function fmtMoney(sym, n) { return sym + Math.round(Number(n) || 0).toLocaleStri
 // today(YYYY-MM-DD)를 주면: 몰 가격 확인 시각(priceKrwAt = PC가 몰 목록을 읽은 날)이 STALE_DAYS일보다 오래됐을 때 "가격 확인 YYYY-MM-DD"를 덧붙인다 (stale: true).
 // 몰이 클라우드 IP를 막아 목록은 사용자 PC가 읽는다 — PC가 꺼져 있던 기간에는 가격이 오래된 값일 수 있다는 표시.
 var STALE_DAYS = 7;       // crawler/config.py MALL_STALE_DAYS와 같은 값
+// 원화 추정가: 반다이 프라모델 국내 정가 = 일본 세전 가격 × 12. 호비 priceJpy는 세금 10% 포함이라 round(priceJpy / 1.1) × 12.
+// (몰 연결 619개 중 617개가 이 식과 정확히 같았다 — `python -m crawler.price`). 몰 가격이 없고 엔 정가만 있는 반다이 제품에만 쓰고, 저장하지 않는다.
+var KR_PRICE_RATE = 12;       // crawler/config.py KR_PRICE_RATE와 같은 값
+var JP_TAX_DIVISOR = 1.1;     // crawler/config.py JP_TAX_DIVISOR와 같은 값
+function estimateKrw(jpy) { var n = Number(jpy); return isFinite(n) && n > 0 ? Math.round(n / JP_TAX_DIVISOR) * KR_PRICE_RATE : null; }
+// 사용자가 브랜드를 반다이 외로 적은 프라(코토부키야·중국제 …)에는 추정가를 쓰지 않는다. 브랜드를 비워 뒀으면 연결된 제품(= 반다이 호비 제품)으로 본다.
+function isBandaiBrand(brand) { var b = String(brand == null ? '' : brand).trim(); return !b || /반다이|bandai|バンダイ/i.test(b); }
 function priceInfo(item, today) {
   if (!item) return null;
   var url = mallUrl(item.mallGno);
@@ -263,22 +270,29 @@ function priceInfo(item, today) {
     var note = ended ? '판매 종료' + (checked ? '(마지막 확인 ' + checked + ')' : '') : [sold ? '품절' : '', stale ? '가격 확인 ' + checked : ''].filter(Boolean).join(' · ');
     return { kind: 'krw', amount: fmtMoney('₩', item.priceKrw), label: '반다이남코코리아몰', url: ended ? null : url, ended: ended, soldOut: sold, stale: stale, note: note };
   }
-  if (item.priceJpy > 0) return { kind: 'jpy', amount: fmtMoney('¥', item.priceJpy), label: '일본 정가(세금 포함)', url: null, ended: false, soldOut: false, note: '' };
+  if (item.priceJpy > 0) {
+    var est = estimateKrw(item.priceJpy);
+    return { kind: 'jpy', amount: fmtMoney('¥', item.priceJpy), label: '일본 정가(세금 포함)', url: null, ended: false, soldOut: false, note: '',
+             estimateAmount: est, estimate: est ? fmtMoney('₩', est) : null };
+  }
   return null;
 }
-// 구매 가격(원): 직접 입력한 price가 있으면 그 값, 비어 있으면 연결된 제품의 몰 정가(priceKrw). collection.json에는 저장하지 않는 화면 계산값이다.
-// 엔 정가(priceJpy)만 있는 제품은 원화로 환산하지 않고 null — 합계에도 넣지 않는다. → { amount, listed } | null (listed: 정가 기준)
+// 구매 가격(원): 직접 입력 > 몰 정가(priceKrw, "정가 기준") > 엔 정가 추정(estimateKrw, "추정") 순서. collection.json에는 저장하지 않는 화면 계산값이다.
+// 추정은 연결된 반다이 제품에만(브랜드를 반다이 외로 적었으면 제외). 엔 정가도 없으면 null — 합계에도 넣지 않는다.
+// → { amount, listed, estimated } | null (listed: 정가 기준, estimated: 엔 정가 추정)
 function purchasePrice(kit, item) {
   var own = Number(kit && kit.price) || 0;
-  if (own > 0) return { amount: own, listed: false };
+  if (own > 0) return { amount: own, listed: false, estimated: false };
   var pi = item ? priceInfo(item) : null;
-  return pi && pi.kind === 'krw' ? { amount: item.priceKrw, listed: true } : null;
+  if (pi && pi.kind === 'krw') return { amount: item.priceKrw, listed: true, estimated: false };
+  if (pi && pi.kind === 'jpy' && pi.estimateAmount && isBandaiBrand(kit && kit.brand)) return { amount: pi.estimateAmount, listed: false, estimated: true };
+  return null;
 }
-// 합계: 직접 입력 + 정가 기준. listed는 정가 기준으로 들어간 개수. itemOf(kit)는 연결된 카탈로그 항목(없으면 null)
+// 합계: 직접 입력 + 정가 기준 + 추정. listed·estimated는 각각 그 기준으로 들어간 개수. itemOf(kit)는 연결된 카탈로그 항목(없으면 null)
 function purchaseTotal(kits, itemOf) {
-  var total = 0, listed = 0;
-  (kits || []).forEach(function (k) { var p = purchasePrice(k, itemOf ? itemOf(k) : null); if (p) { total += p.amount; if (p.listed) listed++; } });
-  return { total: total, listed: listed };
+  var total = 0, listed = 0, estimated = 0;
+  (kits || []).forEach(function (k) { var p = purchasePrice(k, itemOf ? itemOf(k) : null); if (p) { total += p.amount; if (p.listed) listed++; if (p.estimated) estimated++; } });
+  return { total: total, listed: listed, estimated: estimated };
 }
 /* ---------- 몰 상품 사진 (소유자 화면 전용) ----------
  * 몰 이용약관 제23조②(사전 승낙 없는 복제·송신·배포·제3자 이용 금지) 때문에 방문자 화면에는 절대 쓰지 않는다.
@@ -397,6 +411,6 @@ return {
   FILES: FILES, SEARCH_LIMIT: SEARCH_LIMIT,
   norm: norm, stripPrefix: stripPrefix, displayName: displayName, isStableImage: isStableImage, thumbUrl: thumbUrl, pageUrl: pageUrl,
   normalizeItem: normalizeItem, build: build, search: search, parseRef: parseRef, fillPatch: fillPatch,
-  officialImages: officialImages, setCatalogId: setCatalogId, gapInfo: gapInfo, priceInfo: priceInfo, priceShort: priceShort, purchasePrice: purchasePrice, mallImageUrl: mallImageUrl, mallImages: mallImages, mallPhoto: mallPhoto, purchaseTotal: purchaseTotal, mallUrl: mallUrl, autoLinks: autoLinks, seriesKoSuggestions: seriesKoSuggestions, fillCandidates: fillCandidates, applyAuto: applyAuto, reviewLinks: reviewLinks, dayNum: dayNum, monthEnd: monthEnd, releaseLabel: releaseLabel, releaseSortKey: releaseSortKey, cacheKey: cacheKey, load: load
+  officialImages: officialImages, setCatalogId: setCatalogId, gapInfo: gapInfo, priceInfo: priceInfo, priceShort: priceShort, purchasePrice: purchasePrice, mallImageUrl: mallImageUrl, mallImages: mallImages, mallPhoto: mallPhoto, purchaseTotal: purchaseTotal, estimateKrw: estimateKrw, isBandaiBrand: isBandaiBrand, KR_PRICE_RATE: KR_PRICE_RATE, mallUrl: mallUrl, autoLinks: autoLinks, seriesKoSuggestions: seriesKoSuggestions, fillCandidates: fillCandidates, applyAuto: applyAuto, reviewLinks: reviewLinks, dayNum: dayNum, monthEnd: monthEnd, releaseLabel: releaseLabel, releaseSortKey: releaseSortKey, cacheKey: cacheKey, load: load
 };
 });
