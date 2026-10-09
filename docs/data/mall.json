@@ -1,0 +1,6 @@
+{
+"updatedAt":"2026-10-09T11:04:36+09:00",
+"scan":{"at":"2026-10-09T11:04:36+09:00","complete":false,"requests":3,"count":0},
+"links":{"56457":{"catalogId":"pb-item-1000125968","method":"override","score":null,"margin":null,"nameOk":true,"nameApplied":false,"at":"2026-10-09T11:04:36+09:00"},"59201":{"catalogId":"bh-01_4261","method":"override","score":null,"margin":null,"nameOk":true,"nameApplied":false,"at":"2026-10-09T11:04:36+09:00"},"7223664":{"catalogId":"bh-01_5062","method":"override","score":null,"margin":null,"nameOk":true,"nameApplied":false,"at":"2026-10-09T11:04:36+09:00"},"48650462":{"catalogId":"bh-01_5452","method":"override","score":null,"margin":null,"nameOk":true,"nameApplied":false,"at":"2026-10-09T11:04:36+09:00"},"68326863":{"catalogId":"bh-01_6763","method":"override","score":null,"margin":null,"nameOk":true,"nameApplied":false,"at":"2026-10-09T11:04:36+09:00"}},
+"goods":{}
+}
