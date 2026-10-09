@@ -83,3 +83,52 @@
 ## 다음에 할 일
 - 6단계 1~6번 + 보정·문서 끝(로컬 커밋). **6-0b 몰 연동은 사용자가 이용약관 확인 후 따로 지시.** push는 사용자가.
 - push 후 사용자 확인 거리: (1) Actions `discord_test`로 embed 3개가 따로 보이는지 (2) Actions `brand_backfill`(약 8분, 알림 없음) → 이후 매일 실행이 상세·번역을 나눠 채움(번역 약 $1.2) (3) 한자 혼입 `비达르` 2건이 다음 실행에서 재번역되는지 (4) 사이트 연결 도우미·검색 별칭.
+
+## 7a 후속 — 몰 수집이 Actions에서 실패 (2026-10-09)
+증상: Actions `meta.sources.mall` = `ok:false`, "gunpla 1쪽: 상품 줄 0개"(3개 카테고리 모두 1쪽에서), requests 3, goods 0. 로컬은 396~397개 정상.
+
+### 1단계: 진단 (구현됨, 로컬 커밋)
+- [x] `mall.scan`이 실패한 쪽마다 응답 요약 `diag`를 남긴다: HTTP 상태·오류 이름·최종 URL·리다이렉트 수·바이트·Content-Type·`<title>`(100자)·본문 텍스트 앞 200자(script·style·title 제외). 구조 오류(200인데 줄 0개)와 HTTP 오류 모두. `meta.sources.mall.diag`에 저장(성공한 실행에서는 사라짐), 실행 요약(Step Summary)에 "몰 실패 진단" 표, 로그에 경고 한 줄
+- [x] `HttpClient`: `Fetched.size`·`content_type`, `robots_info`(robots.txt 응답의 상태·바이트·HTML 여부·앞 200자 — robots.txt 자리에 차단 페이지가 오는지 확인용)
+- [x] `--mall-dump DIR`: 받은 목록 HTML(`<카테고리>-p<쪽>.html`)과 `summary.json`(쪽별 요약 + robots)을 저장. `crawler/out/`는 gitignore
+- [x] crawl.yml 입력 `mall_debug`(기본 꺼짐): `--only mall --dry-run --mall-dump crawler/out/mall-debug` → artifact `mall-debug`(보존 3일) 업로드, 커밋 단계 건너뜀. 몰 이미지 요청 없음(목록 HTML만)
+- [x] 테스트: 진단 요약 필드·길이 제한·script/style 제외, dump 파일, 파이프라인 meta.diag, 워크플로 구조(커밋 건너뜀). 429개 통과. 실제 몰 로컬 dry-run(임시 폴더 사본)으로 12쪽 덤프·summary.json 확인
+- **사용자가 할 일**: push → Actions → crawl → Run workflow → `mall_debug` 켜고 실행 → 실행 요약의 "몰 실패 진단" 표, artifact `mall-debug`의 `summary.json`·`gunpla-p1.html`을 확인해서 알려 주기
+
+### 결과 해석 (2단계를 정하는 기준)
+| 진단에 보이는 것 | 판단 | 다음 |
+|---|---|---|
+| 403/406/429, title `Access Denied`·`Forbidden`·보안 문구, 짧은 본문 | 해외 IP(데이터센터) 차단 | 아래 2단계 |
+| 200이지만 title/본문이 점검·로그인·동의·봇 확인 | 응답이 다름(쿠키·리다이렉트·봇 검사) — 차단과 같으면 2단계, 헤더/쿠키로 풀리는지는 HTML 확인 후 판단. **우회 시도(프록시·VPN)는 하지 않는다** | 사용자와 결정 |
+| 200이고 `li[data-childno]`가 있는데 파서만 실패 | 구조 차이(모바일/언어 분기 등) | 파서 수정 |
+| 5xx·timeout·ConnectionError | 일시 장애 또는 연결 차단 | 한 번 더 실행해 재현되면 2단계 |
+| robots.txt가 차단 페이지(`html:true`가 아닌 본문인데 규칙이 이상함) | robots 해석 문제 | 확인 후 수정 |
+
+### 2단계: 계획만 (해외 IP 차단으로 확인되면 — 아직 구현하지 않음)
+원칙: 한국 IP인 내 PC에서 평소처럼 요청하는 것이지 우회가 아니다. VPN·프록시·해외 서버 없음. robots.txt·요청 간격(1.2초)·상한(20회)은 그대로. Actions가 **카탈로그 파일의 유일한 작성자**라는 규칙을 지킨다.
+
+**결정 필요 (구현 전에 확인)**: PC가 쓰는 파일을 `mall.json`으로 할지 별도 `mall-scan.json`으로 할지.
+- 지금 `mall.json`은 `goods`(스캔 원본)와 `links`(Actions가 만든 gno↔catalogId 연결)를 함께 가진다. PC가 `goods`를, Actions가 `links`를 같은 파일에 쓰면 파일 작성자가 둘이라 push 충돌이 날 수 있다(JSON을 한 항목 한 줄로 쓰므로 자동 병합되는 날도 있지만 보장되지 않는다).
+- **권장**: PC는 `docs/data/mall-scan.json`(스냅샷: `scan{at, complete, requests, count}` + `goods`)만 쓰고, `mall.json`(links·상태)은 Actions만 쓴다. 파일이 갈리므로 충돌이 없다. 지시하신 "mall.json만 커밋"과 다르니 확인 부탁.
+
+**동작**
+1. `python main.py --only mall --mall-local` (PC 전용): 몰 목록을 스캔해 `mall-scan.json`만 쓴다. 카탈로그·`mall.json`·`meta.json`·디스코드는 건드리지 않고 연결 계산도 하지 않는다(PC에는 최신 카탈로그가 없을 수 있다). 스캔이 불완전(`complete:false`, 상품 수가 이전의 50% 미만)이면 이전 스냅샷을 덮어쓰지 않는다.
+2. Actions의 `mall` 단계: 스캔(요청)을 하지 않고 `mall-scan.json`을 읽는다. `scan.at`이 이미 흡수한 스캔과 같으면(PC가 안 올린 날) `absorb`·연결 계산·"판매 종료" 판정을 건너뛰고 기존 상태를 유지한다. 새 스냅샷이면 지금과 똑같이 `absorb → link_all`로 카탈로그에 가격·이름·시리즈·`mallEnded`를 적용한다. `priceKrwAt`은 Actions 실행 시각이 아니라 **스캔 시각(`scan.at`)**으로 적는다. `meta.sources.mall`에 `snapshotAt`·`snapshotAgeDays`를 남긴다. Actions는 `mall-scan.json`을 커밋하지 않는다(커밋 허용 목록은 그대로).
+3. PC 스크립트 `scripts/mall_local.ps1`(PowerShell): ① 저장소 폴더로 이동, 작업 트리에 이 파일 외 변경이 있으면 중단 ② `git pull --rebase --autostash` ③ conda 환경 `plamo`의 `python.exe`를 직접 호출(Windows에서 `conda run`은 한글을 깨뜨린다) ④ `git add docs/data/mall-scan.json`만 → 허용 목록 밖 staged가 있으면 실패(`collection.json`·`photos/` 보호, crawl.yml과 같은 방식) ⑤ 변경이 있으면 `data: mall scan (local) YYYY-MM-DD` 커밋 → push, 실패하면 `pull --rebase` 후 최대 3회 ⑥ 로그를 `crawler/out/mall-local.log`에 남김. 변경이 없으면 커밋하지 않는다.
+4. 작업 스케줄러 등록(관리자 권한 불필요, 사용자 계정으로) — 구현 시 README에도 넣는다:
+   ```powershell
+   $py  = "powershell.exe"
+   $arg = '-NoProfile -ExecutionPolicy Bypass -File "C:\Users\woori\plamo-hangar\scripts\mall_local.ps1"'
+   $act = New-ScheduledTaskAction -Execute $py -Argument $arg -WorkingDirectory "C:\Users\woori\plamo-hangar"
+   $trg = New-ScheduledTaskTrigger -Daily -At 06:30            # Actions 07:10(KST)보다 먼저
+   $set = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 20)
+   Register-ScheduledTask -TaskName "plamo-hangar-mall" -Action $act -Trigger $trg -Settings $set -Description "몰 목록 스캔 → mall-scan.json push"
+   # 확인: Start-ScheduledTask -TaskName plamo-hangar-mall ; Get-ScheduledTaskInfo -TaskName plamo-hangar-mall
+   # 해제: Unregister-ScheduledTask -TaskName plamo-hangar-mall -Confirm:$false
+   ```
+5. **PC가 꺼져 있던 날**: `-StartWhenAvailable`이라 켜진 뒤 바로 한 번 실행된다. 스캔은 커서 없는 전체 스냅샷(12쪽)이라 놓친 날을 메울 필요가 없고 다음 실행이 곧 최신이다. 그 사이 Actions는 `scan.at`이 안 바뀐 것을 보고 마지막 가격을 그대로 둔다(`mallEnded`를 잘못 판정하지 않음).
+6. **신선도 표시**: 스냅샷이 7일(`config.MALL_STALE_DAYS`) 넘게 오래되면 사이트 정가 줄에 `가격 확인 YYYY-MM-DD`를 붙인다(기준 `priceKrwAt`, 방문 시각과 비교 — `catalog.js` `priceInfo`, node 테스트 추가). 그 이하면 지금처럼 표시한다. 디스코드·알림은 바꾸지 않는다.
+
+**테스트(네트워크 없이)**: `--mall-local`이 `mall-scan.json`만 쓰고 카탈로그를 건드리지 않음, 불완전 스캔은 이전 스냅샷 유지, Actions 단계가 파일을 읽어 연결(요청 0회), 같은 `scan.at` 재실행은 변화 없음, `priceKrwAt = scan.at`, 오래된 스냅샷 문구(node), 스크립트의 허용 목록 검사는 PowerShell 로직이라 수동 확인.
+
+**문서 갱신(구현 때)**: CLAUDE.md "크롤러가 쓰는 파일 … Actions만 커밋" 규칙에 `mall-scan.json`(PC만) 예외, SPEC 3·4·8·9장, README(작업 스케줄러 절차·문제 해결).

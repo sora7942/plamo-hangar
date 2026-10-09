@@ -156,6 +156,7 @@ SPEC.md  CLAUDE.md  PROGRESS.md
 | `translate_only` | 꺼짐 | **번역만** 실행한다(수집 없음, Claude API 사용). `nameKo`가 빈 항목을 최신 발매순으로 `translate_max`개까지 채우고 커밋한다 — `brand_backfill` 뒤에 쌓인 번역 대기를 한 번에 끝낼 때(`--translate-only`) |
 | `translate_max` | 600 | `translate_only`일 때 번역할 항목 수 상한(최대 3000). 50개씩 나눠 요청한다 — 1500개면 약 30요청, 20분 안팎, 비용은 1달러 남짓(입력 약 13만 토큰 + 출력 약 8만 토큰 기준 추정) |
 | `discord_test` | 꺼짐 | **디스코드 테스트 알림 1건만** 보낸다. 수집·커밋은 하지 않는다. `feed.json` 최근 3개(내 프라 연결 항목이 있으면 그중 1개 포함)를 실제 알림과 같은 형식으로, 맨 앞에 `[테스트] 프라 격납고 알림 확인용`을 붙여 보낸다. 웹훅은 Secret만 쓰고, 없으면 "웹훅 없음"만 출력하고 끝난다 |
+| `mall_debug` | 꺼짐 | **몰(반다이남코코리아몰) 진단만** 실행한다(`--only mall --dry-run --mall-dump`). 받은 목록 HTML과 `summary.json`(HTTP 상태·최종 URL·title·robots.txt 응답)을 artifact `mall-debug`(3일 보관)로 올리고 **커밋하지 않는다**. 몰 수집이 Actions에서만 실패할 때(`meta.sources.mall.diag`와 실행 요약에도 같은 요약이 남는다) |
 
 ### 로컬에서 같은 일 해 보기
 

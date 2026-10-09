@@ -191,6 +191,7 @@ plamo-hangar/
  "unknownBrandKeys":[]}
 ```
 - `sources`는 단계별로 나눈다(`hobby`를 `hobby_schedule`·`hobby_brand`·`hobby_item`으로). 일부 항목만 실패하면 `ok:false`와 실패 목록이 `error`에 들어간다. `--only`로 돌리지 않은 소스는 이전 값을 유지한다
+- `sources.mall.diag` *(7a 진단)*: 몰 목록 쪽이 실패했을 때만 붙는 응답 요약 배열 — `{where, status, error, finalUrl, redirects, bytes, contentType, title(≤100자), head(본문 텍스트 앞 200자, script·style·title 제외)}`. 성공한 실행에서는 사라진다. 본문 전체는 `--mall-dump` 때만 파일로 남는다
 - `crawl.lastFixups`: 이번 실행에 적용한 기존 데이터 보정 결과(재분류로 제외된 수·line 변경 수·nameKo/피드 titleKo 치환 수·`seriesKoApplied` 시리즈 한국어를 채운 항목 수·`strayHanReset` 한자가 섞인 번역을 비워 재번역하게 한 수). 매 실행 덮어쓴다
 - `crawl`: 최초 채우기 커서(5장) — `scheduleFrom`은 "이 달부터 현재까지 일정을 다 훑었다", `girlBrandsDone`은 전체 쪽수를 끝낸 걸프라 브랜드, `backlog`는 상세를 기다리는 항목 수(0이 되면 채우기 완료)
 - `crawl.brandBackfill` *(6단계)*: 2015년 이전 채우기(5장) 커서 — 브랜드 키별 `{next: 다음에 받을 쪽, last: 마지막 쪽, done}`. 중간에 멎으면 그 쪽부터 이어 하고, 전부 `done`이면 더 요청하지 않는다. `meta.sources.hobby_backfill`에 이번 실행의 성공·실패(`hg:2`처럼 실패한 쪽)가 남는다
@@ -301,12 +302,13 @@ plamo-hangar/
   - `--brand-backfill` *(6단계)*: 2015년 이전 상품 채우기(5장)만 실행(`--only hobby_backfill`과 같다). 커서(`meta.crawl.brandBackfill`)로 이어 하고 알림 없음. `--bootstrap`·`--only`·`--discord-test`와는 함께 쓸 수 없다
   - `--translate-only` / `--translate-max N` *(6단계)*: 수집 없이 번역 단계만 실행하고 이번 실행의 번역 항목 수 상한을 정한다(기본 600, 1~3000). `--only`·`--bootstrap`·`--brand-backfill`·`--discord-test`와는 함께 쓸 수 없다
   - `--data-dir DIR`: `docs/data` 대신 다른 폴더에 읽고 쓴다(로컬에서 부분 채우기를 저장소와 섞지 않으려고)
+  - `--mall-dump DIR` *(7a 진단)*: 몰 단계가 받은 목록 응답 본문(`<카테고리>-p<쪽>.html`)과 `summary.json`(쪽별 HTTP 상태·최종 URL·크기·title, robots.txt 응답 요약)을 DIR에 저장한다. 커밋 대상이 아니다(`crawler/out/`는 gitignore). Actions `mall_debug`가 쓴다
   - `--no-discord`: 발송만 끈다. `--dry-run`은 파일은 쓰고 디스코드는 보내지 않으며 **보낼 내용을 항상 출력**하고, API 비용이 드는 번역은 `--only translate`로 명시할 때만 돌린다
   - `--discord-test` *(5단계)*: 수집 없이 테스트 알림 **1메시지**만 보낸다. `feed.json` 최근 3개(내 프라 연결 항목이 있으면 그중 1개 포함)를 실제 알림과 같은 형식으로 묶고 맨 앞에 `[테스트] 프라 격납고 알림 확인용`을 붙인다. `docs/data`는 바꾸지 않고(커밋도 없음) 웹훅은 `DISCORD_WEBHOOK_URL`(Actions Secret)만 쓴다 — 없으면 "웹훅 없음"만 출력하고 성공 종료, 발송 실패는 종료 코드 1. `--dry-run`을 같이 주면 내용만 출력. 수집 옵션과는 함께 쓸 수 없다
 - 로컬 미리보기: `python -m http.server -d docs 8000`
 
 ## 9. GitHub Actions (`crawl.yml`)
-- 트리거: `schedule: cron "10 22 * * *"` (KST 07:10), `workflow_dispatch`(입력: `bootstrap`, `max_backlog`(기본 150), `joy_backfill`(조이하비 과거 글만: `--bootstrap --only joyhobby`), `joy_pages`(기본 25), `brand_backfill`(기본 꺼짐: 2015년 이전 상품 채우기만 — 8장 `--brand-backfill`, 약 8분), `translate_only`(기본 꺼짐: 수집 없이 번역만 — `--translate-only`) + `translate_max`(기본 600), `discord_test`(기본 꺼짐: 수집·커밋 없이 테스트 알림 1건만 — 8장 `--discord-test`))
+- 트리거: `schedule: cron "10 22 * * *"` (KST 07:10), `workflow_dispatch`(입력: `bootstrap`, `max_backlog`(기본 150), `joy_backfill`(조이하비 과거 글만: `--bootstrap --only joyhobby`), `joy_pages`(기본 25), `brand_backfill`(기본 꺼짐: 2015년 이전 상품 채우기만 — 8장 `--brand-backfill`, 약 8분), `translate_only`(기본 꺼짐: 수집 없이 번역만 — `--translate-only`) + `translate_max`(기본 600), `discord_test`(기본 꺼짐: 수집·커밋 없이 테스트 알림 1건만 — 8장 `--discord-test`), `mall_debug`(기본 꺼짐: 몰만 `--only mall --dry-run --mall-dump crawler/out/mall-debug`로 돌리고 받은 HTML을 artifact `mall-debug`(3일)로 올린다. 커밋 단계는 건너뜀))
 - `concurrency: { group: crawl }`, 권한 `contents: write`
 - 단계: checkout → Python 3.12 + pip 캐시 → `python main.py` → 요청 로그 artifact(7일) → `git pull --rebase --autostash` → **허용 목록 8개만 add**(`catalog-gunpla/girl/pending.json`, `feed.json`, `kr-arrivals.json`, `series-ko.json`, `mall.json`, `meta.json`; 그 밖의 경로가 staged면 실패해 `collection.json`·`photos/`를 지킨다) → 변경이 있으면 커밋(`data: crawl YYYY-MM-DD`) → push(충돌 시 `pull --rebase` 후 최대 3회). `timeout-minutes: 45`
 - 조이하비 과거 글 채우기: 수동 실행에서 `joy_backfill`을 켠다(한 번에 끝남, 약 320요청 ≈ 6.5분 — 후보 글의 2/3가 BD 행이 없는 글이라 대부분이 "봤음"용 요청이다). 호비사이트 채우기와 독립이다

@@ -18,6 +18,7 @@
 - 2015년 이전 상품 채우기(수동 실행 `brand_backfill`): `python main.py --brand-backfill` (= `--only hobby_backfill`. 목록 약 366쪽을 카드만으로, 약 8분. 진행 위치는 `meta.crawl.brandBackfill`, 알림 없음. 대상 브랜드는 `config.OLD_BRANDS`, bb 제외)
 - 번역만(수집 없음): `python main.py --translate-only --translate-max 1500` (밀린 번역을 최신 발매순으로 한 번에. Actions 입력 `translate_only`·`translate_max`)
 - 용어 일관성 점검(읽기 전용): `python -m crawler.audit_terms --top 50` → 표기가 갈린 가타카나 단어 표. 결과는 `crawler/out/term-audit.md`
+- 몰 진단(Actions에서만 실패할 때): Actions `mall_debug`(= `--only mall --dry-run --mall-dump crawler/out/mall-debug`, 응답 HTML을 artifact 3일 보관, 커밋 없음). 실패하면 `meta.sources.mall.diag`에 HTTP 상태·최종 URL·title·본문 앞 200자가 남는다
 - 디스코드 테스트(수집 없음): `python main.py --discord-test --dry-run` (실제 발송은 Actions `discord_test`로, 사용자가 요청할 때만)
 - 사이트 미리보기: `python -m http.server -d docs 8000` → http://localhost:8000
 - 테스트: `pytest -q` (사이트 순수 함수는 `node --test tests/site_*.test.mjs`, 화면은 `python tests/e2e/site_mock_check.py`·`site_catalog_check.py`)
