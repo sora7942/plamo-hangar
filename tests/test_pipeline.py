@@ -14,7 +14,7 @@ HOBBY = "https://bandai-hobby.net"
 NOW = datetime(2026, 10, 6, 9, 0, tzinfo=config.KST)
 AKAMAI = "https://bandai-a.akamaihd.net/bc/img/model/xl/1000179163_1.jpg"
 SIGNED = "https://bandai-a.akamaihd.net/bc/img/model/xl/2_1.jpg?Expires=1&Signature=abc"
-DATA_FILES = {"catalog-gunpla.json", "catalog-girl.json", "catalog-pending.json", "feed.json", "meta.json", "kr-arrivals.json", "mall.json"}
+DATA_FILES = {"catalog-gunpla.json", "catalog-girl.json", "catalog-pending.json", "feed.json", "meta.json", "kr-arrivals.json"}   # mall.json은 PC 스냅샷(mall-scan.json)이 있을 때만 생긴다
 
 
 def c(num, title, date="2026年10月24日 (土)", **kw):

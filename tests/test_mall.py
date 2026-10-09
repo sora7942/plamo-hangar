@@ -1,17 +1,17 @@
 """반다이남코코리아몰(7a): 목록 파서·스캔·이름 정리·연결·가격/이름/시리즈 반영·판매 종료·파이프라인. 네트워크·디스코드·Claude 호출 없음 (가짜 세션)."""
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
 
 from conftest import ROBOTS_HTML, FIXTURES, make_client
-from crawler import config, kr, mall_link, series, translate
+from crawler import config, kr, mall_link, mall_scan, series, translate
 from crawler.catalog import Catalog
 from crawler.http import Blocked
 from crawler.pipeline import Options, run
 from crawler.sources import mall
 from schema_check import check_dir
-from test_pipeline import World, go, read
+from test_pipeline import NOW as PIPE_NOW, World, go, read
 
 NOW = "2026-10-09T10:00:00+09:00"
 LATER = "2026-10-10T10:00:00+09:00"
@@ -112,21 +112,24 @@ def test_scan_page_failure_or_structure_change_marks_incomplete_but_continues():
 
 
 # ---------------------------------------------------------------- 실패 진단 (Actions에서만 실패할 때 원인을 가르려고)
-BLOCK_PAGE = ("<html><head><title>Access Denied</title><style>.x{}</style><script>var a=1;</script></head>"
-              "<body><h1>Access Denied</h1><p>You don't have permission to access this server.</p></body></html>")
+ERROR_PAGE = ("<html><head><title>서버 오류</title><style>.x{}</style><script>var a=1;</script></head>"
+              "<body><h1>서버 오류</h1><p>잠시 후 다시 시도해 주세요.</p></body></html>")
+# Actions(클라우드 IP)에서 실제로 받은 웹 방화벽 차단 응답 (HTTP 200, 짧은 본문 — 2026-10 진단)
+REJECTED = ("<html><head><title>Request Rejected</title></head><body>The requested URL was rejected. Please consult with your administrator.<br><br>"
+            "Your support ID is: 1234567890123456789<br><br><a href='javascript:history.back();'>[Go Back]</a></body></html>")
 
 
 def test_scan_records_diag_for_http_error_and_structure_change():
     r = routes_for({})
-    r[mall.list_url(config.MALL_CATEGORIES[0]["params"], 1)] = lambda u: (403, BLOCK_PAGE)
+    r[mall.list_url(config.MALL_CATEGORIES[0]["params"], 1)] = lambda u: (500, ERROR_PAGE)
     r[mall.list_url(config.MALL_CATEGORIES[1]["params"], 1)] = "<html><head><title>점검 중</title></head><body>잠시 후 다시 <b>이용</b>해 주세요</body></html>"
     client, _, _ = make_client(r)
     res = mall.scan(client)
     assert res["complete"] is False and len(res["diag"]) == 2
-    d403, dstruct = res["diag"]
-    assert (d403["where"], d403["status"], d403["title"]) == ("gunpla 1쪽", 403, "Access Denied")
-    assert d403["head"].startswith("Access Denied You don't have permission") and "var a" not in d403["head"] and ".x{}" not in d403["head"], "script·style은 본문 앞부분에서 뺀다"
-    assert d403["finalUrl"] == mall.list_url(config.MALL_CATEGORIES[0]["params"], 1) and d403["redirects"] == 0 and d403["bytes"] == len(BLOCK_PAGE.encode())
+    d500, dstruct = res["diag"]
+    assert (d500["where"], d500["status"], d500["title"]) == ("gunpla 1쪽", 500, "서버 오류")
+    assert d500["head"].startswith("서버 오류 잠시 후 다시") and "var a" not in d500["head"] and ".x{}" not in d500["head"], "script·style·title은 본문 앞부분에서 뺀다"
+    assert d500["finalUrl"] == mall.list_url(config.MALL_CATEGORIES[0]["params"], 1) and d500["redirects"] == 0 and d500["bytes"] == len(ERROR_PAGE.encode())
     assert (dstruct["where"], dstruct["status"], dstruct["title"], dstruct["head"]) == ("girl-30mm 1쪽", 200, "점검 중", "잠시 후 다시 이용 해 주세요")
 
 
@@ -152,17 +155,153 @@ def test_scan_without_failures_has_empty_diag_and_no_dump(tmp_path):
 
 def test_scan_dump_dir_saves_every_response_and_summary(tmp_path):
     r = routes_for({"gunpla": [[("1", "HG 가", 1100)], [("2", "HG 나", 1)]]})
-    r[mall.list_url(config.MALL_CATEGORIES[1]["params"], 1)] = lambda u: (403, BLOCK_PAGE)
+    r[mall.list_url(config.MALL_CATEGORIES[1]["params"], 1)] = lambda u: (500, ERROR_PAGE)
     client, _, _ = make_client(r)
     out = tmp_path / "mall-debug"
     res = mall.scan(client, dump_dir=out)
     names = sorted(p.name for p in out.iterdir())
     assert names == ["girl-30mm-p1.html", "girl-figurerise-p1.html", "gunpla-p1.html", "gunpla-p2.html", "summary.json"]
-    assert (out / "girl-30mm-p1.html").read_text(encoding="utf-8") == BLOCK_PAGE
+    assert (out / "girl-30mm-p1.html").read_text(encoding="utf-8") == ERROR_PAGE
     summary = json.loads((out / "summary.json").read_text(encoding="utf-8"))
     assert summary["requests"] == res["requests"] == 4 and len(summary["responses"]) == 4
-    assert [x["status"] for x in summary["responses"]] == [200, 200, 403, 200]
+    assert [x["status"] for x in summary["responses"]] == [200, 200, 500, 200]
     assert summary["robots"][config.MALL_BASE]["status"] == 200 and "Allow" in summary["robots"][config.MALL_BASE]["head"]
+
+
+# ---------------------------------------------------------------- 방화벽 차단 감지 (PC에서도 차단되면 기록하고 멈춘다)
+def test_scan_stops_at_first_firewall_rejection_without_retry_or_other_categories():
+    r = routes_for({})
+    for cat in config.MALL_CATEGORIES:
+        r[mall.list_url(cat["params"], 1)] = REJECTED          # HTTP 200 + 짧은 차단 문구
+    client, sess, _ = make_client(r)
+    res = mall.scan(client)
+    assert res["blocked"] is True and res["complete"] is False and res["goods"] == {} and res["requests"] == 1
+    assert len([c for c in sess.calls if "category.do" in c["url"]]) == 1, "차단 응답이면 재시도도, 다른 카테고리 요청도 없다"
+    assert res["results"] == [{"where": "gunpla 1쪽", "status": 200, "ok": True, "bytes": len(REJECTED.encode())}]
+    assert "차단" in res["errors"][0] and res["diag"][0]["title"] == "Request Rejected" and "support ID" in res["diag"][0]["head"]
+
+
+def test_looks_blocked_distinguishes_rejection_from_normal_and_error_pages():
+    ok = page_html([("1", "HG 가", 1000)])
+    mk = lambda status, text: type("F", (), dict(status=status, text=text))()
+    assert mall.looks_blocked(mk(200, REJECTED)) and mall.looks_blocked(mk(403, "x")) and mall.looks_blocked(mk(429, ""))
+    assert not mall.looks_blocked(mk(200, ok)) and not mall.looks_blocked(mk(500, ERROR_PAGE)) and not mall.looks_blocked(mk(200, "<html>개편</html>"))
+    assert not mall.looks_blocked(mk(200, ok + "Access Denied" * 300)), "상품 줄이 있는 정상 목록은 본문에 문구가 있어도 차단이 아니다"
+
+
+# ---------------------------------------------------------------- PC 스냅샷 mall-scan.json (--mall-local)
+SNAP = "2026-10-06T06:30:00+09:00"            # test_pipeline.NOW(2026-10-06 09:00) 직전
+KST_NOW = datetime(2026, 10, 6, 6, 30, tzinfo=config.KST)
+
+
+def local_scan(tmp_path, routes, *, now=KST_NOW, dry_run=False, dump=None):
+    client, sess, _ = make_client(routes)
+    lines = []
+    doc = mall_scan.run_local(client, tmp_path, dry_run=dry_run, now=now, out=lines.append, dump_dir=dump)
+    return doc, sess, lines
+
+
+def snap_doc(goods, *, at=SNAP, complete=True, blocked=False, errors=()):
+    return {"updatedAt": at, "blocked": blocked,
+            "lastTry": {"at": at, "ok": complete and not blocked and bool(goods), "blocked": blocked, "complete": complete, "requests": 3, "pages": {"gunpla": 1}, "results": [], "errors": list(errors), "diag": []},
+            "scan": {"at": at, "complete": complete, "requests": 3, "count": len(goods)} if goods else {}, "goods": goods}
+
+
+def write_snap(tmp_path, doc):
+    (tmp_path / config.MALL_SCAN_FILE).write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
+
+
+def test_run_local_writes_only_mall_scan_json_with_snapshot_time_results_and_goods(tmp_path):
+    for name in ("mall.json", "catalog-gunpla.json", "meta.json"):          # 다른 파일은 건드리지 않는다
+        (tmp_path / name).write_text('{"keep":true}', encoding="utf-8")
+    pages = {"gunpla": [[("1", "HG 가", 1100, "시리즈 A"), ("2", "HG 나", 2200)], [("3", "MG 다", 3300)]], "girl-30mm": [[("4", "30MS 라", 400)]], "girl-figurerise": [[("5", "피규어라이즈 스탠다드 마", 500)]]}
+    doc, sess, _ = local_scan(tmp_path, routes_for(pages))
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["catalog-gunpla.json", "mall-scan.json", "mall.json", "meta.json"]
+    assert all((tmp_path / n).read_text(encoding="utf-8") == '{"keep":true}' for n in ("mall.json", "catalog-gunpla.json", "meta.json"))
+    saved = json.loads((tmp_path / config.MALL_SCAN_FILE).read_text(encoding="utf-8"))
+    assert saved == doc and saved["blocked"] is False and saved["updatedAt"] == SNAP
+    assert saved["scan"] == {"at": SNAP, "complete": True, "requests": 4, "count": 5}
+    assert saved["lastTry"]["ok"] is True and saved["lastTry"]["pages"] == {"gunpla": 2, "girl-30mm": 1, "girl-figurerise": 1}
+    assert [r["where"] for r in saved["lastTry"]["results"]] == ["gunpla 1쪽", "gunpla 2쪽", "girl-30mm 1쪽", "girl-figurerise 1쪽"] and all(r["status"] == 200 for r in saved["lastTry"]["results"])
+    assert saved["goods"]["1"] == {"name": "HG 가", "series": "시리즈 A", "price": 1100, "soldOut": False, "cate": "gunpla"} and list(saved["goods"]) == ["1", "2", "3", "4", "5"]
+    assert not any("detail.do" in c["url"] or "cdn." in c["url"] for c in sess.calls)
+
+
+def test_run_local_blocked_records_flag_keeps_previous_goods_and_does_not_retry(tmp_path):
+    write_snap(tmp_path, snap_doc({"7": {"name": "HG 이전", "series": None, "price": 5000, "soldOut": False, "cate": "gunpla"}}, at="2026-10-04T06:30:00+09:00"))
+    r = routes_for({})
+    r[mall.list_url(config.MALL_CATEGORIES[0]["params"], 1)] = REJECTED
+    doc, sess, lines = local_scan(tmp_path, r)
+    assert doc["blocked"] is True and doc["lastTry"]["blocked"] is True and doc["lastTry"]["ok"] is False and doc["lastTry"]["requests"] == 1
+    assert doc["scan"]["at"] == "2026-10-04T06:30:00+09:00" and list(doc["goods"]) == ["7"], "차단된 날은 이전 스냅샷을 지우지 않는다"
+    assert len([c for c in sess.calls if "category.do" in c["url"]]) == 1 and any("재시도하거나 우회하지 않습니다" in l for l in lines)
+    assert json.loads((tmp_path / config.MALL_SCAN_FILE).read_text(encoding="utf-8"))["blocked"] is True
+    # 다음 날 정상 응답이면 차단 표시가 사라지고 스냅샷이 새로 바뀐다
+    doc2, _, _ = local_scan(tmp_path, routes_for({"gunpla": [[("1", "HG 가", 1100)]]}), now=datetime(2026, 10, 7, 6, 30, tzinfo=config.KST))
+    assert doc2["blocked"] is False and doc2["scan"]["at"] == "2026-10-07T06:30:00+09:00" and "7" not in doc2["goods"]
+
+
+def test_run_local_first_ever_block_writes_empty_snapshot_and_dry_run_writes_nothing(tmp_path):
+    r = routes_for({})
+    for cat in config.MALL_CATEGORIES:
+        r[mall.list_url(cat["params"], 1)] = REJECTED
+    doc, _, _ = local_scan(tmp_path, r, dry_run=True)
+    assert doc["blocked"] is True and doc["goods"] == {} and doc["scan"] == {} and not (tmp_path / config.MALL_SCAN_FILE).exists(), "--dry-run은 파일을 쓰지 않는다"
+    local_scan(tmp_path, r)
+    assert json.loads((tmp_path / config.MALL_SCAN_FILE).read_text(encoding="utf-8"))["blocked"] is True
+
+
+def test_run_local_partial_scan_is_kept_but_marked_incomplete_and_http_failure_keeps_old(tmp_path):
+    pages = {"gunpla": [[("1", "HG 가", 1)], [("2", "HG 나", 1)]], "girl-30mm": [[("4", "30MS 라", 1)]], "girl-figurerise": [[("5", "피규어라이즈 스탠다드 마", 1)]]}
+    doc, _, _ = local_scan(tmp_path, routes_for(pages, fail={("gunpla", 2)}))
+    assert doc["scan"]["complete"] is False and doc["lastTry"]["ok"] is False and sorted(doc["goods"]) == ["1", "4", "5"] and doc["blocked"] is False
+    # 아무것도 못 읽은 날(전부 500)은 이전 스냅샷 유지
+    r = routes_for({}, fail={(c["key"], 1) for c in config.MALL_CATEGORIES})
+    doc2, _, _ = local_scan(tmp_path, r, now=datetime(2026, 10, 7, 6, 30, tzinfo=config.KST))
+    assert doc2["goods"] == doc["goods"] and doc2["scan"] == doc["scan"] and doc2["lastTry"]["at"] == "2026-10-07T06:30:00+09:00" and doc2["lastTry"]["ok"] is False
+
+
+def test_run_local_robots_disallow_and_429_are_recorded_not_raised(tmp_path):
+    client, _, _ = make_client({config.MALL_BASE + "/robots.txt": "User-agent: *\nDisallow: /goods/\n"})
+    doc = mall_scan.run_local(client, tmp_path, now=KST_NOW, out=lambda *_: None)
+    assert doc["blocked"] is False and "robots" in doc["lastTry"]["errors"][0]
+    r = routes_for({})
+    r[mall.list_url(config.MALL_CATEGORIES[0]["params"], 1)] = lambda u: (429, "slow down")
+    doc2, _, _ = local_scan(tmp_path, r)
+    assert doc2["blocked"] is True, "429도 차단으로 기록하고 멈춘다"
+
+
+def test_mall_scan_file_passes_the_schema_check(tmp_path):
+    from schema_check import check_mall_scan
+    pages = {"gunpla": [[("1", "HG 가", 1100, "시리즈 A")]], "girl-30mm": [[("4", "30MS 라", 400)]], "girl-figurerise": [[("5", "피규어라이즈 스탠다드 마", 500)]]}
+    doc, _, _ = local_scan(tmp_path, routes_for(pages))
+    assert check_mall_scan(doc) == []
+    r = routes_for({})
+    r[mall.list_url(config.MALL_CATEGORIES[0]["params"], 1)] = REJECTED
+    blocked, _, _ = local_scan(tmp_path, r)
+    assert check_mall_scan(blocked) == [] and blocked["blocked"] is True
+    assert check_mall_scan({**doc, "blocked": "yes"}) != [] and check_mall_scan({**doc, "scan": {**doc["scan"], "count": 99}}) != []
+
+
+def test_to_scan_reports_blocked_stale_and_missing_snapshot():
+    goods = {"1": {"name": "HG 가", "series": None, "price": 1000, "soldOut": False, "cate": "gunpla"}}
+    now = datetime(2026, 10, 6, 9, 0, tzinfo=config.KST)
+    scan, warns = mall_scan.to_scan(snap_doc(goods), now)
+    assert warns == [] and scan["at"] == SNAP and scan["stale"] is False and scan["ageDays"] == 0 and scan["complete"] is True
+    scan, warns = mall_scan.to_scan(snap_doc(goods, at="2026-09-28T06:30:00+09:00"), now)          # 8일
+    assert scan["stale"] is True and scan["ageDays"] == 8 and "8일 지남" in warns[0]
+    assert mall_scan.to_scan(snap_doc(goods, at="2026-09-29T06:30:00+09:00"), now)[0]["stale"] is False        # 정확히 7일은 아직 최신
+    scan, warns = mall_scan.to_scan(snap_doc(goods, blocked=True), now)
+    assert scan["blocked"] is True and "차단" in warns[0] and scan["goods"] == goods, "차단된 날도 마지막 스냅샷은 쓴다"
+    assert mall_scan.to_scan(snap_doc({}), now)[0] is None and "스냅샷이 없음" in mall_scan.to_scan(snap_doc({}), now)[1][-1]
+
+
+def test_cli_mall_local_flag_rules():
+    import main as cli
+    assert cli.parse_args(["--only", "mall", "--mall-local"]).mall_local is True
+    for bad in (["--mall-local"], ["--only", "mall,joyhobby", "--mall-local"], ["--only", "mall", "--mall-local", "--bootstrap"], ["--mall-dump", "x"]):
+        with pytest.raises(SystemExit):
+            cli.parse_args(bad)
 
 
 # ---------------------------------------------------------------- 이름 정리
@@ -370,35 +509,68 @@ def test_state_file_roundtrip_is_stable_and_valid(tmp_path):
     assert json.loads((tmp_path / config.MALL_FILE).read_text(encoding="utf-8"))["updatedAt"] == NOW, "바뀐 게 없으면 시각도 그대로"
 
 
-def test_pipeline_runs_mall_stage_links_and_writes_files(tmp_path, monkeypatch):
+def seed_linkable(tmp_path):
+    """가짜 호비사이트 항목(01_7001 HG 1/144 テスト機A)에 한국어 이름·엔 정가를 줘서(번역은 API 키가 없어 안 돈다) 몰 이름 `HG 테스트기A`(₩14,300 = ¥1,300 × 11)와 연결되게 한다."""
+    p = tmp_path / "catalog-gunpla.json"
+    doc = json.loads(p.read_text(encoding="utf-8"))
+    it = next(i for i in doc["items"] if i["id"] == "bh-01_7001")
+    it.update(nameKo="HG 1/144 테스트기A", priceJpy=1300)
+    p.write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
+    return it["id"]
+
+
+def all_items(tmp_path):
+    return {i["id"]: i for f in ("catalog-gunpla.json", "catalog-girl.json") for i in read(tmp_path, f)["items"]}
+
+
+def test_pipeline_applies_snapshot_without_any_mall_request_and_same_snapshot_changes_nothing(tmp_path):
     w = World()
-    pages = {"gunpla": [[("100", "HG 테스트기A", 14300, "수성의 마녀 테스트")]], "girl-30mm": [[("200", "30MS 다른 상품", 4000)]], "girl-figurerise": [[("300", "피규어라이즈 스탠다드 어떤 상품", 5000)]]}
-    orig = World.routes
-    monkeypatch.setattr(World, "routes", lambda self: {**orig(self), **routes_for(pages)})
-    res, client, sess, lines = go(w, tmp_path, Options(bootstrap=True, from_month="2026-09", max_new=5, max_backlog=5))
+    goods = {"100": good("HG 테스트기A", 14300, "수성의 마녀 테스트"), "200": good("30MS 다른 상품", 4000)}
+    go(w, tmp_path, Options(bootstrap=True, from_month="2026-09", max_new=5, max_backlog=5))          # 카탈로그를 먼저 만든다 (이때는 스냅샷이 없다)
+    cid = seed_linkable(tmp_path)
+    write_snap(tmp_path, snap_doc(goods))
+    res, client, sess, lines = go(w, tmp_path, Options(max_new=5, max_backlog=5))
     assert check_dir(tmp_path) == []
     src = res["meta"]["sources"]["mall"]
-    assert src["ok"] is True and src["goods"] == 3 and src["requests"] == 3 and src["complete"] is True
-    mall_urls = [c["url"] for c in sess.calls if "bnkrmall" in c["url"]]
-    assert 0 < len([u for u in mall_urls if "category.do" in u]) <= config.MALL_MAX_REQUESTS and not any("cdn." in u or "detail.do" in u for u in mall_urls)
+    assert src["ok"] is True and src["goods"] == 2 and src["complete"] is True and src["snapshotAt"] == SNAP and src["snapshotAgeDays"] == 0 and src["stale"] is False and src["blocked"] is False
+    assert not [c for c in sess.calls if "bnkrmall" in c["url"]], "Actions는 몰에 요청하지 않는다 (방화벽이 클라우드 IP를 막는다)"
     assert (tmp_path / config.MALL_FILE).exists() and any(l.startswith("[몰]") for l in lines)
-    cat = read(tmp_path, "catalog-gunpla.json")["items"]
-    assert not any("priceKrw" in i for i in cat) or all(i["priceKrw"] == 14300 for i in cat if "priceKrw" in i)
+    it = all_items(tmp_path)[cid]
+    assert (it["priceKrw"], it["priceKrwAt"], it["mallGno"]) == (14300, SNAP, "100"), "확인 시각은 실행 시각이 아니라 PC가 몰을 읽은 스냅샷 시각"
+    names = ("mall.json", "catalog-gunpla.json", "catalog-girl.json")
+    before = {n: (tmp_path / n).read_bytes() for n in names}
+    res2, _, sess2, _ = go(w, tmp_path, Options(max_new=5, max_backlog=5), now=PIPE_NOW + timedelta(hours=3))        # 같은 스냅샷으로 다시 실행
+    assert {n: (tmp_path / n).read_bytes() for n in names} == before, "같은 스냅샷이면 mall.json·카탈로그가 바뀌지 않는다"
+    assert res2["meta"]["sources"]["mall"]["ok"] is True and not [c for c in sess2.calls if "bnkrmall" in c["url"]]
 
 
-def test_pipeline_mall_failure_does_not_stop_other_sources(tmp_path, monkeypatch):
+def test_pipeline_without_snapshot_blocked_or_stale_warns_and_does_not_end_goods(tmp_path):
     w = World()
-    r = w.routes()
-    r[config.MALL_BASE + "/robots.txt"] = ROBOTS
-    for cat in config.MALL_CATEGORIES:
-        r[mall.list_url(cat["params"], 1)] = "<html><body>개편</body></html>"
-    monkeypatch.setattr(World, "routes", lambda self: r)
     res, *_ = go(w, tmp_path, Options(bootstrap=True, from_month="2026-09", max_new=5, max_backlog=5))
-    assert res["meta"]["sources"]["mall"]["ok"] is False and "구조" in res["meta"]["sources"]["mall"]["error"]
-    diag = res["meta"]["sources"]["mall"]["diag"]                  # meta에 응답 요약이 남는다 (HTTP 상태·최종 URL·크기·title·본문 앞부분)
-    assert len(diag) == len(config.MALL_CATEGORIES) and diag[0]["status"] == 200 and diag[0]["head"] == "개편" and diag[0]["bytes"] > 0
-    assert read(tmp_path, "meta.json")["sources"]["mall"]["diag"] == diag
-    assert res["meta"]["sources"]["hobby_schedule"]["ok"] is True and check_dir(tmp_path) == []
+    m = res["meta"]["sources"]["mall"]
+    assert m["ok"] is False and "mall-scan.json 없음" in m["error"] and res["meta"]["sources"]["hobby_schedule"]["ok"] is True
+    goods = {"100": good("HG 테스트기A", 14300), "200": good("30MS 다른 상품", 4000)}
+    target = seed_linkable(tmp_path)
+    write_snap(tmp_path, snap_doc(goods))
+    go(w, tmp_path, Options(max_new=5, max_backlog=5))
+    assert all_items(tmp_path)[target].get("mallGno") == "100", "스냅샷이 연결되어야 아래 판정을 볼 수 있다"
+    rest = {k: v for k, v in goods.items() if k != "100"}
+    # PC가 차단된 날: 마지막 스냅샷을 그대로 쓰고, 경고가 meta에 남는다
+    write_snap(tmp_path, snap_doc(goods, blocked=True))
+    res2, *_ = go(w, tmp_path, Options(max_new=5, max_backlog=5), now=PIPE_NOW + timedelta(days=1))
+    m2 = res2["meta"]["sources"]["mall"]
+    assert m2["ok"] is False and m2["blocked"] is True and "차단" in m2["error"] and "mallEnded" not in all_items(tmp_path)[target]
+    # 스냅샷에서 연결된 상품이 빠졌어도 8일 지난 스냅샷이면 판매 종료로 판정하지 않는다 (경고 + 가격은 그대로, 사이트가 "가격 확인 날짜"를 보인다)
+    write_snap(tmp_path, snap_doc(rest, at="2026-09-28T06:30:00+09:00"))
+    res3, *_ = go(w, tmp_path, Options(max_new=5, max_backlog=5))
+    m3 = res3["meta"]["sources"]["mall"]
+    assert m3["ok"] is False and m3["stale"] is True and m3["snapshotAgeDays"] == 8 and "8일 지남" in m3["error"]
+    it = all_items(tmp_path)[target]
+    assert "mallEnded" not in it and it["priceKrw"] == 14300
+    # 대조: 같은 내용이 최신 스냅샷이면 판매 종료로 표시된다
+    write_snap(tmp_path, snap_doc(rest | {"300": good("HG 다른 새 상품", 100)}, at=SNAP))
+    go(w, tmp_path, Options(max_new=5, max_backlog=5))
+    assert all_items(tmp_path)[target].get("mallEnded") is True
 
 
 def test_only_mall_runs_just_the_mall_stage_and_robots_blocked_paths_are_not_requested():

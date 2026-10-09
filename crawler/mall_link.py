@@ -3,7 +3,7 @@
 mall.json
   goods: {gno: {name, series, price, soldOut, cate, first(YYYY-MM-DD), seen(YYYY-MM-DD)}}   몰 목록에서 읽은 상품. 연결 안 된 상품은 이번 스캔에 나온 것만 남긴다
   links: {gno: {catalogId, method(fuzzy|override), score, margin, nameOk, nameApplied, at}}  한 번 확실히 연결된 gno ↔ catalogId (다음 실행부터는 이름을 다시 비교하지 않는다)
-  scan:  {at, complete, requests, count}                                                        마지막 스캔 요약
+  scan:  {at(PC가 몰을 읽은 시각), complete, requests, count}                                    마지막 스냅샷 요약 (스캔은 PC가 mall-scan.json으로 올린다 — crawler/mall_scan.py)
 
 매 실행(link_all)
   1. MALL_OVERRIDES 적용 (강제 연결 / 연결 금지: 굳은 연결을 풀고 이름·시리즈·가격 필드를 되돌린다)
@@ -198,10 +198,10 @@ def _price_ok(good: dict, item: dict) -> bool:
     return lo <= good["price"] / jpy <= hi
 
 
-def _write_price(item: dict, good: dict, now_iso: str) -> bool:
-    """가격·품절 표시·mallGno. 값이 바뀐 것만 `updated`를 올린다(확인 시각 priceKrwAt은 매번 갱신)."""
+def _write_price(item: dict, good: dict, now_iso: str, price_at: str | None = None) -> bool:
+    """가격·품절 표시·mallGno. 값이 바뀐 것만 `updated`를 올린다. 확인 시각 priceKrwAt은 `price_at`(= PC가 몰을 읽은 스냅샷 시각, 없으면 now_iso)."""
     changed = item.get("priceKrw") != good["price"] or item.get("mallGno") != good["gno"] or bool(item.get("mallSoldOut")) != good["soldOut"] or bool(item.get("mallEnded"))
-    item["priceKrw"], item["priceKrwAt"], item["mallGno"] = good["price"], now_iso, good["gno"]
+    item["priceKrw"], item["priceKrwAt"], item["mallGno"] = good["price"], price_at or now_iso, good["gno"]
     if good["soldOut"]:
         item["mallSoldOut"] = True
     else:
@@ -221,7 +221,8 @@ def _apply_series(item: dict, series: str | None, now_iso: str) -> bool:
 
 
 # ---------------------------------------------------------------- 연결
-def link_all(state: MallState, catalog, seen: set[str], scan_complete: bool, now_iso: str, *, report_limit: int = 40) -> dict:
+def link_all(state: MallState, catalog, seen: set[str], scan_complete: bool, now_iso: str, *, report_limit: int = 40, price_at: str | None = None) -> dict:
+    """`scan_complete`: "몰에서 사라짐"을 판정해도 되는 스냅샷인가(정상으로 끝났고 너무 오래되지 않음). `price_at`: priceKrwAt에 쓸 스냅샷 시각 — 같은 스냅샷을 다시 적용해도 카탈로그가 바뀌지 않는다."""
     rep: dict = {"goods": len(state.goods), "seen": len(seen), "newLinks": [], "unlinked": [], "overrides": 0, "staleDropped": 0,
                  "nameChanged": [], "nameReverted": 0, "priceUpdated": 0, "ended": 0, "reasons": {}, "noName": 0}
     overrides = config.MALL_OVERRIDES
@@ -291,7 +292,7 @@ def link_all(state: MallState, catalog, seen: set[str], scan_complete: bool, now
         item = catalog.items[e["catalogId"]]
         if gno in seen and gno in state.goods:
             g = {**state.goods[gno], "gno": gno}
-            rep["priceUpdated"] += _write_price(item, g, now_iso)
+            rep["priceUpdated"] += _write_price(item, g, now_iso, price_at)
             if e.get("nameOk"):
                 mn = parse_mall_name(g["name"])
                 if not mn.core:

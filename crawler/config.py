@@ -17,7 +17,8 @@ FEED_FILE = "feed.json"
 COLLECTION_FILE = "collection.json"      # 사이트가 쓰는 내 컬렉션 — 크롤러는 읽기만 한다
 SERIES_FILE = "series-ko.json"          # seriesKey → 한국어 시리즈 사전 (크롤러만 씀, 4단계)
 META_FILE = "meta.json"
-MALL_FILE = "mall.json"                  # 반다이남코코리아몰 상품 목록 + gno ↔ catalogId 연결 (크롤러만 씀, 7a)
+MALL_FILE = "mall.json"                  # 반다이남코코리아몰 상품 목록 + gno ↔ catalogId 연결 (Actions만 씀, 7a)
+MALL_SCAN_FILE = "mall-scan.json"        # 몰 목록 스냅샷 (사용자 PC만 씀 — 몰 방화벽이 클라우드 IP를 막는다. Actions는 읽기만)
 SITE_URL = os.environ.get("SITE_URL") or "https://sora7942.github.io/plamo-hangar/"
 
 # ---------------------------------------------------------------- HTTP (CLAUDE.md Rules: robots 준수, 1.2초 이상, timeout 20, 브라우저형 UA)
@@ -69,6 +70,7 @@ MALL_MAX_REQUESTS = 20            # 실행당 요청 상한 (robots.txt 포함).
 MALL_MAX_PAGES = 12               # 카테고리 하나의 쪽수 안전 상한
 MALL_PRICE_RATIO = (9.5, 12.5)    # 몰 판매가(원) ÷ 호비 정가(엔, 세금 포함)의 정상 범위. 밖이면 이름이 비슷해도 연결하지 않는다(세트 구성·분류가 다른 상품).
                                   # 2026-10 첫 실행에서 연결된 63개가 모두 10.91(= 12 ÷ 1.1)이었다 — 어긋나면 틀린 연결을 의심한다
+MALL_STALE_DAYS = 7               # PC 스냅샷이 이보다 오래되면 "판매 종료" 판정을 하지 않고 meta에 경고한다. 사이트도 같은 값(catalog.js STALE_DAYS)으로 "가격 확인 날짜"를 보인다
 MALL_ENDED_MIN_RATIO = 0.5        # 이번 스캔이 이전 스캔 상품 수의 이 비율 미만이면 목록이 비정상으로 보고 "사라짐" 판정을 하지 않는다
 # 사람이 고치는 표: 몰 상품번호(gno) → 카탈로그 id(강제 연결) 또는 None(연결 금지).
 # None이면 굳은 연결을 풀고 그 상품이 바꿔 놓은 nameKo·seriesKo·가격 필드를 되돌린다. 틀린 연결이 보이면 한 줄 추가한다.

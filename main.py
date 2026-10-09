@@ -7,6 +7,7 @@
     python main.py --bootstrap --from 2025-10 --data-dir /tmp/data   # 최초 채우기(범위를 줄여 확인용으로)
     python main.py --brand-backfill        # 2015년 이전 상품 채우기(목록 카드만, 커서로 이어 함)
     python main.py --translate-only --translate-max 1500   # 수집 없이 번역만 (밀린 번역을 한 번에 채울 때)
+    python main.py --only mall --mall-local   # (사용자 PC) 몰 목록만 읽어 docs/data/mall-scan.json만 쓴다. Actions는 이 파일을 읽어 연결한다
     python main.py --discord-test          # 수집 없이 디스코드 테스트 알림 1건(feed.json 최근 3개). docs/data는 바꾸지 않는다. --dry-run이면 내용만 출력
 """
 from __future__ import annotations
@@ -39,7 +40,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap.add_argument("--brand-backfill", action="store_true", help="2015년 이전 상품 채우기: 건프라 등급 브랜드 목록(hg·hguc·mg·rg·mgsd·sd 계열)을 전체 쪽수로 훑는다. 커서로 이어 하고, 알림 없음")
     ap.add_argument("--translate-only", action="store_true", help="수집 없이 번역 단계만 실행한다 (--only translate와 같다). 상한은 --translate-max")
     ap.add_argument("--translate-max", type=int, default=config.TRANSLATE_MAX_PER_RUN, help=f"이번 실행에서 번역할 항목 수 상한 (기본 {config.TRANSLATE_MAX_PER_RUN}, 최신 발매순)")
-    ap.add_argument("--mall-dump", type=Path, default=None, metavar="DIR", help="몰 단계가 받은 목록 응답 HTML과 summary.json을 이 폴더에 저장한다 (Actions mall_debug 진단용, 커밋하지 않음)")
+    ap.add_argument("--mall-local", action="store_true", help="사용자 PC에서 몰 목록만 읽어 docs/data/mall-scan.json만 쓴다 (--only mall 필요). 카탈로그·mall.json은 건드리지 않는다. 차단 응답이 오면 blocked:true로 기록하고 멈춘다. --dry-run이면 파일을 쓰지 않는다")
+    ap.add_argument("--mall-dump", type=Path, default=None, metavar="DIR", help="--mall-local 때 받은 목록 응답 HTML과 summary.json을 이 폴더에 저장한다 (진단용, 커밋하지 않음)")
     ap.add_argument("--discord-test", action="store_true", help="수집 없이 디스코드 테스트 알림 1건만 보낸다 (feed.json 최근 3개, 내 프라 연결 항목 포함)")
     args = ap.parse_args(argv)
     if args.from_month and not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", args.from_month):
@@ -52,6 +54,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ap.error("--max-new/--max-backlog는 0 이상이어야 합니다")
     if args.joy_pages is not None and args.joy_pages < 1:
         ap.error("--joy-pages는 1 이상이어야 합니다")
+    if args.mall_local and (args.only != "mall" or args.bootstrap or args.translate_only or args.brand_backfill or args.discord_test or args.from_month or args.joy_pages is not None):
+        ap.error("--mall-local은 --only mall 하나와만 함께 씁니다 (python main.py --only mall --mall-local)")
+    if args.mall_dump and not args.mall_local:
+        ap.error("--mall-dump는 --mall-local과 함께 씁니다")
     if args.discord_test and (args.bootstrap or args.only or args.from_month or args.joy_pages is not None):
         ap.error("--discord-test는 수집 옵션(--bootstrap, --only, --from, --joy-pages)과 함께 쓸 수 없습니다")
     if args.brand_backfill and (args.bootstrap or args.only or args.discord_test):
@@ -107,13 +113,18 @@ def main(argv: list[str] | None = None) -> int:
         from crawler import discord_test
         return discord_test.run(args.data_dir or config.DATA_DIR, dry_run=args.dry_run)
 
+    if args.mall_local:                                            # 몰은 클라우드 IP를 막는다 → PC에서 목록만 읽어 mall-scan.json만 쓴다
+        from crawler import mall_scan
+        mall_scan.run_local(HttpClient(log_path=config.REQUEST_LOG), args.data_dir or config.DATA_DIR, dump_dir=args.mall_dump, dry_run=args.dry_run)
+        return 0                                                   # 차단·실패도 기록으로 남기는 정상 종료 (예외만 비정상)
+
     opts = Options(
         dry_run=args.dry_run, no_discord=args.no_discord,
         only={"translate"} if args.translate_only else {s.strip() for s in args.only.split(",") if s.strip()} if args.only else None,
         bootstrap=args.bootstrap, from_month=args.from_month,
         max_new=args.max_new, max_backlog=args.max_backlog, joy_pages=args.joy_pages,
         data_dir=args.data_dir or config.DATA_DIR, report_dir=config.REQUEST_LOG.parent, brand_backfill=args.brand_backfill,
-        translate_max=args.translate_max, mall_dump=args.mall_dump,
+        translate_max=args.translate_max,
     )
     opts.stages()                                                  # 잘못된 --only는 여기서 바로 실패
     http = HttpClient(log_path=config.REQUEST_LOG)

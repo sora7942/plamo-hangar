@@ -26,10 +26,20 @@ _GNO_RX = re.compile(r"gno=(\d+)")
 _PAGE_RX = re.compile(r"pageLink\('(\d+)'\)")
 _PRICE_RX = re.compile(r"[\d,]+")
 _SOLDOUT_RX = re.compile(r"품절|sold[\s_-]?out", re.I)
+# 웹 방화벽 차단 페이지 ("Request Rejected / Your support ID is …", 200으로 오는 수백 바이트짜리). Actions(클라우드 IP)에서 실제로 받았다 (2026-10)
+_BLOCK_RX = re.compile(r"Request Rejected|support ID|Access Denied|Forbidden", re.I)
 
 
 class MallStructureError(Exception):
     """목록 HTML이 예상한 구조가 아니다 (사이트 개편 등)."""
+
+
+def looks_blocked(res: Fetched) -> bool:
+    """방화벽 차단 응답인가: 403/429, 또는 짧은 본문에 차단 문구가 있고 상품 줄이 없다. (정상 목록은 200KB 안팎이고 `data-childno`가 있다)"""
+    if res.status in (403, 429):
+        return True
+    text = res.text or ""
+    return len(text) < 3000 and "data-childno" not in text and bool(_BLOCK_RX.search(text))
 
 
 def list_url(params: dict[str, str], page: int) -> str:
@@ -89,14 +99,17 @@ def describe(res: Fetched, where: str) -> dict:
 def scan(http: HttpClient, categories: list[dict] | None = None, *, max_requests: int | None = None, dump_dir: Path | None = None) -> dict:
     """모든 카테고리의 목록을 쪽마다 받는다. → {goods: {gno: {name, series, price, soldOut, cate}}, requests, complete, errors, pages, diag}.
     한 카테고리가 실패해도 다음 카테고리는 계속한다. 요청 상한에 닿으면 멈추고 complete=False.
-    `diag`: 실패한 쪽마다 `describe()` 요약. `dump_dir`(디버그 실행): 받은 응답 본문을 `<카테고리>-p<쪽>.html`로, 요약을 `summary.json`으로 저장한다(저장소에는 커밋하지 않는다)."""
+    `diag`: 실패한 쪽마다 `describe()` 요약. `results`: 쪽별 결과 [{where, status, ok, bytes}].
+    `blocked`: 방화벽 차단 응답(`looks_blocked`)을 받았다 — **그 자리에서 전체 스캔을 멈춘다**(다시 시도하지 않고, 다른 카테고리도 두드리지 않는다. 헤더 위장·우회 없음). `dump_dir`(디버그 실행): 받은 응답 본문을 `<카테고리>-p<쪽>.html`로, 요약을 `summary.json`으로 저장한다(저장소에는 커밋하지 않는다)."""
     categories = config.MALL_CATEGORIES if categories is None else categories
     cap = config.MALL_MAX_REQUESTS if max_requests is None else max_requests
-    out: dict = {"goods": {}, "requests": 0, "complete": True, "errors": [], "pages": {}, "diag": []}
+    out: dict = {"goods": {}, "requests": 0, "complete": True, "errors": [], "pages": {}, "diag": [], "results": [], "blocked": False}
     responses: list[dict] = []
     if dump_dir is not None:
         Path(dump_dir).mkdir(parents=True, exist_ok=True)
     for cat in categories:
+        if out["blocked"]:
+            break
         page, last = 1, 1
         while page <= last:
             if out["requests"] >= cap:
@@ -109,6 +122,12 @@ def scan(http: HttpClient, categories: list[dict] | None = None, *, max_requests
             if dump_dir is not None:
                 (Path(dump_dir) / f"{cat['key']}-p{page}.html").write_text(res.text or "", encoding="utf-8")
                 responses.append(describe(res, where))
+            out["results"].append({"where": where, "status": res.status, "ok": res.ok, "bytes": res.size})
+            if looks_blocked(res):
+                out["complete"], out["blocked"] = False, True
+                out["errors"].append(f"{where}: 차단 응답(HTTP {res.status}, {res.size}바이트) — 다시 시도하지 않고 멈춤")
+                out["diag"].append(describe(res, where))
+                break
             if not res.ok:
                 out["complete"] = False
                 out["errors"].append(f"{where}: HTTP {res.status}" if res.error is None else f"{where}: {res.error}")

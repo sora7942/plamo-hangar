@@ -225,6 +225,28 @@ def check_mall(doc: dict) -> list[str]:
     return errs
 
 
+def check_mall_scan(doc: dict) -> list[str]:
+    """PC가 쓰는 mall-scan.json (crawler/mall_scan.py)."""
+    errs = []
+    if not ISO_KST.match(str(doc.get("updatedAt", ""))):
+        errs.append("updatedAt 형식")
+    if not isinstance(doc.get("blocked"), bool):
+        errs.append("blocked는 bool")
+    last, scan, goods = doc.get("lastTry"), doc.get("scan"), doc.get("goods")
+    if not (isinstance(last, dict) and ISO_KST.match(str(last.get("at", ""))) and isinstance(last.get("ok"), bool) and isinstance(last.get("blocked"), bool)
+            and isinstance(last.get("results"), list) and isinstance(last.get("errors"), list)):
+        errs.append("lastTry 형식")
+    if not isinstance(goods, dict) or not isinstance(scan, dict):
+        return errs + ["scan/goods는 객체여야 함"]
+    if goods and not (ISO_KST.match(str(scan.get("at", ""))) and isinstance(scan.get("complete"), bool) and scan.get("count") == len(goods)):
+        errs.append(f"scan 형식 {scan!r}")
+    for gno, g in goods.items():
+        if not (re.fullmatch(r"\d+", gno) and isinstance(g.get("name"), str) and g["name"] and isinstance(g.get("price"), int) and g["price"] > 0
+                and isinstance(g.get("soldOut"), bool) and g.get("cate") and (g.get("series") is None or isinstance(g["series"], str))):
+            errs.append(f"goods[{gno}] 형식 {g!r}")
+    return errs
+
+
 def check_dir(d: Path) -> list[str]:
     d = Path(d)
     errs = []
@@ -238,6 +260,8 @@ def check_dir(d: Path) -> list[str]:
         errs += [f"kr-arrivals.json: {e}" for e in check_arrivals(json.loads((d / "kr-arrivals.json").read_text(encoding="utf-8")))]
     if (d / "mall.json").exists():
         errs += [f"mall.json: {e}" for e in check_mall(json.loads((d / "mall.json").read_text(encoding="utf-8")))]
+    if (d / "mall-scan.json").exists():
+        errs += [f"mall-scan.json: {e}" for e in check_mall_scan(json.loads((d / "mall-scan.json").read_text(encoding="utf-8")))]
     if (d / "series-ko.json").exists():
         errs += [f"series-ko.json: {e}" for e in check_series(json.loads((d / "series-ko.json").read_text(encoding="utf-8")))]
     for name, fn in (("feed.json", check_feed), ("meta.json", check_meta)):

@@ -412,6 +412,22 @@ const renamed = C.build([{ items: [
   raw('bh-r3', { nameKo: 'HG 1/144 완전히 다른 기체', nameJa: 'HG 1/144 別の機体' }),
 ] }], null);
 
+
+test('정가: 몰 가격 확인이 7일보다 오래되면 "가격 확인 날짜"를 덧붙인다 (today를 줄 때만, 판매 종료·엔 정가에는 붙이지 않는다)', () => {
+  const base = { id: 'bh-1', url: 'https://bandai-hobby.net/item/01_1/', line: 'gunpla', grade: 'HG', scale: '1/144', nameKo: 'HG 1/144 테스트', priceJpy: 4950, release: {}, kr: [], images: [] };
+  const norm = (o) => C.normalizeItem({ ...base, ...o });
+  const mall = { priceKrw: 46800, priceKrwAt: '2026-10-01T06:30:00+09:00', mallGno: '58992' };
+  assert.equal(C.priceInfo(norm(mall)).note, '', 'today를 안 주면 오래됨 판정을 하지 않는다');
+  assert.equal(C.priceInfo(norm(mall), '2026-10-08').stale, false, '정확히 7일은 아직 최신');
+  assert.equal(C.priceInfo(norm(mall), '2026-10-08').note, '');
+  const old = C.priceInfo(norm(mall), '2026-10-09');
+  assert.equal(old.stale, true); assert.equal(old.note, '가격 확인 2026-10-01'); assert.equal(old.amount, '₩46,800'); assert.ok(old.url, '링크는 그대로');
+  assert.equal(C.priceInfo(norm({ ...mall, mallSoldOut: true }), '2026-10-20').note, '품절 · 가격 확인 2026-10-01');
+  const ended = C.priceInfo(norm({ ...mall, mallEnded: true }), '2026-10-20');
+  assert.equal(ended.stale, false); assert.equal(ended.note, '판매 종료(마지막 확인 2026-10-01)');
+  assert.equal(C.priceInfo(norm({}), '2026-10-20').kind, 'jpy');
+  assert.equal(C.priceInfo(norm({ priceKrw: 46800, mallGno: '58992' }), '2026-10-20').stale, false, '확인 시각을 모르면 오래됨으로 보지 않는다');
+});
 test('검색: 몰 이름에 없는 모델번호·옛 표기도 nameKoAi·nameKoJoy로 찾고, 현재 이름 일치가 더 앞선다', () => {
   assert.equal(C.search(renamed, 'MSN-04').results[0].id, 'bh-r1', '모델번호는 AI 번역·조이하비 이름에 남아 있다');
   assert.equal(C.search(renamed, '샤아 전용').results[0].id, 'bh-r1', '조이하비 이름의 낱말');

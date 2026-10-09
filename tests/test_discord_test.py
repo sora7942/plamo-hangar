@@ -148,18 +148,14 @@ def test_workflow_has_discord_test_input_and_skips_commit_for_it():
     crawl, commit = steps["Crawl"], steps["Commit data"]
     assert crawl["env"]["DISCORD_TEST"] == "${{ inputs.discord_test }}"
     assert "python main.py --discord-test" in crawl["run"] and crawl["run"].index("--discord-test") < crawl["run"].index("args=()")
-    assert commit["if"] == "${{ !inputs.discord_test && !inputs.mall_debug }}"      # 테스트 알림·몰 진단 실행은 커밋하지 않는다
+    assert commit["if"] == "${{ !inputs.discord_test }}"                            # 테스트 실행은 커밋하지 않는다
     assert "DISCORD_WEBHOOK_URL" in crawl["env"] and "secrets.DISCORD_WEBHOOK_URL" in crawl["env"]["DISCORD_WEBHOOK_URL"]
 
 
-def test_workflow_mall_debug_runs_only_mall_uploads_html_and_never_commits():
+
+def test_workflow_never_requests_mall_and_never_commits_the_pc_snapshot():
     wf = yaml.safe_load((config.ROOT / ".github" / "workflows" / "crawl.yml").read_text(encoding="utf-8"))
-    inp = wf[True]["workflow_dispatch"]["inputs"]["mall_debug"]
-    assert inp["type"] == "boolean" and inp["default"] is False
-    steps = {s.get("name"): s for s in wf["jobs"]["crawl"]["steps"]}
-    crawl, up = steps["Crawl"], steps["Upload mall debug"]
-    assert crawl["env"]["MALL_DEBUG"] == "${{ inputs.mall_debug }}"
-    run = crawl["run"]
-    assert "python main.py --only mall --dry-run --mall-dump crawler/out/mall-debug" in run and run.index("--mall-dump") < run.index("args=()")
-    assert up["uses"].startswith("actions/upload-artifact@") and up["with"]["retention-days"] == 3 and up["with"]["path"] == "crawler/out/mall-debug"
-    assert "inputs.mall_debug" in up["if"] and "!inputs.mall_debug" in steps["Commit data"]["if"]
+    assert "mall_debug" not in wf[True]["workflow_dispatch"]["inputs"]
+    commit = {s.get("name"): s for s in wf["jobs"]["crawl"]["steps"]}["Commit data"]["run"]
+    assert "mall-scan" not in commit, "mall-scan.json은 사용자 PC만 커밋한다 (Actions의 허용 목록에 넣지 않는다)"
+    assert "series-ko mall; do" in commit and "|mall)\.json$" in commit      # mall.json(연결 상태)은 Actions가 커밋하고, 그 밖의 mall-scan.json이 staged면 허용 목록 검사가 실패한다

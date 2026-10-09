@@ -18,6 +18,7 @@ import requests
 from . import config, discord, feed, kr, mall_link, mine, series, translate
 from .catalog import Catalog
 from .http import Blocked, HttpClient, SourceAborted
+from . import mall_scan
 from .sources import hobby_brand, hobby_item, hobby_schedule, joyhobby, mall
 from .store import iso, now_kst, read_json, write_json
 
@@ -43,7 +44,6 @@ class Options:
     translate_max: int = config.TRANSLATE_MAX_PER_RUN    # 이번 실행에서 번역할 항목 수 상한 (--translate-max)
     data_dir: Path = field(default_factory=lambda: config.DATA_DIR)
     report_dir: Path | None = None          # 조이하비 전체 보고서(joy-report.json)를 쓸 폴더. None이면 쓰지 않는다
-    mall_dump: Path | None = None           # 몰 목록 응답 HTML을 저장할 폴더 (Actions mall_debug용 진단). None이면 저장하지 않는다
 
     def stages(self) -> set[str]:
         if self.only is None and self.brand_backfill:
@@ -285,10 +285,14 @@ def stage_joyhobby(ctx: _Ctx) -> tuple[int, list[str]]:
 
 
 def stage_mall(ctx: _Ctx) -> tuple[int, list[str]]:
-    """반다이남코코리아몰 목록(건프라·걸프라 카테고리)을 읽는다. 연결·가격 반영은 run()에서 조이하비 연결 뒤에 한다. → (읽은 상품 수, 오류들)."""
-    res = mall.scan(ctx.http, dump_dir=ctx.opts.mall_dump)
-    ctx.mall_scan = res
-    return len(res["goods"]), res["errors"]
+    """몰 스냅샷(`mall-scan.json`)을 읽는다 — **네트워크 요청 없음**(몰 방화벽이 클라우드 IP를 막아 사용자 PC가 `--mall-local`로 올린다).
+    연결·가격 반영은 run()에서 조이하비 연결 뒤에 한다. → (읽은 상품 수, 경고들: 차단·오래됨·스냅샷 없음)."""
+    doc = mall_scan.load(ctx.opts.data_dir)
+    if doc is None:
+        return 0, ["mall-scan.json 없음 — PC에서 python main.py --only mall --mall-local 실행 후 push 필요"]
+    scan, warns = mall_scan.to_scan(doc, ctx.now)
+    ctx.mall_scan = scan
+    return len((scan or {}).get("goods") or {}), warns
 
 
 STAGE_FUNCS = {"hobby_schedule": stage_schedule, "hobby_brand": stage_brand, "hobby_item": stage_item,
@@ -367,13 +371,16 @@ def run(opts: Options, http: HttpClient, *, now: datetime | None = None, anthrop
 
     if "mall" in stages and ctx.mall_scan is not None:       # 조이하비 이름 교체 뒤에 해야 몰 이름이 이긴다 (몰 > 조이하비 > AI)
         mall_state = mall_link.MallState.load(data_dir)
-        seen, healthy = mall_state.absorb(ctx.mall_scan, now_iso)
-        mall_rep = mall_link.link_all(mall_state, catalog, seen, healthy, now_iso)
+        snap_at = ctx.mall_scan["at"]                        # 스냅샷 시각 — 같은 스냅샷을 다시 흡수해도 상태가 바뀌지 않는다
+        seen, healthy = mall_state.absorb(ctx.mall_scan, snap_at)
+        # 스냅샷이 오래됐으면 "몰에서 사라짐"은 판정하지 않는다 (가격 확인 날짜는 priceKrwAt = 스냅샷 시각)
+        mall_rep = mall_link.link_all(mall_state, catalog, seen, healthy and not ctx.mall_scan["stale"], now_iso, price_at=snap_at)
         mall_state.save(data_dir, now_iso)
         sources["mall"].update({"goods": len(mall_state.goods), "seen": len(seen), "links": len(mall_state.links), "newLinks": len(mall_rep["newLinks"]),
                                 "nameChanged": len(mall_rep["nameChanged"]), "ended": mall_rep["ended"], "complete": healthy,
-                                "requests": ctx.mall_scan["requests"], "pages": ctx.mall_scan["pages"]})
-        if ctx.mall_scan["diag"]:                         # 실패한 쪽의 응답 요약 (HTTP 상태·최종 URL·크기·title·본문 앞부분). 성공한 실행에서는 이전 값이 사라진다
+                                "requests": ctx.mall_scan["requests"], "pages": ctx.mall_scan["pages"],
+                                "snapshotAt": snap_at, "snapshotAgeDays": ctx.mall_scan["ageDays"], "stale": ctx.mall_scan["stale"], "blocked": ctx.mall_scan["blocked"]})
+        if not sources["mall"]["ok"] and ctx.mall_scan["diag"]:       # PC 수집이 실패한 쪽의 응답 요약 (HTTP 상태·최종 URL·크기·title·본문 앞부분)
             sources["mall"]["diag"] = ctx.mall_scan["diag"]
         _report_mall(out, mall_rep, mall_state, ctx.mall_scan, opts.report_dir, catalog)
 
