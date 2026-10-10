@@ -1,19 +1,19 @@
 {
-"updatedAt":"2026-10-09T16:52:51+09:00",
+"updatedAt":"2026-10-10T10:43:09+09:00",
 "since":"2024-01-04",
-"sources":{"hobby_schedule":{"ok":true,"at":"2026-10-09T16:52:51+09:00","items":91,"error":null},"hobby_brand":{"ok":true,"at":"2026-10-09T16:52:58+09:00","items":40,"error":null},"hobby_item":{"ok":true,"at":"2026-10-09T16:53:03+09:00","items":170,"error":null,"manual":{"requested":20,"added":20,"other":0,"unsupported":[],"failed":[]}},"translate":{"ok":true,"at":"2026-10-09T17:00:26+09:00","items":3,"error":null,"pending":0,"skipped":null,"model":"claude-sonnet-5-5","kanaRetried":0,"kanaRejected":0,"seriesDone":3,"seriesPending":0,"seriesSkipped":null},"joyhobby":{"ok":true,"at":"2026-10-09T17:00:16+09:00","items":0,"error":null,"posts":298,"postStates":{"done":99,"no-bd":193,"broken":6},"rows":2382,"codes":1260,"linkedCodes":345,"pagesScanned":2,"newPosts":0,"postsFetched":0,"postsBroken":0,"pendingLeft":0,"newLinks":0,"nameChanged":0,"krAdded":0},"hobby_backfill":{"ok":true,"at":"2026-10-09T00:59:25+09:00","items":3071,"error":null},"mall":{"ok":true,"at":"2026-10-09T17:00:20+09:00","items":1939,"error":null,"goods":1939,"seen":1939,"links":619,"newLinks":0,"nameChanged":0,"ended":0,"complete":true,"requests":49,"pages":{"gunpla":40,"girl-30mm":5,"girl-figurerise":4},"snapshotAt":"2026-10-09T15:44:06+09:00","snapshotAgeDays":0,"stale":false,"blocked":false}},
+"sources":{"hobby_schedule":{"ok":true,"at":"2026-10-10T10:43:09+09:00","items":91,"error":null},"hobby_brand":{"ok":true,"at":"2026-10-10T10:43:15+09:00","items":40,"error":null},"hobby_item":{"ok":true,"at":"2026-10-10T10:43:18+09:00","items":154,"error":null,"manual":{"requested":5,"added":5,"other":0,"unsupported":[],"failed":[]}},"translate":{"ok":true,"at":"2026-10-10T10:49:45+09:00","items":7,"error":null,"pending":0,"skipped":null,"model":"claude-sonnet-5-5","kanaRetried":0,"kanaRejected":0,"seriesDone":0,"seriesPending":0,"seriesSkipped":null},"joyhobby":{"ok":true,"at":"2026-10-10T10:49:38+09:00","items":0,"error":null,"posts":298,"postStates":{"done":99,"no-bd":193,"broken":6},"rows":2382,"codes":1260,"linkedCodes":345,"pagesScanned":2,"newPosts":0,"postsFetched":0,"postsBroken":0,"pendingLeft":0,"newLinks":0,"nameChanged":0,"krAdded":0},"hobby_backfill":{"ok":true,"at":"2026-10-09T00:59:25+09:00","items":3071,"error":null},"mall":{"ok":true,"at":"2026-10-10T10:49:41+09:00","items":1939,"error":null,"goods":1939,"seen":1939,"links":619,"newLinks":0,"nameChanged":0,"ended":0,"complete":true,"requests":49,"pages":{"gunpla":40,"girl-30mm":5,"girl-figurerise":4},"snapshotAt":"2026-10-09T15:44:06+09:00","snapshotAgeDays":1,"stale":false,"blocked":false}},
 "crawl":{
 "scheduleFrom":"2015-01",
 "girlBrandsDone":["30ms","30mp","figurerise-standard","figurerise-standard-amp"],
-"backlog":2239,
-"counts":{"gunpla":2963,"girl":389,"pending":709,"excluded":735},
-"lastFixups":{"toExcluded":0,"lineChanged":0,"nameKoReplaced":0,"strayHanReset":0,"glossaryReset":0,"seriesKoApplied":32,"feedTitleKoReplaced":0},
+"backlog":2085,
+"counts":{"gunpla":2970,"girl":389,"pending":576,"excluded":861},
+"lastFixups":{"toExcluded":0,"lineChanged":0,"nameKoReplaced":0,"strayHanReset":0,"glossaryReset":0,"seriesKoApplied":22,"feedTitleKoReplaced":0},
 "joyNext":21,
 "joyOldest":"2024-01-04",
 "joyDone":true,
 "brandBackfill":{"hg":{"next":144,"last":143,"done":true},"hguc":{"next":38,"last":37,"done":true},"hgce":{"next":4,"last":3,"done":true},"hg-c":{"next":21,"last":20,"done":true},"mg":{"next":58,"last":57,"done":true},"mgka":{"next":7,"last":6,"done":true},"rg":{"next":20,"last":19,"done":true},"mgsd":{"next":3,"last":2,"done":true},"sdgundamseries":{"next":21,"last":20,"done":true},"sdcs":{"next":6,"last":5,"done":true},"sdex":{"next":2,"last":1,"done":true}},
 "glossaryApplied":{"ディランザ":"딜란자","グエル":"구엘","スレッタ":"슬레타","ミオリネ":"미오리네","カラー":"컬러","ガンダム":"건담","エアリアル":"에어리얼","シャイニング":"샤이닝","クシャトリヤ":"크샤트리아","サザビー":"사자비","キュベレイ":"큐베레이","ジオング":"지옹","ベギルベウ":"베귀르베우","ドム・トローペン":"돔 트로펜","ゲルググ":"겔구그","シャア":"샤아","マグナガルルモン":"매그너가루몬","アンプリファイド":"Amplified","パリトン":"파리톤","ヴィダール":"비다르","クロス":"크로스","ナラティブ":"내러티브","スタンダード":"스탠다드","ジェガン":"제간","ティターンズ":"티탄즈","デストロイ":"디스트로이","ジークフリード":"지크프리드","クアンタ":"퀀터","メイレス":"메이레스","ジンクス":"진크스","プラカード":"플래카드","アクシズ":"액시즈","トールギス":"톨기스","ダンバイン":"단바인","ビギナ":"비기나","ドラグナー":"드라그너","バーザム":"바잠","シュトゥルムフォーゲル":"슈투름포겔","スペリオル":"슈페리어","ダガー":"대거","ハイゼンスレイ":"하이젠슬레이","ブラスト":"블라스트","ガーベラ":"가베라","ズゴック":"즈고크","ペーネロペー":"페넬로페","ルージュ":"루즈","レコンギスタ":"레콘기스타","ヴァーチェ":"버체","アシュタロン":"아슈타론","ゲイレール":"게이레일","ヴァイエイト":"바이에이트","ベギルペンデ":"베귀르펜테","バルバトス":"발바토스"}
 },
-"stats":{"requests":182,"byKind":{"robots":2,"schedule":4,"brand":4,"detail":170,"list":2},"failures":0,"elapsedSec":456.5,"minGapSec":1.2},
+"stats":{"requests":166,"byKind":{"robots":2,"schedule":4,"brand":4,"detail":154,"list":2},"failures":0,"elapsedSec":396.7,"minGapSec":1.2},
 "unknownBrandKeys":[]
 }
