@@ -1,5 +1,5 @@
 {
-"updatedAt":"2026-10-15T09:28:52+09:00",
+"updatedAt":"2026-10-16T09:19:50+09:00",
 "items":{
 "activeraid":{"ja":"アクティヴレイド","ko":"액티브 레이드"},
 "age":{"ja":"機動戦士ガンダムAGE","ko":"기동전사 건담 AGE"},
@@ -59,12 +59,14 @@
 "patlabor":{"ja":"機動警察パトレイバーシリーズ","ko":"기동경찰 패트레이버 시리즈"},
 "requiem":{"ja":"機動戦士ガンダム 復讐のレクイエム","ko":"기동전사 건담 복수의 레퀴엠"},
 "rider":{"ja":"仮面ライダーシリーズ","ko":"가면라이더 시리즈"},
+"rogueorbit":{"ja":"GUNDAM ROGUE ORBIT","ko":"GUNDAM ROGUE ORBIT"},
 "sakugan":{"ja":"サクガン","ko":"사쿠간"},
 "sakura_wars":{"ja":"サクラ大戦","ko":"사쿠라대전"},
 "sdgundamworld_heroes":{"ja":"SDガンダムワールド ヒーローズ","ko":"SD 건담 월드 히어로즈"},
 "seed":{"ja":"機動戦士ガンダムSEED","ko":"기동전사 건담 SEED"},
 "seed-d":{"ja":"機動戦士ガンダムSEED DESTINY","ko":"기동전사 건담 SEED DESTINY"},
 "seed-freedom":{"ja":"機動戦士ガンダムSEED FREEDOM","ko":"기동전사 건담 SEED FREEDOM"},
+"seed-freedom-zero":{"ja":"機動戦士ガンダムSEED FREEDOM ZERO","ko":"기동전사 건담 SEED FREEDOM ZERO"},
 "sentinel":{"ja":"ガンダム・センチネル","ko":"건담 센티넬"},
 "shinsakura_wars":{"ja":"新サクラ大戦","ko":"신 사쿠라대전"},
 "soketsuden":{"ja":"三国創傑伝","ko":"삼국창걸전"},
