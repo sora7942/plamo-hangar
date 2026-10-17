@@ -1,6 +1,9 @@
 {
-"updatedAt":"2026-10-16T09:19:50+09:00",
+"updatedAt":"2026-10-17T09:23:20+09:00",
 "posts":{
+"139572":{"date":"2026-10-16","title":"10/16(토) 판매예정 반다이 제품리스트 안내","state":"done","sale":"2026-10-16","restock":false,"rows":4},
+"139571":{"date":"2026-10-16","title":"게임즈워크샵 워해머 키트 & 툴 입고안내","state":"no-bd","sale":null,"restock":false,"rows":0},
+"139570":{"date":"2026-10-16","title":"10/16(금) 굿스마일 피규어 신제품 입고안내","state":"no-bd","sale":"2026-10-16","restock":false,"rows":0},
 "139569":{"date":"2026-10-15","title":"코토부키야 프라모델/피규어 신제품 입고안내","state":"no-bd","sale":null,"restock":false,"rows":0},
 "139541":{"date":"2026-10-12","title":"10/13(화) 판매예정 반다이 제품 리스트","state":"done","sale":"2026-10-13","restock":true,"rows":44},
 "139506":{"date":"2026-10-02","title":"10/3(토) 판매예정 반다이 제품리스트 안내","state":"done","sale":"2026-10-03","restock":false,"rows":5},
@@ -660,6 +663,10 @@
 "BD5074307":{"catalogId":"bh-01_7141","method":"fuzzy","score":100.0,"margin":100.0,"nameOk":true,"nameApplied":false,"post":"139541","at":"2026-10-13T12:00:16+09:00"}
 },
 "rows":[
+{"post":"139572","postDate":"2026-10-16","code":"BD5059156","name":"[HGUC034] 1/144 가르마 자비 전용 자크2 (MS-06FS ZAKU II FS GARMA ZABI'S CUSTOM)(프라모델)","price":13200},
+{"post":"139572","postDate":"2026-10-16","code":"BD5064094","name":"[MG] 1/100 MSN-02 지옹(ZEONG) - 기동전사 건담(프라모델)","price":76800},
+{"post":"139572","postDate":"2026-10-16","code":"BD5057815","name":"[피규어라이즈스탠다드] 워그레이몬 앰플리파이드(WARGREYMON AMPLIFIED) - 디지몬 어드벤처()(프라모델)","price":44000},
+{"post":"139572","postDate":"2026-10-16","code":"BD5060441","name":"[포켓몬프라45] 셀릭트 시리즈 팬텀(Gengar)(프라모델)","price":11000},
 {"post":"139541","postDate":"2026-10-12","code":"BD5068577","name":"1/1 자쿠프라군 DX 세트(런너 VER. 재현파츠 부속) - 건프라군(프라모델)","price":11000},
 {"post":"139541","postDate":"2026-10-12","code":"BD5072003","name":"[HGCE263] 1/144 ZGMF-X666S 레전드 건담(LEGEND GUNDAM) - 기동전사 건담 시드 데스티니(프라모델)","price":30800},
 {"post":"139541","postDate":"2026-10-12","code":"BD5063527","name":"[HGGT05] 1/144 자쿠 I 건담 썬더볼트 애니 VER.(프라모델","price":24200},
