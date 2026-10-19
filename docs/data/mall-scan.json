@@ -1,8 +1,8 @@
 {
-"updatedAt":"2026-10-18T19:39:59+09:00",
+"updatedAt":"2026-10-19T10:23:03+09:00",
 "blocked":false,
 "lastTry":{
-"at":"2026-10-18T19:39:59+09:00",
+"at":"2026-10-19T10:23:03+09:00",
 "ok":true,
 "blocked":false,
 "complete":true,
@@ -12,7 +12,7 @@
 "errors":[],
 "diag":[]
 },
-"scan":{"at":"2026-10-18T19:39:59+09:00","complete":true,"requests":49,"count":1939},
+"scan":{"at":"2026-10-19T10:23:03+09:00","complete":true,"requests":49,"count":1939},
 "goods":{
 "12995":{"name":"HG 자쿠 워리어 라이브 콘서트 Ver.","series":"기동전사 건담 SEED DESTINY","price":12000,"soldOut":true,"cate":"gunpla"},
 "13004":{"name":"HGBC 빌드 부스터 마크 II","series":"건담 빌드 파이터즈","price":7200,"soldOut":true,"cate":"gunpla"},
