@@ -1,5 +1,5 @@
 {
-"updatedAt":"2026-10-18T08:59:37+09:00",
+"updatedAt":"2026-11-01T10:03:04+09:00",
 "items":[],
 "excluded":{
 "bh-01_1002":"brand:figurerise-bust",
@@ -1299,9 +1299,14 @@
 "bh-01_7286":"brand:plakoro",
 "bh-01_7319":"brand:plakoro",
 "bh-01_732":"brand:figurerise-effect",
+"bh-01_7320":"brand:plakoro",
+"bh-01_7321":"brand:plakoro",
+"bh-01_7322":"brand:plakoro",
 "bh-01_7327":"brand:gundam-assemble",
 "bh-01_7328":"brand:gundam-assemble",
+"bh-01_7329":"brand:gundam-assemble",
 "bh-01_733":"brand:figurerise-effect",
+"bh-01_7330":"brand:gundam-assemble",
 "bh-01_735":"brand:pokepla",
 "bh-01_7354":"brand:gundam_decal",
 "bh-01_7355":"brand:gundam_decal",
@@ -1312,6 +1317,14 @@
 "bh-01_736":"no-brand-key",
 "bh-01_7360":"brand:30mf",
 "bh-01_7361":"brand:30mf",
+"bh-01_7366":"brand:gundam_decal",
+"bh-01_7367":"brand:gundam_decal",
+"bh-01_7368":"brand:gundam_decal",
+"bh-01_7369":"brand:gundam_decal",
+"bh-01_7370":"brand:30mm",
+"bh-01_7371":"brand:30mm",
+"bh-01_7372":"brand:30mf",
+"bh-01_7373":"brand:30mf",
 "bh-01_738":"brand:geki-drive",
 "bh-01_740":"no-brand-key",
 "bh-01_741":"brand:geki-drive",
@@ -1436,6 +1449,8 @@
 "pb-item-1000244861":"title-no-match",
 "pb-item-1000245653":"title-no-match",
 "pb-item-1000245663":"title-no-match",
-"pb-item-1000251844":"title-no-match"
+"pb-item-1000251844":"title-no-match",
+"pb-item-1000256541":"title-no-match",
+"pb-item-1000257913":"title-no-match"
 }
 }

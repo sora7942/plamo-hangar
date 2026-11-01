@@ -1,6 +1,10 @@
 {
-"updatedAt":"2026-10-31T10:32:35+09:00",
+"updatedAt":"2026-11-01T10:03:04+09:00",
 "items":[
+{"id":"pb-new-item-1000260203","type":"pb-new","date":"2027-02","added":"2026-11-01T10:03:04+09:00","catalogId":"pb-item-1000260203","title":"RG スターガオガイガー","titleKo":"RG 스타가오가이가","url":"https://p-bandai.jp/item/item-1000260203/","image":null,"source":"bandai-hobby"},
+{"id":"bh-new-01_7434","type":"new","date":"2027-02","added":"2026-11-01T10:03:04+09:00","catalogId":"bh-01_7434","title":"HG 1/144 インフィニットジャスティスガンダム&ブースターユニット（仮）","titleKo":"HG 1/144 인피니트 저스티스 건담 & 부스터 유닛 (가칭)","url":"https://bandai-hobby.net/item/01_7434/","image":null,"source":"bandai-hobby"},
+{"id":"bh-new-01_7433","type":"new","date":"2027-02","added":"2026-11-01T10:03:04+09:00","catalogId":"bh-01_7433","title":"HG 1/144 バウバラム","titleKo":"HG 1/144 바우바람","url":"https://bandai-hobby.net/item/01_7433/","image":null,"source":"bandai-hobby"},
+{"id":"bh-new-01_7432","type":"new","date":"2027-02","added":"2026-11-01T10:03:04+09:00","catalogId":"bh-01_7432","title":"HG 1/144 ケリィース","titleKo":"HG 1/144 케리스","url":"https://bandai-hobby.net/item/01_7432/","image":null,"source":"bandai-hobby"},
 {"id":"jh-139666-BD5184110","type":"kr-new","date":"2026-10-31","added":"2026-10-31T10:32:35+09:00","catalogId":null,"title":"1/100 RX-99 네오 건담(NEO GUNDAM) - 기동전사 건담 실루엣 포뮬러91(프라모델)","titleKo":"1/100 RX-99 네오 건담","url":"https://www.joyhobby.co.kr/mall/board_view.asp?SiteID=joyhobby&BoardCode=notice&B_iID=139666","image":null,"source":"joyhobby"},
 {"id":"jh-139666-BD5184104","type":"kr-new","date":"2026-10-31","added":"2026-10-31T10:32:35+09:00","catalogId":null,"title":"[BB404] 레전드BB 무사건담 MK-Ⅲ(완타무진악참)(프라모델)","titleKo":"BB 레전드BB 무사건담 MK-III(완타무진악참)","url":"https://www.joyhobby.co.kr/mall/board_view.asp?SiteID=joyhobby&BoardCode=notice&B_iID=139666","image":null,"source":"joyhobby"},
 {"id":"jh-139666-BD5074295","type":"kr-new","date":"2026-10-31","added":"2026-10-31T10:32:35+09:00","catalogId":null,"title":"[포켓프라퀵29] 불꽃숭이(Chimchar) 포켓프라컬렉션 퀵(프라모델)","titleKo":"불꽃숭이 포켓프라컬렉션 퀵","url":"https://www.joyhobby.co.kr/mall/board_view.asp?SiteID=joyhobby&BoardCode=notice&B_iID=139666","image":null,"source":"joyhobby"},
